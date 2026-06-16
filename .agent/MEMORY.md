@@ -8,6 +8,7 @@ Store only stable, reusable admin knowledge here. Do not write temporary task no
 
 - This repository is the admin panel for Wide Web Blog.
 - Stack: Laravel 13, Livewire, Blade, Tailwind CSS.
+- The repository now contains a bootstrapped Laravel 13 application with Livewire 4 installed.
 - The UI system is shadcn/ui-inspired Blade and Livewire-compatible components.
 - This is not a React or Next.js application.
 - The service API owns business logic and persistence.
