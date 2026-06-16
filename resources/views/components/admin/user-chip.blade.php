@@ -29,7 +29,12 @@
                     @endif
                 </div>
 
-                <div class="pt-2">
+                <div class="space-y-1 pt-2">
+                    <div class="flex items-center justify-between rounded-[calc(var(--radius-button)-0.1rem)] px-3 py-2 text-sm text-[var(--color-muted)]">
+                        <span>Change Password</span>
+                        <span class="text-[10px] font-semibold uppercase tracking-[0.18em]">TBC</span>
+                    </div>
+
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button
