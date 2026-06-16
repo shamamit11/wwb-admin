@@ -1,80 +1,140 @@
 <div class="space-y-8">
-    <section class="grid gap-6 lg:grid-cols-3">
-        <x-admin.stat-card label="Runtime" value="Laravel 13" tone="accent">
-            <x-ui.badge tone="success">Installed</x-ui.badge>
+    @if ($dashboardError)
+        <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_24%,white)] bg-[color-mix(in_srgb,var(--color-warning)_10%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
+            {{ $dashboardError }}
+        </div>
+    @endif
+
+    <section class="grid gap-6 xl:grid-cols-4">
+        <x-admin.stat-card label="Recent Drafts" :value="(string) count($recentDrafts)" tone="accent">
+            <x-ui.badge tone="success">Live</x-ui.badge>
         </x-admin.stat-card>
-        <x-admin.stat-card label="Interactivity" value="Livewire 4" tone="soft">
-            <x-ui.badge tone="success">Mounted</x-ui.badge>
+        <x-admin.stat-card label="Recently Published" :value="(string) count($recentPublishedPosts)" tone="soft">
+            <x-ui.badge tone="success">Live</x-ui.badge>
         </x-admin.stat-card>
-        <x-admin.stat-card label="Component Direction" value="Blade UI" tone="default">
-            <x-ui.badge>Shadcn-inspired</x-ui.badge>
+        <x-admin.stat-card label="Topic Queue" value="TBC" tone="default">
+            <x-ui.badge tone="warning">Placeholder</x-ui.badge>
+        </x-admin.stat-card>
+        <x-admin.stat-card label="AI Jobs" value="TBC" tone="default">
+            <x-ui.badge tone="warning">Placeholder</x-ui.badge>
         </x-admin.stat-card>
     </section>
 
-    <section class="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.9fr)]">
-        <x-ui.card class="overflow-hidden">
+    <section class="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1.25fr)_minmax(320px,0.85fr)]">
+        <x-ui.card>
             <div class="space-y-6">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Current Scope</p>
-                    <ul class="mt-5 space-y-3 text-sm text-[var(--color-muted)]">
-                        <li class="flex items-start gap-3">
-                            <x-ui.badge tone="success" class="mt-0.5">Done</x-ui.badge>
-                            <span>Laravel 13 skeleton merged into the repo.</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <x-ui.badge tone="success" class="mt-0.5">Done</x-ui.badge>
-                            <span>Livewire installed and mounted through a full-page dashboard component.</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <x-ui.badge class="mt-0.5">Next</x-ui.badge>
-                            <span>Auth flow, API client layer, and reusable CRUD patterns.</span>
-                        </li>
-                    </ul>
+                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Recent Drafts</p>
+                    <h2 class="mt-3 text-xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">Continue editorial work already in motion.</h2>
+                    <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">
+                        Drafts are loaded from the current posts API using the documented draft status filter.
+                    </p>
                 </div>
 
-                <x-ui.separator />
+                @if ($recentDrafts === [])
+                    <x-ui.empty-state
+                        title="No recent drafts returned"
+                        message="Either there are no draft posts yet, or the service has not returned draft records for this account."
+                    >
+                        <x-ui.button as="a" :href="route('posts.index')" variant="outline">Open Posts</x-ui.button>
+                    </x-ui.empty-state>
+                @else
+                    <div class="space-y-3">
+                        @foreach ($recentDrafts as $post)
+                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_88%,white)] px-4 py-3">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-semibold text-[var(--color-ink)]">{{ $post['title'] }}</p>
+                                        <p class="mt-1 text-xs text-[var(--color-muted)]">
+                                            {{ $post['category'] ?: 'Uncategorized' }} · {{ $post['author'] ?: 'Unknown author' }}
+                                        </p>
+                                    </div>
+                                    <x-admin.status-badge :status="$post['status']" />
+                                </div>
+                                <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-[var(--color-muted)]">
+                                    <span>Updated {{ $post['updated_at'] ?: 'TBC' }}</span>
+                                    <span>Visibility {{ str($post['visibility'] ?: 'unknown')->headline() }}</span>
+                                    <span>{{ $post['word_count'] ? number_format($post['word_count']) : 'TBC' }} words</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </x-ui.card>
 
-                <div class="flex flex-wrap gap-3">
-                    <x-ui.button as="a" href="https://laravel.com/docs/13.x" target="_blank" rel="noreferrer">Laravel 13 Docs</x-ui.button>
-                    <x-ui.button as="a" href="https://livewire.laravel.com" target="_blank" rel="noreferrer" variant="secondary">Livewire Docs</x-ui.button>
+        <x-ui.card>
+            <div class="space-y-6">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Recently Published</p>
+                    <h2 class="mt-3 text-xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">Keep an eye on what just went live.</h2>
+                    <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">
+                        Published posts are loaded through the same posts API using the documented published status filter.
+                    </p>
                 </div>
 
-                <x-ui.separator />
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.field label="Search Pattern" hint="Illustrative field styling for the shared component system." for="search-pattern">
-                        <x-ui.input id="search-pattern" type="text" placeholder="posts, categories, templates..." />
-                    </x-ui.field>
-
-                    <x-ui.field label="Preferred Surface" hint="Use shared select primitives for structured admin forms." for="surface-style">
-                        <x-ui.select id="surface-style">
-                            <option>Table-first management</option>
-                            <option>Editor-first authoring</option>
-                        </x-ui.select>
-                    </x-ui.field>
-                </div>
-
-                <x-ui.field label="Implementation Note" hint="Textarea styling is ready for future editorial and SEO forms." for="implementation-note">
-                    <x-ui.textarea id="implementation-note" rows="4" placeholder="Blade-native shadcn-inspired system, no React components..."></x-ui.textarea>
-                </x-ui.field>
+                @if ($recentPublishedPosts === [])
+                    <x-ui.empty-state
+                        title="No recent published posts returned"
+                        message="The service has not returned published records yet, so review should continue in the posts module."
+                    >
+                        <x-ui.button as="a" :href="route('posts.index')" variant="outline">Review Posts</x-ui.button>
+                    </x-ui.empty-state>
+                @else
+                    <div class="space-y-3">
+                        @foreach ($recentPublishedPosts as $post)
+                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_88%,white)] px-4 py-3">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-semibold text-[var(--color-ink)]">{{ $post['title'] }}</p>
+                                        <p class="mt-1 text-xs text-[var(--color-muted)]">
+                                            {{ $post['category'] ?: 'Uncategorized' }} · {{ $post['author'] ?: 'Unknown author' }}
+                                        </p>
+                                    </div>
+                                    <x-admin.status-badge :status="$post['status']" />
+                                </div>
+                                <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-[var(--color-muted)]">
+                                    <span>Published {{ $post['published_at'] ?: 'TBC' }}</span>
+                                    <span>Updated {{ $post['updated_at'] ?: 'TBC' }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </x-ui.card>
 
         <div class="space-y-6">
             <x-ui.card class="bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-panel)_70%,white),var(--color-panel))]">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Technical Boundary</p>
-                <h3 class="mt-3 text-xl font-semibold tracking-[-0.02em]">Service API remains the source of truth</h3>
-                <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">
-                    The admin owns session UX, screens, and API client integration. Business logic and persistence stay in the service application.
-                </p>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Quick Actions</p>
+                <div class="mt-4 flex flex-col gap-3">
+                    <x-ui.button as="a" :href="route('posts.index')">Review Drafts</x-ui.button>
+                    <x-ui.button as="a" :href="route('categories.index')" variant="secondary">Manage Categories</x-ui.button>
+                    <x-ui.button as="a" :href="route('seo.index')" variant="secondary">Open SEO Area</x-ui.button>
+                </div>
             </x-ui.card>
 
-            <x-ui.empty-state
-                title="No editorial data yet"
-                message="The app shell and component system are ready. Auth, API wiring, and CRUD workflows come next."
-            >
-                <x-ui.button variant="outline" disabled>Content Modules Pending</x-ui.button>
-            </x-ui.empty-state>
+            <x-ui.card>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Topic Queue</p>
+                <h3 class="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Placeholder only</h3>
+                <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">
+                    No topic queue endpoints exist in the current service phase, so this widget stays explicitly non-operational.
+                </p>
+                <div class="mt-4">
+                    <x-ui.badge tone="warning">TBC Until Service Support</x-ui.badge>
+                </div>
+            </x-ui.card>
+
+            <x-ui.card>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">AI Jobs</p>
+                <h3 class="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Placeholder only</h3>
+                <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">
+                    AI job monitoring is reserved in the shell, but the current API phase does not expose job endpoints or dashboard aggregates.
+                </p>
+                <div class="mt-4">
+                    <x-ui.badge tone="warning">TBC Until Service Support</x-ui.badge>
+                </div>
+            </x-ui.card>
         </div>
     </section>
 </div>

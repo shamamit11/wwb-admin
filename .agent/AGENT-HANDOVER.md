@@ -6,12 +6,12 @@ No active handover yet.
 
 ## Last Completed Task
 
-Implement sidebar navigation and the placeholder route skeleton for MVP admin modules.
+Implement the dashboard MVP using the documented posts list API plus explicit placeholder widgets for unsupported modules.
 
 ## Incomplete Work
 
 - frontend asset build is still blocked on the local Node runtime version
-- feature modules beyond auth, shell scaffolding, component primitives, and route/navigation skeletons are not implemented yet
+- feature modules beyond auth, shell scaffolding, component primitives, route/navigation skeletons, and the initial dashboard are not implemented yet
 
 ## Risks
 
@@ -29,7 +29,7 @@ Implement sidebar navigation and the placeholder route skeleton for MVP admin mo
 - bootstrapped Laravel 13 and installed Livewire 4
 - verified Artisan boots and routes load
 - verified the MVP route map with `php artisan route:list`
-- ran PHPUnit successfully after auth, layout, component, and navigation fixes
+- ran PHPUnit successfully after auth, layout, component, navigation, and dashboard fixes
 - attempted `npm run build`, which failed due to Node version incompatibility
 
 ## Recommended Next Step

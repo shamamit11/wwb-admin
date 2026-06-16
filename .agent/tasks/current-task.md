@@ -4,48 +4,48 @@ Status: Completed
 
 ## Goal
 
-Execute Task 3.1 from `ADMIN_TASKS.md`: implement sidebar navigation and the protected route skeleton for MVP admin modules.
+Execute Task 3.2 from `ADMIN_TASKS.md`: implement the first working authenticated dashboard screen.
 
 ## Context Loaded
 
 - `AGENTS.md`
 - `.agent/INDEX.md`
-- `.agent/PROJECT-CONTEXT.md`
 - `.agent/UI-UX-RULES.md`
-- `.agent/FOLDER-STRUCTURE.md`
+- `.agent/API-CONTRACT.md`
 - `.agent/skills/laravel-livewire.md`
-- `docs/FOLDER_STRUCTURE.md`
+- `.agent/skills/api-client-integration.md`
 - `docs/UI_UX_GUIDELINES.md`
+- `docs/PROJECT_SCOPE.md`
 - `ADMIN_TASKS.md`
 
 ## Files Planned
 
 - `routes/web.php`
-- `app/Support/Navigation/*`
-- `resources/views/components/admin/*`
-- `app/Livewire/Admin/*`
+- `app/Livewire/Admin/Dashboard/*`
+- `resources/views/livewire/admin/dashboard/*`
+- `app/Services/WideWebBlogApi/Clients/*`
+- `tests/Feature/Dashboard/*`
 
 ## Work Log
 
-- reviewed the project context, folder rules, UI guidance, and current route/sidebar state
-- added a centralized admin navigation definition in `app/Support/Navigation/AdminNavigation.php`
-- replaced the hard-coded sidebar list with grouped navigation sections driven by the shared navigation definition
-- added the protected route skeleton for posts, categories, tags, media, templates, knowledge base, SEO, settings, topic queue, and AI jobs
-- added a reusable Livewire placeholder page for scaffolded modules so placeholder screens remain explicit and non-deceptive
-- added focused navigation feature tests for route coverage, active-state rendering, and roadmap placeholder clarity
+- reviewed the dashboard UX rules, current API contract, project scope, and the OpenAPI definition for `GET /admin/posts`
+- added the first posts API client method for contract-safe dashboard reads
+- replaced the bootstrap-only dashboard copy with an authenticated operational dashboard using recent draft and published post data
+- kept topic queue and AI jobs explicitly placeholder-only because the service contract does not expose those modules yet
+- added dashboard feature coverage for both successful service data loads and safe fallback behavior on service failure
 
 ## Validation
 
-- route inspection
-- layout/manual nav checks via feature assertions
+- dashboard feature tests
+- service-faked dashboard checks
 - narrow PHPUnit validation
 
 Result:
 
-- `php artisan route:list` passed and shows the MVP route map
-- `php artisan test` passed with 18 tests / 74 assertions
+- `php artisan test --filter=DashboardTest` passed with 2 tests / 7 assertions
+- `php artisan test` passed with 20 tests / 81 assertions
 
 ## Risks / Follow-ups
 
-- exact route names may still be refined as full module implementations land
+- dashboard aggregation endpoints still do not exist, so the screen is currently composed from documented posts list queries rather than dedicated summary APIs
 - the Vite build is still blocked by the local Node runtime mismatch, so the CDN fallback remains important until Node is upgraded
