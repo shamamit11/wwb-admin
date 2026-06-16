@@ -3,9 +3,12 @@
     'href' => null,
     'variant' => 'primary',
     'size' => 'md',
+    'loading' => false,
 ])
 
 @php
+    $isLink = $as === 'a' || $href;
+    $isDisabled = $attributes->has('disabled') || $loading;
     $base = 'inline-flex items-center justify-center rounded-[var(--radius-button)] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-page)] disabled:pointer-events-none disabled:opacity-50';
 
     $variants = [
@@ -22,6 +25,13 @@
         'lg' => 'h-11 px-5 text-sm',
     ];
 
+    if ($isDisabled) {
+        $variants = array_map(
+            fn (string $classes): string => $classes.' opacity-50',
+            $variants,
+        );
+    }
+
     $classes = implode(' ', [
         $base,
         $variants[$variant] ?? $variants['primary'],
@@ -29,12 +39,20 @@
     ]);
 @endphp
 
-@if ($as === 'a' || $href)
-    <a href="{{ $href }}" {{ $attributes->class($classes) }}>
+@if ($isLink)
+    <a
+        @if (! $isDisabled) href="{{ $href }}" @endif
+        @if ($isDisabled) aria-disabled="true" tabindex="-1" @endif
+        {{ $attributes->except(['disabled'])->class($classes) }}
+    >
         {{ $slot }}
     </a>
 @else
-    <button {{ $attributes->class($classes) }}>
+    <button
+        type="{{ $attributes->get('type', 'button') }}"
+        @if ($loading) disabled @endif
+        {{ $attributes->class($classes) }}
+    >
         {{ $slot }}
     </button>
 @endif
