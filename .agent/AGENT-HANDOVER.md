@@ -6,12 +6,12 @@ No active handover yet.
 
 ## Last Completed Task
 
-Create the baseline guest and admin layout system for login and authenticated admin screens.
+Implement sidebar navigation and the placeholder route skeleton for MVP admin modules.
 
 ## Incomplete Work
 
 - frontend asset build is still blocked on the local Node runtime version
-- feature modules beyond auth and shell scaffolding are not implemented yet
+- feature modules beyond auth, shell scaffolding, component primitives, and route/navigation skeletons are not implemented yet
 
 ## Risks
 
@@ -28,7 +28,8 @@ Create the baseline guest and admin layout system for login and authenticated ad
 - spot-checked root and key agent files
 - bootstrapped Laravel 13 and installed Livewire 4
 - verified Artisan boots and routes load
-- ran PHPUnit successfully after auth and layout fixes
+- verified the MVP route map with `php artisan route:list`
+- ran PHPUnit successfully after auth, layout, component, and navigation fixes
 - attempted `npm run build`, which failed due to Node version incompatibility
 
 ## Recommended Next Step

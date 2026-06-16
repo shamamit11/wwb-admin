@@ -1,6 +1,7 @@
 @props([
     'active' => false,
     'disabled' => false,
+    'placeholder' => false,
 ])
 
 @php
@@ -18,7 +19,7 @@
     @if ($disabled) aria-disabled="true" @endif
 >
     <span>{{ $slot }}</span>
-    @if ($disabled)
-        <span class="text-[10px] font-semibold uppercase tracking-[0.18em]">Soon</span>
+    @if ($placeholder || $disabled)
+        <span class="text-[10px] font-semibold uppercase tracking-[0.18em]">{{ $disabled ? 'Soon' : 'Placeholder' }}</span>
     @endif
 </a>

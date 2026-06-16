@@ -4,6 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ ($title ?? null) ? $title.' · '.config('app.name') : config('app.name') }}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @else
@@ -36,7 +39,7 @@
                 * { box-sizing: border-box; }
                 body {
                     margin: 0;
-                    font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+                    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
                     background:
                         radial-gradient(circle at top left, rgba(31, 90, 82, 0.08), transparent 34%),
                         linear-gradient(180deg, #f8f4ed 0%, var(--color-page) 100%);
@@ -46,13 +49,13 @@
         @endif
         @livewireStyles
     </head>
-    <body class="bg-[var(--color-page)] text-[var(--color-ink)] antialiased">
+    <body class="overflow-hidden bg-[var(--color-page)] text-[var(--color-ink)] antialiased">
         @php($currentAdmin = app(\App\Support\Auth\AdminSessionManager::class)->user() ?? [])
         @php($pageTitle = $pageTitle ?? null)
         @php($pageDescription = $pageDescription ?? null)
 
-        <div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
-            <aside class="hidden border-b border-[var(--color-line)] bg-[var(--color-panel)] lg:block lg:border-r lg:border-b-0">
+        <div class="min-h-screen lg:grid lg:h-screen lg:grid-cols-[280px_minmax(0,1fr)]">
+            <aside class="hidden border-b border-[var(--color-line)] bg-[var(--color-panel)] lg:block lg:h-screen lg:overflow-y-auto lg:border-r lg:border-b-0">
                 <div class="flex h-full flex-col">
                     <div class="border-b border-[var(--color-line)] px-6 py-5">
                         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Wide Web Blog</p>
@@ -68,7 +71,7 @@
                         <div class="rounded-[var(--radius-card)] border border-dashed border-[var(--color-line-strong)] bg-[var(--color-panel-soft)] p-4">
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Bootstrap Status</p>
                             <p class="mt-2 text-sm text-[var(--color-muted)]">
-                                Laravel 13, Livewire, and admin session wiring are in place. Shared CRUD and content modules are next.
+                                Laravel 13, Livewire, auth, layout, shared CRUD components, and the route skeleton are now in place.
                             </p>
                         </div>
                     </div>
@@ -101,7 +104,8 @@
                     </details>
                 </div>
 
-                <header class="border-b border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_84%,white)]/90 backdrop-blur">
+                <div class="lg:flex lg:h-screen lg:flex-col lg:overflow-y-auto">
+                <header class="border-b border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_84%,white)]/90 backdrop-blur lg:sticky lg:top-0 lg:z-20">
                     <div class="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
                         <div class="min-w-0">
                             <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Editorial Workspace</p>
@@ -117,10 +121,6 @@
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <div class="hidden rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-1.5 text-sm text-[var(--color-muted)] xl:block">
-                                API-driven admin
-                            </div>
-
                             @isset($userMenu)
                                 {{ $userMenu }}
                             @else
@@ -130,7 +130,7 @@
                     </div>
                 </header>
 
-                <main class="px-4 py-6 sm:px-6 lg:px-8">
+                <main class="px-4 py-6 sm:px-6 lg:flex-1 lg:px-8">
                     <div class="mx-auto max-w-7xl space-y-6">
                         @isset($errorBanner)
                             {{ $errorBanner }}
@@ -150,6 +150,7 @@
                         {{ $slot }}
                     </div>
                 </main>
+                </div>
             </div>
         </div>
 

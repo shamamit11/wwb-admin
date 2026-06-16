@@ -4,6 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ ($title ?? null) ? $title.' · '.config('app.name') : config('app.name') }}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @else
@@ -36,7 +39,7 @@
                 * { box-sizing: border-box; }
                 body {
                     margin: 0;
-                    font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+                    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
                     background:
                         radial-gradient(circle at top left, rgba(31, 90, 82, 0.08), transparent 34%),
                         linear-gradient(180deg, #f8f4ed 0%, var(--color-page) 100%);
