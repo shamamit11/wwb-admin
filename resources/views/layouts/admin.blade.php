@@ -38,6 +38,7 @@
         @livewireStyles
     </head>
     <body class="bg-[var(--color-page)] text-[var(--color-ink)] antialiased">
+        @php($currentAdmin = app(\App\Support\Auth\AdminSessionManager::class)->user() ?? [])
         <div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
             <aside class="border-b border-[var(--color-line)] bg-[var(--color-panel)] lg:border-r lg:border-b-0">
                 <div class="flex h-full flex-col">
@@ -83,7 +84,16 @@
                             <div class="hidden rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-1.5 text-sm text-[var(--color-muted)] md:block">
                                 API-driven admin
                             </div>
-                            <x-ui.badge tone="success">Bootstrap Ready</x-ui.badge>
+                            @if ($currentAdmin)
+                                <div class="hidden rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-1.5 text-sm text-[var(--color-muted)] lg:block">
+                                    {{ $currentAdmin['name'] ?? 'Admin' }}
+                                </div>
+
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <x-ui.button type="submit" variant="secondary" size="sm">Sign out</x-ui.button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </header>

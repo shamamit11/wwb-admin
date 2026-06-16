@@ -13,6 +13,7 @@ Store only stable, reusable admin knowledge here. Do not write temporary task no
 - This is not a React or Next.js application.
 - The service API owns business logic and persistence.
 - The admin consumes the service API.
+- Admin auth uses a server-side Laravel session bridge for bearer token, token type, abilities, and current-user state.
 - The OpenAPI contract is the source of truth for API endpoints and payloads.
 - The admin UX is publishing-focused rather than generic CMS-heavy.
 - MVP modules are auth, dashboard, categories, tags, media, templates, posts, SEO, and knowledge base.
