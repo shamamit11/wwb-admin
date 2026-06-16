@@ -1,13 +1,4 @@
 <div class="space-y-8">
-    <x-admin.page-header
-        eyebrow="Foundation Snapshot"
-        title="Laravel 13 is live. The admin shell is ready for API-driven editorial workflows."
-        description="This bootstrap replaces the stock Laravel welcome screen with an admin-oriented shell, installs Livewire, and establishes a Blade-native shadcn-inspired component system."
-    >
-        <x-ui.button as="a" href="https://laravel.com/docs/13.x" target="_blank" rel="noreferrer">Laravel 13 Docs</x-ui.button>
-        <x-ui.button as="a" href="https://livewire.laravel.com" target="_blank" rel="noreferrer" variant="secondary">Livewire Docs</x-ui.button>
-    </x-admin.page-header>
-
     <section class="grid gap-6 lg:grid-cols-3">
         <x-admin.stat-card label="Runtime" value="Laravel 13" tone="accent">
             <x-ui.badge tone="success">Installed</x-ui.badge>
@@ -39,6 +30,13 @@
                             <span>Auth flow, API client layer, and reusable CRUD patterns.</span>
                         </li>
                     </ul>
+                </div>
+
+                <x-ui.separator />
+
+                <div class="flex flex-wrap gap-3">
+                    <x-ui.button as="a" href="https://laravel.com/docs/13.x" target="_blank" rel="noreferrer">Laravel 13 Docs</x-ui.button>
+                    <x-ui.button as="a" href="https://livewire.laravel.com" target="_blank" rel="noreferrer" variant="secondary">Livewire Docs</x-ui.button>
                 </div>
 
                 <x-ui.separator />

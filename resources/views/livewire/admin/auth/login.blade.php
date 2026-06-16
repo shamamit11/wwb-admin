@@ -8,12 +8,6 @@
             </p>
         </div>
 
-        @if (session('auth.error'))
-            <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger-strong)_20%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
-                {{ session('auth.error') }}
-            </div>
-        @endif
-
         <form wire:submit="authenticate" class="space-y-5">
             <x-ui.field label="Email" for="email" :error="$errors->first('email')">
                 <x-ui.input

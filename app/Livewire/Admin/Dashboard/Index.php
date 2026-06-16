@@ -19,6 +19,8 @@ class Index extends Component
         return view('livewire.admin.dashboard.index')
             ->layout('layouts.admin', [
                 'title' => 'Dashboard',
+                'pageTitle' => 'Laravel 13 is live. The admin shell is ready for API-driven editorial workflows.',
+                'pageDescription' => 'This bootstrap replaces the stock Laravel welcome screen with an admin-oriented shell, installs Livewire, and establishes a Blade-native shadcn-inspired component system.',
             ]);
     }
 }

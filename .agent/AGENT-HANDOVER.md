@@ -6,11 +6,12 @@ No active handover yet.
 
 ## Last Completed Task
 
-Bootstrap the Laravel 13 admin application and add the initial Livewire + Blade-native shadcn-inspired UI foundation.
+Create the baseline guest and admin layout system for login and authenticated admin screens.
 
 ## Incomplete Work
 
 - frontend asset build is still blocked on the local Node runtime version
+- feature modules beyond auth and shell scaffolding are not implemented yet
 
 ## Risks
 
@@ -27,9 +28,9 @@ Bootstrap the Laravel 13 admin application and add the initial Livewire + Blade-
 - spot-checked root and key agent files
 - bootstrapped Laravel 13 and installed Livewire 4
 - verified Artisan boots and routes load
-- ran PHPUnit successfully after environment and layout fixes
+- ran PHPUnit successfully after auth and layout fixes
 - attempted `npm run build`, which failed due to Node version incompatibility
 
 ## Recommended Next Step
 
-Use a supported Node version, rerun `npm install` if needed, then rerun `npm run build` before proceeding to auth and API client work.
+Use a supported Node version, rerun `npm install` if needed, then rerun `npm run build` before continuing into the next admin feature tasks.

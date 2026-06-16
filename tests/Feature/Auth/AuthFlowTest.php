@@ -9,6 +9,15 @@ use Tests\TestCase;
 
 class AuthFlowTest extends TestCase
 {
+    protected string $apiBaseUrl;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->apiBaseUrl = rtrim(config('widewebblog.api.base_url'), '/');
+    }
+
     public function test_guests_are_redirected_to_login_from_dashboard(): void
     {
         $this->get('/')
@@ -25,14 +34,14 @@ class AuthFlowTest extends TestCase
     public function test_login_stores_bearer_token_and_admin_user_in_session(): void
     {
         Http::fake([
-            'http://localhost:8000/api/v1/auth/login' => Http::response([
+            $this->apiBaseUrl.'/auth/login' => Http::response([
                 'data' => [
                     'token' => 'test-token',
                     'token_type' => 'Bearer',
                     'abilities' => 'admin',
                 ],
             ], 200),
-            'http://localhost:8000/api/v1/admin/me' => Http::response([
+            $this->apiBaseUrl.'/admin/me' => Http::response([
                 'data' => [
                     'id' => 1,
                     'name' => 'Admin User',
@@ -56,7 +65,7 @@ class AuthFlowTest extends TestCase
     public function test_invalid_credentials_return_a_generic_error(): void
     {
         Http::fake([
-            'http://localhost:8000/api/v1/auth/login' => Http::response([
+            $this->apiBaseUrl.'/auth/login' => Http::response([
                 'message' => 'The provided credentials are incorrect.',
                 'errors' => [
                     'email' => ['The provided credentials are incorrect.'],
@@ -87,13 +96,17 @@ class AuthFlowTest extends TestCase
             ])
             ->get('/');
 
-        $response->assertOk()->assertSee('Foundation Snapshot');
+        $response
+            ->assertOk()
+            ->assertSee('Search the admin')
+            ->assertSee('Editorial Workspace')
+            ->assertSee('Browse Admin');
     }
 
     public function test_unauthorized_admin_session_is_redirected_to_forbidden(): void
     {
         Http::fake([
-            'http://localhost:8000/api/v1/admin/me' => Http::response([
+            $this->apiBaseUrl.'/admin/me' => Http::response([
                 'message' => 'This action is unauthorized.',
             ], 403),
         ]);
@@ -112,7 +125,7 @@ class AuthFlowTest extends TestCase
     public function test_logout_clears_local_session_state(): void
     {
         Http::fake([
-            'http://localhost:8000/api/v1/auth/logout' => Http::response([
+            $this->apiBaseUrl.'/auth/logout' => Http::response([
                 'message' => 'Logged out.',
             ], 200),
         ]);
@@ -131,5 +144,14 @@ class AuthFlowTest extends TestCase
         $response->assertRedirect(route('login'));
         $this->assertNull(session(config('widewebblog.session.token_key')));
         $this->assertNull(session(config('widewebblog.session.user_key')));
+    }
+
+    public function test_login_screen_renders_guest_layout_regions(): void
+    {
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('Editorial operations for a publishing-first admin.')
+            ->assertSee('Admin Access')
+            ->assertSee('Admin Sign In');
     }
 }

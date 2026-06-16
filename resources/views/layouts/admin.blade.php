@@ -7,6 +7,7 @@
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @else
+            <script src="https://cdn.tailwindcss.com"></script>
             <style>
                 :root {
                     --color-page: #f4f1ea;
@@ -21,6 +22,12 @@
                     --color-accent-soft: #e2ece9;
                     --color-accent-contrast: #f7faf9;
                     --color-success: #2d7f5e;
+                    --color-success-strong: #1e6348;
+                    --color-warning: #c98a1f;
+                    --color-warning-strong: #8a5e18;
+                    --color-danger: #b44f45;
+                    --color-danger-strong: #933e36;
+                    --color-ring: #7d9f99;
                     --radius-button: 0.9rem;
                     --radius-card: 1.35rem;
                     --shadow-card: 0 18px 40px rgba(47, 39, 28, 0.08);
@@ -30,7 +37,9 @@
                 body {
                     margin: 0;
                     font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
-                    background: linear-gradient(180deg, #f8f4ed 0%, var(--color-page) 100%);
+                    background:
+                        radial-gradient(circle at top left, rgba(31, 90, 82, 0.08), transparent 34%),
+                        linear-gradient(180deg, #f8f4ed 0%, var(--color-page) 100%);
                     color: var(--color-ink);
                 }
             </style>
@@ -39,8 +48,11 @@
     </head>
     <body class="bg-[var(--color-page)] text-[var(--color-ink)] antialiased">
         @php($currentAdmin = app(\App\Support\Auth\AdminSessionManager::class)->user() ?? [])
+        @php($pageTitle = $pageTitle ?? null)
+        @php($pageDescription = $pageDescription ?? null)
+
         <div class="min-h-screen lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
-            <aside class="border-b border-[var(--color-line)] bg-[var(--color-panel)] lg:border-r lg:border-b-0">
+            <aside class="hidden border-b border-[var(--color-line)] bg-[var(--color-panel)] lg:block lg:border-r lg:border-b-0">
                 <div class="flex h-full flex-col">
                     <div class="border-b border-[var(--color-line)] px-6 py-5">
                         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Wide Web Blog</p>
@@ -50,22 +62,13 @@
                         </p>
                     </div>
 
-                    <nav class="flex-1 space-y-1 px-4 py-6">
-                        <x-admin.nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-admin.nav-link>
-                        <x-admin.nav-link href="#" disabled>Posts</x-admin.nav-link>
-                        <x-admin.nav-link href="#" disabled>Categories</x-admin.nav-link>
-                        <x-admin.nav-link href="#" disabled>Media Library</x-admin.nav-link>
-                        <x-admin.nav-link href="#" disabled>Templates</x-admin.nav-link>
-                        <x-admin.nav-link href="#" disabled>Knowledge Base</x-admin.nav-link>
-                        <x-admin.nav-link href="#" disabled>SEO</x-admin.nav-link>
-                        <x-admin.nav-link href="#" disabled>Settings</x-admin.nav-link>
-                    </nav>
+                    <x-admin.sidebar-nav class="flex-1 px-4 py-6" />
 
                     <div class="border-t border-[var(--color-line)] px-4 py-4">
                         <div class="rounded-[var(--radius-card)] border border-dashed border-[var(--color-line-strong)] bg-[var(--color-panel-soft)] p-4">
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Bootstrap Status</p>
                             <p class="mt-2 text-sm text-[var(--color-muted)]">
-                                Laravel 13 and Livewire are installed. Auth, API client wiring, and content modules are next.
+                                Laravel 13, Livewire, and admin session wiring are in place. Shared CRUD and content modules are next.
                             </p>
                         </div>
                     </div>
@@ -73,33 +76,79 @@
             </aside>
 
             <div class="min-w-0">
-                <header class="border-b border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_84%,white)]/90 backdrop-blur">
-                    <div class="flex items-center justify-between gap-4 px-6 py-4">
+                <div class="border-b border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 lg:hidden">
+                    <div class="flex items-start justify-between gap-4">
                         <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Wide Web Blog</p>
+                            <h1 class="mt-2 text-lg font-semibold tracking-[-0.02em]">Admin Panel</h1>
+                        </div>
+
+                        @if ($currentAdmin)
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <x-ui.button type="submit" variant="secondary" size="sm">Sign out</x-ui.button>
+                            </form>
+                        @endif
+                    </div>
+
+                    <details class="mt-4 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-3">
+                        <summary class="cursor-pointer list-none text-sm font-semibold text-[var(--color-ink)]">
+                            Browse Admin
+                        </summary>
+                        <div class="mt-3">
+                            <x-admin.sidebar-nav />
+                        </div>
+                    </details>
+                </div>
+
+                <header class="border-b border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_84%,white)]/90 backdrop-blur">
+                    <div class="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+                        <div class="min-w-0">
                             <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Editorial Workspace</p>
                             <p class="mt-1 text-sm text-[var(--color-muted)]">Blade-native shadcn-inspired foundation</p>
                         </div>
 
+                        <div class="min-w-0 flex-1 lg:max-w-xl">
+                            @isset($search)
+                                {{ $search }}
+                            @else
+                                <x-admin.topbar-search />
+                            @endisset
+                        </div>
+
                         <div class="flex items-center gap-3">
-                            <div class="hidden rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-1.5 text-sm text-[var(--color-muted)] md:block">
+                            <div class="hidden rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-1.5 text-sm text-[var(--color-muted)] xl:block">
                                 API-driven admin
                             </div>
-                            @if ($currentAdmin)
-                                <div class="hidden rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-1.5 text-sm text-[var(--color-muted)] lg:block">
-                                    {{ $currentAdmin['name'] ?? 'Admin' }}
-                                </div>
 
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <x-ui.button type="submit" variant="secondary" size="sm">Sign out</x-ui.button>
-                                </form>
-                            @endif
+                            @isset($userMenu)
+                                {{ $userMenu }}
+                            @else
+                                <x-admin.user-chip :admin="$currentAdmin" />
+                            @endisset
                         </div>
                     </div>
                 </header>
 
-                <main class="px-6 py-8">
-                    {{ $slot }}
+                <main class="px-4 py-6 sm:px-6 lg:px-8">
+                    <div class="mx-auto max-w-7xl space-y-6">
+                        @isset($errorBanner)
+                            {{ $errorBanner }}
+                        @endisset
+
+                        <x-admin.flash-stack />
+
+                        @isset($header)
+                            {{ $header }}
+                        @elseif ($pageTitle || $pageDescription)
+                            <x-admin.page-header
+                                :title="$pageTitle"
+                                :description="$pageDescription"
+                            />
+                        @endif
+
+                        {{ $slot }}
+                    </div>
                 </main>
             </div>
         </div>
