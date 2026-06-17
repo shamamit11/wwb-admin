@@ -24,6 +24,7 @@ class AdminNavigationTest extends TestCase
         $session = $this->authenticatedSession();
 
         foreach ([
+            'homepage.index',
             'posts.index',
             'pages.index',
             'pages.create',
@@ -103,6 +104,21 @@ class AdminNavigationTest extends TestCase
     {
         Http::fake(function (Request $request) {
             $url = $request->url();
+
+            if ($request->method() === 'GET' && $url === $this->apiBaseUrl.'/admin/homepage') {
+                return Http::response([
+                    'data' => [
+                        'hero' => [],
+                        'featured_editorial' => ['mode' => 'manual', 'post_ids' => [], 'category_ids' => [], 'limit' => 3],
+                        'guide_section' => ['mode' => 'manual', 'post_ids' => [], 'category_ids' => [], 'limit' => 4],
+                        'topic_section' => ['category_ids' => [1]],
+                        'promo_section' => ['enabled' => true, 'bullet_points' => ['One'], 'stats' => [['label' => 'L', 'value' => 'V']]],
+                        'newsletter_section' => ['enabled' => true],
+                        'seo' => [],
+                        'updated_at' => '2026-06-17T10:00:00Z',
+                    ],
+                ], 200);
+            }
 
             if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/posts')) {
                 return Http::response(['data' => []], 200);

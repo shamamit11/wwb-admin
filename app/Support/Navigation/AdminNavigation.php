@@ -16,6 +16,7 @@ class AdminNavigation
             [
                 'title' => 'Publishing',
                 'items' => [
+                    $this->item('Homepage', 'homepage.index', 'Structured homepage curation and section management.', false, 'homepage'),
                     $this->item('Posts', 'posts.index', 'Manage post inventory, status, and editorial actions.', false, 'posts'),
                     $this->item('Pages', 'pages.index', 'Manage static and evergreen service-backed pages.', false, 'pages'),
                     $this->item('Categories', 'categories.index', 'Table-first category structure and taxonomy operations.', false, 'categories'),

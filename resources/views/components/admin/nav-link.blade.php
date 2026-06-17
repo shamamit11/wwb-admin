@@ -27,6 +27,12 @@
                         <path d="M3 3.75h6.25V9.5H3V3.75Zm7.75 0H17v3H10.75v-3ZM3 11h6.25v5.25H3V11Zm7.75-1.5H17v6.75h-6.25V9.5Z" fill="currentColor"/>
                     </svg>
                     @break
+                @case('homepage')
+                    <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M4.75 8.25 10 4l5.25 4.25V15a1.25 1.25 0 0 1-1.25 1.25h-8A1.25 1.25 0 0 1 4.75 15V8.25Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M8 16.25v-4h4v4" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    @break
                 @case('posts')
                     <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                         <path d="M5 3.75h10A1.25 1.25 0 0 1 16.25 5v10A1.25 1.25 0 0 1 15 16.25H5A1.25 1.25 0 0 1 3.75 15V5A1.25 1.25 0 0 1 5 3.75Z" stroke="currentColor" stroke-width="1.5"/>

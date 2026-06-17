@@ -702,6 +702,85 @@
         }
       }
     },
+    "/admin/homepage": {
+      "get": {
+        "operationId": "v1.admin.homepage.show",
+        "tags": [
+          "Homepage"
+        ],
+        "responses": {
+          "200": {
+            "description": "`HomepageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/HomepageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "v1.admin.homepage.update",
+        "tags": [
+          "Homepage"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHomepageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`HomepageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/HomepageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
     "/admin/knowledge-base": {
       "get": {
         "operationId": "v1.admin.knowledge-base.index",
@@ -4021,6 +4100,75 @@
         ],
         "title": "HealthCheckResource"
       },
+      "HomepageResource": {
+        "type": "object",
+        "properties": {
+          "hero": {
+            "type": "array",
+            "items": {}
+          },
+          "featured_editorial": {
+            "type": "array",
+            "items": {}
+          },
+          "guide_section": {
+            "type": "array",
+            "items": {}
+          },
+          "topic_section": {
+            "type": "array",
+            "items": {}
+          },
+          "promo_section": {
+            "type": "array",
+            "items": {}
+          },
+          "newsletter_section": {
+            "type": "array",
+            "items": {}
+          },
+          "seo": {
+            "type": "array",
+            "items": {}
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          }
+        },
+        "required": [
+          "hero",
+          "featured_editorial",
+          "guide_section",
+          "topic_section",
+          "promo_section",
+          "newsletter_section",
+          "seo",
+          "updated_at"
+        ],
+        "title": "HomepageResource"
+      },
       "KnowledgeBaseEntryResource": {
         "type": "object",
         "properties": {
@@ -6197,6 +6345,359 @@
           "name"
         ],
         "title": "UpdateCategoryRequest"
+      },
+      "UpdateHomepageRequest": {
+        "type": "object",
+        "properties": {
+          "hero": {
+            "type": "object",
+            "properties": {
+              "eyebrow": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "primary_cta_label": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "primary_cta_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "maxLength": 500
+              },
+              "secondary_cta_label": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "secondary_cta_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "maxLength": 500
+              },
+              "media_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "maxLength": 500
+              },
+              "media_alt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              }
+            }
+          },
+          "featured_editorial": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "manual",
+                  "automatic"
+                ]
+              },
+              "post_ids": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "category_ids": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 24
+              }
+            },
+            "required": [
+              "mode",
+              "post_ids",
+              "category_ids",
+              "limit"
+            ]
+          },
+          "guide_section": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "manual",
+                  "automatic"
+                ]
+              },
+              "post_ids": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "category_ids": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "limit": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 24
+              }
+            },
+            "required": [
+              "mode",
+              "post_ids",
+              "category_ids",
+              "limit"
+            ]
+          },
+          "topic_section": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "category_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "category_ids"
+            ]
+          },
+          "promo_section": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "eyebrow": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "bullet_points": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                "minItems": 1
+              },
+              "primary_cta_label": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "primary_cta_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "maxLength": 500
+              },
+              "stats": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "value": {
+                      "type": "string",
+                      "maxLength": 120
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "value"
+                  ]
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "enabled",
+              "bullet_points",
+              "stats"
+            ]
+          },
+          "newsletter_section": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              }
+            },
+            "required": [
+              "enabled"
+            ]
+          },
+          "seo": {
+            "type": "object",
+            "properties": {
+              "meta_title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "meta_description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 320
+              }
+            }
+          }
+        },
+        "required": [
+          "hero",
+          "featured_editorial",
+          "guide_section",
+          "topic_section",
+          "promo_section",
+          "newsletter_section",
+          "seo"
+        ],
+        "title": "UpdateHomepageRequest"
       },
       "UpdateKnowledgeBaseEntryRequest": {
         "type": "object",

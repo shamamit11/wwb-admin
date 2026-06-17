@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\Auth\LogoutController;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
 use App\Livewire\Admin\Categories\Index as CategoryIndex;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
+use App\Livewire\Admin\Homepage\Index as HomepageIndex;
 use App\Livewire\Admin\KnowledgeBase\Editor as KnowledgeBaseEditor;
 use App\Livewire\Admin\KnowledgeBase\Index as KnowledgeBaseIndex;
 use App\Livewire\Admin\Media\Index as MediaIndex;
@@ -39,6 +40,8 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/pages/create', PageEditor::class)->name('pages.create');
 
     Route::get('/pages/{page}/edit', PageEditor::class)->name('pages.edit');
+
+    Route::get('/homepage', HomepageIndex::class)->name('homepage.index');
 
     Route::get('/categories', CategoryIndex::class)->name('categories.index');
 
