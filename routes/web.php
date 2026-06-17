@@ -6,6 +6,8 @@ use App\Livewire\Admin\Categories\Index as CategoryIndex;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
 use App\Livewire\Admin\Media\Index as MediaIndex;
 use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
+use App\Livewire\Admin\Posts\Editor as PostEditor;
+use App\Livewire\Admin\Posts\Index as PostIndex;
 use App\Livewire\Admin\Tags\Index as TagIndex;
 use App\Livewire\Admin\Templates\Index as TemplateIndex;
 use Illuminate\Support\Facades\Route;
@@ -20,20 +22,11 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get(config('widewebblog.auth.home_path', '/'), DashboardIndex::class)->name('dashboard');
     Route::post(config('widewebblog.auth.logout_path', '/logout'), LogoutController::class)->name('logout');
 
-    Route::get('/posts', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Publishing')
-        ->defaults('pageTitle', 'Posts management is scaffolded and ready for editor-first workflows.')
-        ->defaults('pageDescription', 'The MVP route map now includes posts. Next work should wire service-backed listing, filtering, status actions, and editor flows.')
-        ->defaults('moduleLabel', 'Posts')
-        ->defaults('moduleDescription', 'This module will own table-first post management, publishing actions, and the future editor entry points.')
-        ->defaults('primaryActionLabel', 'Create Post')
-        ->defaults('primaryActionHint', 'Future implementation should connect this action to the post creation flow and editor shell.')
-        ->defaults('nextSteps', [
-            'Add the posts API client with list, show, create, update, publish, schedule, and unpublish actions.',
-            'Build the posts index screen on top of the shared filter bar, table, row actions, and pagination primitives.',
-            'Add the editor route and sticky metadata/status panel in a later posts task.',
-        ])
-        ->name('posts.index');
+    Route::get('/posts', PostIndex::class)->name('posts.index');
+
+    Route::get('/posts/create', PostEditor::class)->name('posts.create');
+
+    Route::get('/posts/{post}/edit', PostEditor::class)->name('posts.edit');
 
     Route::get('/categories', CategoryIndex::class)->name('categories.index');
 
