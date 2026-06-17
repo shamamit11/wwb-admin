@@ -158,4 +158,59 @@ class SeoClientTest extends TestCase
         $this->assertSame('https://schema.org', $response['data']['@context']);
         $this->assertSame('TechArticle', $response['data']['@graph'][1]['@type']);
     }
+
+    public function test_it_can_load_sitemap_entries(): void
+    {
+        Http::fake(function (Request $request) {
+            $this->assertSame('GET', $request->method());
+            $this->assertSame($this->apiBaseUrl.'/admin/seo/sitemap', $request->url());
+
+            return Http::response([
+                'data' => [
+                    [
+                        'type' => 'post',
+                        'id' => '42',
+                        'slug' => 'seo-title',
+                        'canonical_url' => 'https://example.com/posts/seo-title',
+                        'published_at' => '2026-06-17T08:00:00Z',
+                        'last_modified_at' => '2026-06-17T09:00:00Z',
+                    ],
+                ],
+            ], 200);
+        });
+
+        $response = app(SeoClient::class)->sitemap('test-token', 'Bearer');
+
+        $this->assertSame('seo-title', $response['data'][0]['slug']);
+    }
+
+    public function test_it_can_load_rss_entries(): void
+    {
+        Http::fake(function (Request $request) {
+            $this->assertSame('GET', $request->method());
+            $this->assertSame($this->apiBaseUrl.'/admin/feeds/rss', $request->url());
+
+            return Http::response([
+                'data' => [
+                    [
+                        'type' => 'post',
+                        'id' => '42',
+                        'slug' => 'seo-title',
+                        'title' => 'SEO Title',
+                        'description' => 'Feed description',
+                        'link' => 'https://example.com/posts/seo-title',
+                        'published_at' => '2026-06-17T08:00:00Z',
+                        'last_modified_at' => '2026-06-17T09:00:00Z',
+                        'author' => ['id' => '1', 'name' => 'Editor'],
+                        'category' => ['id' => '2', 'name' => 'AI Systems', 'slug' => 'ai-systems'],
+                    ],
+                ],
+            ], 200);
+        });
+
+        $response = app(SeoClient::class)->rss('test-token', 'Bearer');
+
+        $this->assertSame('SEO Title', $response['data'][0]['title']);
+        $this->assertSame('Editor', $response['data'][0]['author']['name']);
+    }
 }

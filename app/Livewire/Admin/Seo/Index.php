@@ -10,11 +10,15 @@ use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiException;
 use App\Support\Auth\AdminSessionManager;
 use App\Support\Seo\SeoInsightsPresenter;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Index extends Component
 {
+    #[Url(as: 'tab', except: 'insights')]
+    public string $activeTab = 'insights';
+
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
@@ -32,11 +36,19 @@ class Index extends Component
 
     public array $schema = [];
 
+    public array $sitemapEntries = [];
+
+    public array $rssEntries = [];
+
     public ?string $pageError = null;
 
     public ?string $scoreError = null;
 
     public ?string $schemaError = null;
+
+    public ?string $sitemapError = null;
+
+    public ?string $rssError = null;
 
     public function mount(AdminSessionManager $session, PostClient $posts, SeoClient $seo): mixed
     {
@@ -46,7 +58,13 @@ class Index extends Component
             return $result;
         }
 
-        return $this->loadSelectedSeo($seo, $session);
+        $seoResult = $this->loadSelectedSeo($seo, $session);
+
+        if ($seoResult !== null) {
+            return $seoResult;
+        }
+
+        return $this->loadUtilities($seo, $session);
     }
 
     public function updated(string $property): void
@@ -68,6 +86,10 @@ class Index extends Component
                 $this->loadSelectedSeo(app(SeoClient::class), app(AdminSessionManager::class));
             }
         }
+
+        if ($property === 'activeTab' && $this->activeTab === 'utilities' && $this->sitemapEntries === [] && $this->rssEntries === []) {
+            $this->loadUtilities(app(SeoClient::class), app(AdminSessionManager::class));
+        }
     }
 
     public function selectPost(int $postId): void
@@ -88,6 +110,8 @@ class Index extends Component
             'recommendations' => $this->presenter()->recommendations($this->score),
             'schemaSummary' => $this->presenter()->schemaSummary($this->schema),
             'schemaJson' => $this->presenter()->prettySchema($this->schema),
+            'sitemapEntries' => $this->sitemapEntries,
+            'rssEntries' => $this->rssEntries,
         ])->layout('layouts.admin', [
             'title' => 'SEO',
         ]);
@@ -124,6 +148,8 @@ class Index extends Component
             $this->selectedPost = [];
             $this->score = [];
             $this->schema = [];
+            $this->sitemapEntries = [];
+            $this->rssEntries = [];
             $this->pageError = $exception->getMessage() ?: 'SEO entities could not be loaded.';
 
             return null;
@@ -168,6 +194,60 @@ class Index extends Component
         return null;
     }
 
+    protected function loadUtilities(SeoClient $seo, AdminSessionManager $session): mixed
+    {
+        $this->sitemapError = null;
+        $this->rssError = null;
+        $this->sitemapEntries = [];
+        $this->rssEntries = [];
+
+        try {
+            $sitemapResponse = $seo->sitemap($this->token($session), $session->tokenType());
+            $this->sitemapEntries = collect(Arr::get($sitemapResponse, 'data', []))
+                ->map(fn (array $entry): array => [
+                    'id' => (string) Arr::get($entry, 'id', ''),
+                    'slug' => (string) Arr::get($entry, 'slug', ''),
+                    'canonical_url' => (string) Arr::get($entry, 'canonical_url', ''),
+                    'published_at' => $this->formatTimestamp(Arr::get($entry, 'published_at')),
+                    'last_modified_at' => $this->formatTimestamp(Arr::get($entry, 'last_modified_at')),
+                ])
+                ->values()
+                ->all();
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->sitemapError = $exception->getMessage() ?: 'Sitemap data could not be loaded.';
+        }
+
+        try {
+            $rssResponse = $seo->rss($this->token($session), $session->tokenType());
+            $this->rssEntries = collect(Arr::get($rssResponse, 'data', []))
+                ->map(fn (array $entry): array => [
+                    'id' => (string) Arr::get($entry, 'id', ''),
+                    'title' => (string) Arr::get($entry, 'title', ''),
+                    'slug' => (string) Arr::get($entry, 'slug', ''),
+                    'description' => (string) Arr::get($entry, 'description', ''),
+                    'link' => (string) Arr::get($entry, 'link', ''),
+                    'published_at' => $this->formatTimestamp(Arr::get($entry, 'published_at')),
+                    'last_modified_at' => $this->formatTimestamp(Arr::get($entry, 'last_modified_at')),
+                    'author_name' => (string) Arr::get($entry, 'author.name', ''),
+                    'category_name' => (string) (Arr::get($entry, 'category.name') ?? ''),
+                ])
+                ->values()
+                ->all();
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->rssError = $exception->getMessage() ?: 'RSS data could not be loaded.';
+        }
+
+        return null;
+    }
+
     protected function postFilters(): array
     {
         return [
@@ -197,6 +277,19 @@ class Index extends Component
     protected function token(AdminSessionManager $session): string
     {
         return $session->token() ?? '';
+    }
+
+    protected function formatTimestamp(mixed $value): ?string
+    {
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d H:i');
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     protected function expireSession(AdminSessionManager $session): mixed

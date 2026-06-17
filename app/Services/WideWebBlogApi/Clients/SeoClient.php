@@ -38,4 +38,18 @@ class SeoClient
             $this->api->authenticated($token, $tokenType)->get("/admin/seo/schema/{$seoableType}/{$seoableId}")
         );
     }
+
+    public function sitemap(string $token, ?string $tokenType = 'Bearer'): array
+    {
+        return $this->api->handle(
+            $this->api->authenticated($token, $tokenType)->get('/admin/seo/sitemap')
+        );
+    }
+
+    public function rss(string $token, ?string $tokenType = 'Bearer'): array
+    {
+        return $this->api->handle(
+            $this->api->authenticated($token, $tokenType)->get('/admin/feeds/rss')
+        );
+    }
 }

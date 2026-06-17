@@ -40,6 +40,18 @@ class SeoIndexTest extends TestCase
                 ], 200);
             }
 
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/seo/sitemap') {
+                return Http::response([
+                    'data' => [$this->sitemapResource()],
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/feeds/rss') {
+                return Http::response([
+                    'data' => [$this->rssResource()],
+                ], 200);
+            }
+
             return Http::response(['message' => 'Unexpected request.'], 500);
         });
 
@@ -67,6 +79,14 @@ class SeoIndexTest extends TestCase
                 return Http::response(['data' => []], 200);
             }
 
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/seo/sitemap') {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/feeds/rss') {
+                return Http::response(['data' => []], 200);
+            }
+
             return Http::response(['message' => 'Unexpected request.'], 500);
         });
 
@@ -77,6 +97,51 @@ class SeoIndexTest extends TestCase
             ->assertOk()
             ->assertSee('No posts available for SEO review.')
             ->assertSee('Select a post to inspect score and schema output.');
+    }
+
+    public function test_seo_screen_surfaces_rss_and_sitemap_utilities_in_read_only_tab(): void
+    {
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/posts')) {
+                return Http::response([
+                    'data' => [
+                        $this->postResource(['id' => 1, 'title' => 'Agent Systems Playbook', 'slug' => 'agent-systems-playbook']),
+                    ],
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/seo/score/post/1') {
+                return Http::response(['data' => $this->scoreResource()], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/seo/schema/post/1') {
+                return Http::response(['data' => $this->schemaResource()], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/seo/sitemap') {
+                return Http::response(['data' => [$this->sitemapResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/feeds/rss') {
+                return Http::response(['data' => [$this->rssResource()]], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('seo.index', ['tab' => 'utilities']));
+
+        $response
+            ->assertOk()
+            ->assertSee('Feeds & Sitemap', false)
+            ->assertSee('Operational Utilities')
+            ->assertSee('RSS Feed')
+            ->assertSee('Agent Systems Playbook')
+            ->assertSee('Open feed URL')
+            ->assertSee('Sitemap')
+            ->assertSee('https://example.com/posts/agent-systems-playbook')
+            ->assertDontSee('Update SEO');
     }
 
     protected function authenticatedSession(): array
@@ -140,6 +205,34 @@ class SeoIndexTest extends TestCase
                 ['@type' => 'BreadcrumbList'],
                 ['@type' => 'TechArticle', 'headline' => 'Agent Systems Playbook'],
             ],
+        ];
+    }
+
+    protected function sitemapResource(): array
+    {
+        return [
+            'type' => 'post',
+            'id' => '1',
+            'slug' => 'agent-systems-playbook',
+            'canonical_url' => 'https://example.com/posts/agent-systems-playbook',
+            'published_at' => '2026-06-17T08:00:00Z',
+            'last_modified_at' => '2026-06-17T09:00:00Z',
+        ];
+    }
+
+    protected function rssResource(): array
+    {
+        return [
+            'type' => 'post',
+            'id' => '1',
+            'slug' => 'agent-systems-playbook',
+            'title' => 'Agent Systems Playbook',
+            'description' => 'Feed description for the post.',
+            'link' => 'https://example.com/posts/agent-systems-playbook',
+            'published_at' => '2026-06-17T08:00:00Z',
+            'last_modified_at' => '2026-06-17T09:00:00Z',
+            'author' => ['id' => '9', 'name' => 'Editorial Lead'],
+            'category' => ['id' => '4', 'name' => 'AI Systems', 'slug' => 'ai-systems'],
         ];
     }
 }
