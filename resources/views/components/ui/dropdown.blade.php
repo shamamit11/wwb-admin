@@ -14,7 +14,7 @@
         {{ $trigger ?? '' }}
     </summary>
 
-    <div class="absolute z-30 mt-2 min-w-48 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-1.5 shadow-[0_20px_48px_rgba(33,27,21,0.12)] {{ $alignment[$align] }}">
+    <div class="absolute z-50 mt-2 min-w-48 rounded-[0.75rem] border border-[var(--color-line)] bg-[var(--color-panel)] p-1.5 shadow-[0_20px_48px_rgba(33,27,21,0.12)] {{ $alignment[$align] }}">
         {{ $slot }}
     </div>
 </details>

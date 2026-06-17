@@ -3,13 +3,17 @@
 ])
 
 @if ($admin)
+    @php($initials = collect(explode(' ', trim($admin['name'] ?? 'Admin')))->filter()->map(fn (string $part): string => strtoupper(substr($part, 0, 1)))->take(2)->implode(''))
     <div class="relative hidden sm:block">
         <div class="group relative">
             <button
                 type="button"
-                class="flex items-center gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-2 text-left transition-colors hover:bg-[var(--color-panel-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-page)]"
+                class="flex items-center gap-3 rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-2.5 py-2 text-left transition-colors hover:bg-[var(--color-panel-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-page)]"
                 aria-haspopup="true"
             >
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-sm font-semibold text-[var(--color-accent-strong)]">
+                    {{ $initials !== '' ? $initials : 'AD' }}
+                </div>
                 <div class="min-w-0">
                     <p class="truncate text-sm font-semibold text-[var(--color-ink)]">{{ $admin['name'] ?? 'Admin' }}</p>
                     @if (! empty($admin['email']))

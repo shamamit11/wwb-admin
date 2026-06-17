@@ -12,6 +12,6 @@
     ];
 @endphp
 
-<span {{ $attributes->class('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold '.$tones[$tone]) }}>
+<span {{ $attributes->class('inline-flex items-center rounded-[var(--radius-button)] px-2.5 py-1 text-xs font-semibold '.$tones[$tone]) }}>
     {{ $slot }}
 </span>

@@ -42,7 +42,7 @@ class WideWebBlogApi
     public function handle(Response $response): array
     {
         if ($response->successful()) {
-            return $response->json();
+            return $response->json() ?? [];
         }
 
         $message = $response->json('message') ?: 'Service API request failed.';

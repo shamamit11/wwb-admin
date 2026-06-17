@@ -9,10 +9,10 @@
 @php
     $isLink = $as === 'a' || $href;
     $isDisabled = $attributes->has('disabled') || $loading;
-    $base = 'inline-flex items-center justify-center rounded-[var(--radius-button)] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-page)] disabled:pointer-events-none disabled:opacity-50';
+    $base = 'inline-flex items-center justify-center gap-2 rounded-[var(--radius-button)] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-page)] disabled:pointer-events-none disabled:opacity-50';
 
     $variants = [
-        'primary' => 'bg-[var(--color-accent)] text-[var(--color-accent-contrast)] hover:bg-[var(--color-accent-strong)]',
+        'primary' => 'bg-[var(--color-accent)] text-[var(--color-accent-contrast)] shadow-[0_12px_24px_rgba(249,115,22,0.22)] hover:bg-[var(--color-accent-strong)] hover:shadow-[0_16px_28px_rgba(200,90,13,0.24)] active:scale-[0.98]',
         'secondary' => 'bg-[var(--color-panel)] text-[var(--color-ink)] ring-1 ring-[var(--color-line)] hover:bg-[var(--color-panel-soft)]',
         'ghost' => 'bg-transparent text-[var(--color-ink)] hover:bg-[var(--color-panel-soft)]',
         'destructive' => 'bg-[var(--color-danger)] text-white hover:bg-[var(--color-danger-strong)]',
@@ -21,8 +21,8 @@
 
     $sizes = [
         'sm' => 'h-9 px-3 text-sm',
-        'md' => 'h-10 px-4 text-sm',
-        'lg' => 'h-11 px-5 text-sm',
+        'md' => 'h-11 px-4 text-sm',
+        'lg' => 'h-12 px-5 text-sm',
     ];
 
     if ($isDisabled) {

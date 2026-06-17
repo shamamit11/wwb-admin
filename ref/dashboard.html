@@ -1,0 +1,438 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Wide Web Blog | CMS Administrator</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#dce2f3",
+                        "inverse-surface": "#293040",
+                        "on-primary-container": "#582200",
+                        "on-primary-fixed-variant": "#783200",
+                        "on-tertiary-container": "#003554",
+                        "surface-container-highest": "#dce2f7",
+                        "on-secondary-fixed-variant": "#404754",
+                        "surface": "#f9f9ff",
+                        "surface-tint": "#9d4300",
+                        "on-surface": "#141b2b",
+                        "tertiary-fixed-dim": "#93ccff",
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "secondary-fixed": "#dce2f3",
+                        "tertiary": "#006398",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#cde5ff",
+                        "surface-bright": "#f9f9ff",
+                        "surface-dim": "#d3daef",
+                        "on-secondary-container": "#5e6572",
+                        "surface-container": "#e9edff",
+                        "outline": "#8c7164",
+                        "surface-container-high": "#e1e8fd",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#f97316",
+                        "surface-variant": "#dce2f7",
+                        "primary": "#9d4300",
+                        "on-error": "#ffffff",
+                        "secondary": "#585f6c",
+                        "on-primary-fixed": "#341100",
+                        "background": "#f9f9ff",
+                        "inverse-primary": "#ffb690",
+                        "primary-fixed": "#ffdbca",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#c0c7d6",
+                        "tertiary-container": "#00a2f4",
+                        "outline-variant": "#e0c0b1",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#001d32",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-fixed-dim": "#ffb690",
+                        "on-surface-variant": "#584237",
+                        "inverse-on-surface": "#edf0ff",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#141b2b",
+                        "on-secondary-fixed": "#151c27",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "container-max-width": "1200px",
+                        "margin-desktop": "32px",
+                        "sidebar-width": "260px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #141b2b;
+            font-family: 'Inter', sans-serif;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="w-[260px] h-screen fixed left-0 top-0 border-r border-outline-variant bg-surface flex flex-col gap-stack-sm py-margin-desktop z-50">
+    <div class="px-6 mb-8">
+        <h1 class="font-headline-sm text-headline-sm font-bold text-on-surface">Wide Web Blog</h1>
+        <p class="font-body-sm text-body-sm text-secondary">CMS Administrator</p>
+    </div>
+    <nav class="flex-1 space-y-1 px-3"><a class="flex items-center px-4 py-2 text-primary font-semibold border-l-4 border-primary bg-surface-container-high transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">dashboard</span><span class="font-body-md text-body-md">Dashboard</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">edit_note</span><span class="font-body-md text-body-md">Posts</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">category</span><span class="font-body-md text-body-md">Categories</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">sell</span><span class="font-body-md text-body-md">Tags</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">perm_media</span><span class="font-body-md text-body-md">Media Library</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">folder_shared</span><span class="font-body-md text-body-md">Digital Assets</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">view_quilt</span><span class="font-body-md text-body-md">Homepage Sections</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">manage_search</span><span class="font-body-md text-body-md">SEO</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">mail</span><span class="font-body-md text-body-md">Newsletter</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">group</span><span class="font-body-md text-body-md">Users</span></a><a class="flex items-center px-4 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer" href="#"><span class="material-symbols-outlined mr-3">settings</span><span class="font-body-md text-body-md">Settings</span></a></nav>
+
+    <div class="mt-auto border-t border-outline-variant bg-surface-container-low p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg overflow-hidden border border-outline-variant flex-shrink-0">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZnrk0n-ToemwWnMvqh7XNkKmwDNgNn2mXUSFUaqIf57lS1nbSfmRbWd1cFZzvS20LAbXJr9ubi1bei9myEumHxRoibr2Yt-6hJivu6ujy95pQunsdpWUHs6arJzgyUsErgUrzaSYfOBW3CX5wg5Skl-89SUQQ5_s3t7o-TRdvEQilleIjyeQ3gvR7SQd-TzbpPOLITEnWiSAI-pEgfPCdDpWsACjjTmN6NhbVWB2ZP8WMXl6e_faeELZjo9uKQ0z_VpqTeOv_jV1A" alt="Admin Profile" class="w-full h-full object-cover">
+        </div>
+        <div class="flex flex-col">
+            <span class="font-bold text-on-surface text-label-md">Admin Panel</span>
+            <span class="text-secondary text-xs">v 4.2.0</span>
+        </div>
+    </div></aside>
+<!-- TopNavBar (Authority: JSON) -->
+<header class="h-16 fixed top-0 right-0 left-[260px] border-b border-outline-variant bg-surface flex justify-between items-center px-margin-desktop w-full z-40">
+    <div class="flex items-center flex-1">
+        <div class="relative w-full max-w-md">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 text-body-sm focus:ring-2 focus:ring-primary-container" placeholder="Search posts, users, or assets..." type="text">
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all duration-200">
+            <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <button class="bg-primary-container text-on-primary-container h-10 px-4 rounded-full flex items-center gap-2 font-semibold hover:opacity-90 active:opacity-80 transition-all">
+            <span class="material-symbols-outlined">add</span>
+            <span class="font-label-md text-label-md">New</span>
+        </button>
+        <div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+            <img alt="User Profile Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvr5gvKl0zhpLCoxvrzVnkdilMuW7HD3ihLXX1rI9jsuG3vUw8jrlRqko961m8tWduSzGecJeXbu6jufWcU6Gvmxs9M-2uRjpyY7oGIfYBwlAw-SDKoEW4qIPR1IMJ9hid0z0lYjG8r_LP7UsPrprg5Lj5ctSW6Xi0ihQFEth0UxbxY-l9KzqP1pdMpPQ8KmfSzbvrXGE2JDWnC5Q591alutzZ4Dw19JSyUQHRUOK8B8WcdD1_CDRZOeyafQxFAreTCPwzIRAsKyyR">
+        </div>
+    </div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-[260px] mt-16 p-margin-desktop bg-background">
+    <div class="max-w-[1200px] mx-auto space-y-stack-lg">
+        <!-- Dashboard Header -->
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <h2 class="font-headline-lg text-headline-lg text-on-surface">Admin Overview</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant">Welcome back. Here's what's happening with Wide Web Blog today.</p>
+            </div>
+            <div class="flex gap-stack-sm">
+                <button class="px-4 py-2 border border-outline rounded-lg text-body-sm font-medium hover:bg-surface-container-low transition-colors">Export Report</button>
+                <button class="px-4 py-2 bg-primary-container text-on-primary-container rounded-lg text-body-sm font-medium hover:opacity-90 transition-opacity shadow-sm">Dashboard Settings</button>
+            </div>
+        </div>
+        <!-- Stats Bento Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Total Posts -->
+            <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl flex flex-col gap-2 group hover:shadow-md transition-shadow" style="transform: translateY(0px);">
+                <div class="flex justify-between items-start">
+                    <span class="material-symbols-outlined text-primary p-2 bg-primary-fixed rounded-lg">description</span>
+                    <span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">+2.4%</span>
+                </div>
+                <div>
+                    <p class="text-label-sm font-label-sm text-secondary uppercase tracking-wider">Total Posts</p>
+                    <h3 class="text-headline-md font-headline-md text-on-surface">1,240</h3>
+                </div>
+            </div>
+            <!-- Published -->
+            <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl flex flex-col gap-2 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <span class="material-symbols-outlined text-tertiary p-2 bg-tertiary-fixed rounded-lg">check_circle</span>
+                    <span class="text-xs font-semibold text-secondary">Steady</span>
+                </div>
+                <div>
+                    <p class="text-label-sm font-label-sm text-secondary uppercase tracking-wider">Published</p>
+                    <h3 class="text-headline-md font-headline-md text-on-surface">1,150</h3>
+                </div>
+            </div>
+            <!-- Drafts & Scheduled -->
+            <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl flex flex-col gap-2 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <span class="material-symbols-outlined text-outline p-2 bg-surface-container-high rounded-lg">pending_actions</span>
+                    <span class="text-xs font-semibold text-primary">Needs Action</span>
+                </div>
+                <div class="flex gap-8">
+                    <div>
+                        <p class="text-label-sm font-label-sm text-secondary uppercase tracking-wider">Drafts</p>
+                        <h3 class="text-headline-sm font-headline-sm text-on-surface">78</h3>
+                    </div>
+                    <div>
+                        <p class="text-label-sm font-label-sm text-secondary uppercase tracking-wider">Scheduled</p>
+                        <h3 class="text-headline-sm font-headline-sm text-on-surface">12</h3>
+                    </div>
+                </div>
+            </div>
+            <!-- Subscribers -->
+            <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl flex flex-col gap-2 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <span class="material-symbols-outlined text-primary p-2 bg-primary-fixed rounded-lg">mail</span>
+                    <span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">+120</span>
+                </div>
+                <div>
+                    <p class="text-label-sm font-label-sm text-secondary uppercase tracking-wider">Subscribers</p>
+                    <h3 class="text-headline-md font-headline-md text-on-surface">12.4k</h3>
+                </div>
+            </div>
+        </section>
+        <!-- Middle Layout: Editorial & Actions -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-stack-lg">
+            <!-- Main Editorial Area (Drafts Review) -->
+            <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden" style="transform: translateY(0px);">
+                <div class="p-6 border-b border-outline-variant flex justify-between items-center">
+                    <h3 class="font-headline-sm text-headline-sm">Drafts waiting for review</h3>
+                    <a class="text-primary text-label-md font-semibold hover:underline" href="#">View all drafts</a>
+                </div>
+                <div class="divide-y divide-outline-variant">
+                    <!-- Draft Item -->
+                    <div class="p-6 flex items-center justify-between hover:bg-surface-container-low transition-colors">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                <img alt="Post thumbnail" class="w-full h-full object-cover" data-alt="A professional editorial close-up of a desk with a laptop and coffee, shot in a minimalist Scandinavian style with soft natural lighting and warm orange accents on the keyboard. The mood is focused and productive, perfect for a blog CMS post preview." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG085OdF7H6xQtNXXJkLtBmu-axY3lVrloZKNX21V1Dl_RgY9raJA67t5_OzeSw1rzdx3Z3BB4CLFOWZVSeKuxWvSkIUABzoNLGvsDSFc_iwQbgG7AFhipxmi2n4mNkjkrJpkcJbFo7grkG5c2LgMl_nO91zZlLqzy8iRe5rg4mDWUE0Z6WMS12rIm_ZY4Wx_CE4gqf77mFzRZtEaO3ohAtrULHlRCb9-wsbR3ZqSNzo6Nl8GluXsEOGjQ9IFLpXV3Y6KyoF9E6VAg">
+                            </div>
+                            <div>
+                                <h4 class="font-body-md text-body-md font-semibold text-on-surface">The Future of Minimalist Web Design in 2024</h4>
+                                <p class="text-label-sm text-secondary mt-1">By Sarah Jenkins • Edited 2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="p-2 text-secondary hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="px-4 py-1.5 bg-surface-container-high text-on-surface text-label-md font-semibold rounded-lg hover:bg-surface-variant transition-colors">Review</button>
+                        </div>
+                    </div>
+                    <!-- Draft Item -->
+                    <div class="p-6 flex items-center justify-between hover:bg-surface-container-low transition-colors">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                <img alt="Post thumbnail" class="w-full h-full object-cover" data-alt="Abstract vibrant orange and deep blue gradient background with smooth, flowing organic shapes. The lighting is diffused and modern, creating a professional digital asset feeling. High resolution with clean, sharp edges that suggest a technology-focused article." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_wyrbB60HftzXqLTz1sJM8UdTSpiWDu97nEvcFOdw48gzcL9Fs6ixbcuhpRvfemJM9NsT3o4iH6eqP0ghERYilKy9odhSKwx04ye2cgpQwd5KjuGpdO-0v8eCnsy20WyFez8-osMHAPEZs5Rl9YTwUcQPub0x4poBbGjJNHnox_G8ljfVdjKGLlGjIfho77-37-NoZMunKU_FqWuG5PMJVrVNt0jQJbYi_OyxPIwWvURm-ddlsL5KH_2w-hsq64P0gKonUHtPg7Va">
+                            </div>
+                            <div>
+                                <h4 class="font-body-md text-body-md font-semibold text-on-surface">10 Ways to Optimize Your CMS Performance</h4>
+                                <p class="text-label-sm text-secondary mt-1">By Marcus Thorne • Edited 5 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="p-2 text-secondary hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="px-4 py-1.5 bg-surface-container-high text-on-surface text-label-md font-semibold rounded-lg hover:bg-surface-variant transition-colors">Review</button>
+                        </div>
+                    </div>
+                    <!-- Draft Item -->
+                    <div class="p-6 flex items-center justify-between hover:bg-surface-container-low transition-colors">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                <img alt="Post thumbnail" class="w-full h-full object-cover" data-alt="A bright, high-key workspace with a tablet displaying data charts and a stylish wooden desk. The atmosphere is professional and editorial, with soft shadows and clean white space reflecting a minimalist aesthetic. Accents of warm orange highlight the data visualization on screen." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNjN0gGY_0PMuf3TYmOtb2x0wGCaKH0FKW9Etr-TyHBvUuM6xRxM3sQtYCJV4jE7xBzlwZhSJREG-BD1kUyZF4tbw2VW0shxwmK7EdpTSdtFl3hvXncQ75uw-yS4EIJ6ml2r0H9TP0qn24q-B0BsUMb3tGJFwZCPikkY_KlnLJHeN0kAbYa1Ub-uQEdlxwsCJVgyCWIMZtD-gRs_cdWVEKZ6XVdWkZMD0_f6BWokZxCeo8-B99hGYmus-qhN5z5h3H-mq29sfy36kl">
+                            </div>
+                            <div>
+                                <h4 class="font-body-md text-body-md font-semibold text-on-surface">Why Data Visualization Matters More Than Ever</h4>
+                                <p class="text-label-sm text-secondary mt-1">By Elena Rodriguez • Edited Yesterday</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="p-2 text-secondary hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="px-4 py-1.5 bg-surface-container-high text-on-surface text-label-md font-semibold rounded-lg hover:bg-surface-variant transition-colors">Review</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quick Actions Sidebar -->
+            <div class="lg:col-span-4 space-y-stack-lg">
+                <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl" style="transform: translateY(0px);">
+                    <h3 class="font-headline-sm text-headline-sm mb-6">Quick Actions</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button class="flex flex-col items-center justify-center gap-3 p-4 border border-outline-variant rounded-xl hover:bg-primary-fixed transition-colors group">
+                            <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">add_box</span>
+                            <span class="text-label-md font-medium">Create Post</span>
+                        </button>
+                        <button class="flex flex-col items-center justify-center gap-3 p-4 border border-outline-variant rounded-xl hover:bg-primary-fixed transition-colors group">
+                            <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">upload_file</span>
+                            <span class="text-label-md font-medium">Upload Media</span>
+                        </button>
+                        <button class="flex flex-col items-center justify-center gap-3 p-4 border border-outline-variant rounded-xl hover:bg-primary-fixed transition-colors group">
+                            <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">cloud_upload</span>
+                            <span class="text-label-md font-medium">Add Asset</span>
+                        </button>
+                        <button class="flex flex-col items-center justify-center gap-3 p-4 border border-outline-variant rounded-xl hover:bg-primary-fixed transition-colors group" style="transform: scale(1);">
+                            <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">dashboard_customize</span>
+                            <span class="text-label-md font-medium">Manage Home</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Small Stats Card -->
+                <div class="bg-primary text-on-primary p-6 rounded-xl shadow-lg relative overflow-hidden group">
+                    <div class="relative z-10">
+                        <p class="text-label-sm font-medium opacity-80 uppercase tracking-widest">Growth</p>
+                        <h3 class="text-headline-lg font-headline-lg mt-1">+12.4k</h3>
+                        <p class="text-body-sm mt-2 opacity-90">Newsletter subscribers active this month.</p>
+                    </div>
+                    <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Bottom Row: Recent Activity & Secondary Info -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-lg pb-12">
+            <!-- Recent Activity Feed -->
+            <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden" style="transform: translateY(0px);">
+                <div class="p-6 border-b border-outline-variant flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">history</span>
+                    <h3 class="font-headline-sm text-headline-sm">Recent Activity</h3>
+                </div>
+                <div class="p-0">
+                    <div class="divide-y divide-outline-variant">
+                        <div class="p-4 px-6 flex gap-4 hover:bg-surface-container-low transition-colors">
+                            <div class="w-8 h-8 bg-surface-container-high rounded-full flex items-center justify-center text-primary flex-shrink-0">
+                                <span class="material-symbols-outlined text-sm">person</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-body-sm text-on-surface"><span class="font-bold">Jordan Smith</span> updated SEO metadata on <span class="text-primary cursor-pointer hover:underline">"Digital Assets in 2024"</span></p>
+                                <p class="text-xs text-secondary mt-1">12 minutes ago</p>
+                            </div>
+                        </div>
+                        <div class="p-4 px-6 flex gap-4 hover:bg-surface-container-low transition-colors">
+                            <div class="w-8 h-8 bg-surface-container-high rounded-full flex items-center justify-center text-tertiary flex-shrink-0">
+                                <span class="material-symbols-outlined text-sm">publish</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-body-sm text-on-surface"><span class="font-bold">System</span> automatically published scheduled post <span class="text-primary cursor-pointer hover:underline">"Monday Morning Briefing"</span></p>
+                                <p class="text-xs text-secondary mt-1">1 hour ago</p>
+                            </div>
+                        </div>
+                        <div class="p-4 px-6 flex gap-4 hover:bg-surface-container-low transition-colors">
+                            <div class="w-8 h-8 bg-surface-container-high rounded-full flex items-center justify-center text-error flex-shrink-0">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-body-sm text-on-surface"><span class="font-bold">Admin Alex</span> removed a spam comment from <span class="text-primary cursor-pointer hover:underline">"Design Trends 101"</span></p>
+                                <p class="text-xs text-secondary mt-1">2 hours ago</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="w-full py-4 text-label-md font-semibold text-secondary hover:text-on-surface hover:bg-surface-container-low transition-all" style="transform: scale(1);">Load more activity</button>
+                </div>
+            </div>
+            <!-- Categories & Assets Summary -->
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 h-fit" style="transform: translateY(0px);">
+                <h3 class="font-headline-sm text-headline-sm mb-6">System Health</h3>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-secondary-container rounded-lg flex items-center justify-center text-secondary">
+                                <span class="material-symbols-outlined">category</span>
+                            </div>
+                            <div>
+                                <p class="text-label-md font-bold">Categories</p>
+                                <p class="text-xs text-secondary">8 Main Topics</p>
+                            </div>
+                        </div>
+                        <span class="text-headline-sm font-bold">8</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-secondary-container rounded-lg flex items-center justify-center text-secondary">
+                                <span class="material-symbols-outlined">folder</span>
+                            </div>
+                            <div>
+                                <p class="text-label-md font-bold">Digital Assets</p>
+                                <p class="text-xs text-secondary">PDFs, Whitepapers</p>
+                            </div>
+                        </div>
+                        <span class="text-headline-sm font-bold">45</span>
+                    </div>
+                    <div class="pt-4 border-t border-outline-variant">
+                        <div class="flex justify-between text-xs font-bold text-secondary mb-2">
+                            <span class="">Storage Limit</span>
+                            <span class="">82% Used</span>
+                        </div>
+                        <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                            <div class="bg-primary h-full rounded-full" style="width: 82%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- Floating UI Interaction Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Subtle hover effects for cards
+        const cards = document.querySelectorAll('.bg-surface-container-lowest');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+
+        // Smooth active state toggle for buttons
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.addEventListener('mousedown', () => btn.style.transform = 'scale(0.98)');
+            btn.addEventListener('mouseup', () => btn.style.transform = 'scale(1)');
+            btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
+        });
+    });
+</script>
+
+
+</body></html>

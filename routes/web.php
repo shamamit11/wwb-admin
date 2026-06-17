@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Auth\LogoutController;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
+use App\Livewire\Admin\Categories\Index as CategoryIndex;
 use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
 use Illuminate\Support\Facades\Route;
@@ -31,20 +32,7 @@ Route::middleware('admin.auth')->group(function (): void {
         ])
         ->name('posts.index');
 
-    Route::get('/categories', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Taxonomy')
-        ->defaults('pageTitle', 'Categories management is scaffolded for table-first CRUD work.')
-        ->defaults('pageDescription', 'Categories now have a protected route and clear navigation target. The next task can focus purely on service integration and CRUD UI.')
-        ->defaults('moduleLabel', 'Categories')
-        ->defaults('moduleDescription', 'This module will handle category structure, slug management, status, and future parent-category handling.')
-        ->defaults('primaryActionLabel', 'Create Category')
-        ->defaults('primaryActionHint', 'A later task should decide whether category create/edit uses a drawer or dedicated screen.')
-        ->defaults('nextSteps', [
-            'Wire the categories API client against the service contract.',
-            'Build the categories management table with search, sort, and row actions.',
-            'Add the category form pattern for create and edit flows.',
-        ])
-        ->name('categories.index');
+    Route::get('/categories', CategoryIndex::class)->name('categories.index');
 
     Route::get('/tags', PlaceholderIndex::class)
         ->defaults('eyebrow', 'Taxonomy')

@@ -1,0 +1,494 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Wide Web Blog - Posts Management</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#dce2f3",
+                        "inverse-surface": "#293040",
+                        "on-primary-container": "#582200",
+                        "on-primary-fixed-variant": "#783200",
+                        "on-tertiary-container": "#003554",
+                        "surface-container-highest": "#dce2f7",
+                        "on-secondary-fixed-variant": "#404754",
+                        "surface": "#f9f9ff",
+                        "surface-tint": "#9d4300",
+                        "on-surface": "#141b2b",
+                        "tertiary-fixed-dim": "#93ccff",
+                        "on-tertiary-fixed-variant": "#004b74",
+                        "secondary-fixed": "#dce2f3",
+                        "tertiary": "#006398",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#cde5ff",
+                        "surface-bright": "#f9f9ff",
+                        "surface-dim": "#d3daef",
+                        "on-secondary-container": "#5e6572",
+                        "surface-container": "#e9edff",
+                        "outline": "#8c7164",
+                        "surface-container-high": "#e1e8fd",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#f97316",
+                        "surface-variant": "#dce2f7",
+                        "primary": "#9d4300",
+                        "on-error": "#ffffff",
+                        "secondary": "#585f6c",
+                        "on-primary-fixed": "#341100",
+                        "background": "#f9f9ff",
+                        "inverse-primary": "#ffb690",
+                        "primary-fixed": "#ffdbca",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#c0c7d6",
+                        "tertiary-container": "#00a2f4",
+                        "outline-variant": "#e0c0b1",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#001d32",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-fixed-dim": "#ffb690",
+                        "on-surface-variant": "#584237",
+                        "inverse-on-surface": "#edf0ff",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#141b2b",
+                        "on-secondary-fixed": "#151c27",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "container-max-width": "1200px",
+                        "margin-desktop": "32px",
+                        "sidebar-width": "260px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+
+        .glass-header {
+            backdrop-filter: blur(8px);
+            background: rgba(249, 249, 255, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Side Navigation Bar -->
+<aside class="w-[260px] h-screen fixed left-0 top-0 border-r border-outline-variant bg-surface flex flex-col gap-stack-sm py-margin-desktop z-50 overflow-y-auto custom-scrollbar"><div class="px-6 mb-8">
+    <h1 class="font-headline-sm text-headline-sm font-bold text-on-surface">Wide Web Blog</h1>
+    <p class="font-label-sm text-label-sm text-secondary">CMS Administrator</p>
+</div>
+    <nav class="flex-1 px-3 space-y-1">
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-primary font-semibold border-l-4 border-primary bg-surface-container-high transition-colors duration-200 ease-in-out cursor-pointer rounded-r-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">edit_note</span>
+            <span class="">Posts</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">category</span>
+            <span class="">Categories</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">sell</span>
+            <span class="">Tags</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">perm_media</span>
+            <span class="">Media Library</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">folder_shared</span>
+            <span class="">Digital Assets</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">view_quilt</span>
+            <span class="">Homepage Sections</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">manage_search</span>
+            <span class="">SEO</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">mail</span>
+            <span class="">Newsletter</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">group</span>
+            <span class="">Users</span>
+        </a>
+
+        <a class="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-low transition-colors duration-200 ease-in-out cursor-pointer rounded-lg font-body-md text-body-md" href="#">
+            <span class="material-symbols-outlined">settings</span>
+            <span class="">Settings</span>
+        </a></nav>
+    <div class="px-6 pt-6 mt-6 border-t border-outline-variant">
+        <div class="flex items-center gap-3">
+            <img alt="User Profile Avatar" class="w-10 h-10 rounded-full border border-outline-variant bg-surface-container-low" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPJr2JftCZPOpKI4mvcemK4Ex-8hlC3-ZnD0M_e12RaeAGbcUxBAktMtT8SuMLybbN50C7eZb5k-1uvlCB6SRx98LkZVEW2euVZvPXDPeOyJy7yjoFuXzJsjRAM4w6fcLV0t5jOyL8Jg4G4viCRB0EPC-mMVAic1E-no2vJFDmn4tN6zlQkuIZZQ9u7w4gb7Ks2tgny-fuk26fVG5IIe2h9ymOnqqRUowVR-gniRpdKkZyPbfpKaXm_ks2qUeDI5jFhXYiscLGNqGn">
+            <div>
+                <p class="font-label-md text-label-md font-semibold text-on-surface">Alex Rivera</p>
+                <p class="font-label-sm text-label-sm text-secondary">Chief Editor</p>
+            </div>
+        </div>
+    </div></aside>
+<!-- Top Navigation Bar -->
+<header class="h-16 fixed top-0 right-0 left-[260px] bg-surface flex justify-between items-center px-margin-desktop w-full z-40 border-b border-outline-variant glass-header"><div class="flex items-center gap-stack-lg flex-1">
+    <div class="relative w-full max-w-md">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+        <input class="w-full bg-surface-container-low border border-outline-variant rounded-xl py-2 pl-10 pr-4 text-body-sm font-body-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Search posts, assets, or users..." type="text">
+    </div>
+</div>
+    <div class="flex items-center gap-4">
+        <button class="p-2 text-secondary hover:bg-surface-container-low rounded-full transition-all duration-200">
+            <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-xl font-label-md text-label-md font-bold flex items-center gap-2 hover:opacity-90 active:opacity-80 transition-all">
+            <span class="material-symbols-outlined">add</span>
+            Create Post
+        </button>
+    </div></header>
+<!-- Main Content Canvas -->
+<main class="ml-[260px] pt-16 min-h-screen bg-background">
+    <div class="max-w-[1200px] mx-auto px-margin-desktop py-10">
+        <!-- Page Title Area -->
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <h2 class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">Posts</h2>
+                <p class="text-secondary font-body-md text-body-md mt-1">Manage and organize your editorial content pipeline.</p>
+            </div>
+            <div class="flex gap-2">
+                <button class="flex items-center gap-2 border border-outline-variant bg-surface hover:bg-surface-container-low px-4 py-2 rounded-xl transition-all font-label-md text-label-md">
+                    <span class="material-symbols-outlined">file_download</span>
+                    Export
+                </button>
+            </div>
+        </div>
+        <!-- Filter Bar Section -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 mb-stack-lg shadow-sm">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="flex flex-col gap-2">
+                    <label class="font-label-sm text-label-sm text-secondary">Search Title</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+                        <input class="w-full bg-surface border border-outline-variant rounded-lg py-2 pl-9 pr-3 text-body-sm font-body-sm focus:ring-1 focus:ring-primary focus:border-primary" placeholder="Title keywords..." type="text">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="font-label-sm text-label-sm text-secondary">Status</label>
+                    <select class="w-full bg-surface border border-outline-variant rounded-lg py-2 px-3 text-body-sm font-body-sm focus:ring-1 focus:ring-primary focus:border-primary">
+                        <option>All Statuses</option>
+                        <option>Draft</option>
+                        <option>Published</option>
+                        <option>Scheduled</option>
+                        <option>Archived</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="font-label-sm text-label-sm text-secondary">Category</label>
+                    <select class="w-full bg-surface border border-outline-variant rounded-lg py-2 px-3 text-body-sm font-body-sm focus:ring-1 focus:ring-primary focus:border-primary">
+                        <option>All Categories</option>
+                        <option>AI Tools</option>
+                        <option>Blogging</option>
+                        <option>SEO</option>
+                        <option>Design</option>
+                        <option>Development</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="font-label-sm text-label-sm text-secondary">Author</label>
+                    <select class="w-full bg-surface border border-outline-variant rounded-lg py-2 px-3 text-body-sm font-body-sm focus:ring-1 focus:ring-primary focus:border-primary">
+                        <option>All Authors</option>
+                        <option>Alex Rivera</option>
+                        <option>Sam Chen</option>
+                        <option>Jamie Smith</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <!-- Posts Data Table -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                    <tr class="border-b border-outline-variant bg-surface-container-low">
+                        <th class="px-6 py-4 font-label-md text-label-md text-secondary">Title &amp; Slug</th>
+                        <th class="px-6 py-4 font-label-md text-label-md text-secondary">Category</th>
+                        <th class="px-6 py-4 font-label-md text-label-md text-secondary">Status</th>
+                        <th class="px-6 py-4 font-label-md text-label-md text-secondary">Author</th>
+                        <th class="px-6 py-4 font-label-md text-label-md text-secondary">Date</th>
+                        <th class="px-6 py-4 font-label-md text-label-md text-secondary">SEO</th>
+                        <th class="px-6 py-4 font-label-md text-label-md text-secondary text-right">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant">
+                    <!-- Row 1 -->
+                    <tr class="hover:bg-surface-container-low transition-colors duration-150 group">
+                        <td class="px-6 py-5">
+                            <div class="flex flex-col">
+                                <span class="font-body-md text-body-md font-semibold text-on-surface">The Future of Generative AI in CMS Platforms</span>
+                                <span class="font-label-sm text-label-sm text-secondary">/posts/generative-ai-future-2024</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="font-body-sm text-body-sm text-on-surface bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full">AI Tools</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Published</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <img alt="Author" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwACVgPmDgb0hzD7rdihdaHa8SsRhfKH30MHohzTsV8DbswdrKbC1BlKNq2a_ArXwR1JjLrAkhD3S3kVQngHv56NoDo8gQx910BGDjAIiN25_SdWEqjc-NLSSkRacSfmA-YK7L6ACMsiIAxP4qehID9U7xy7EV1OU8Cyk9UJI6xp1zEUB8QHtdho6bOym-LDsiWjz5IvKavOYnpcOwidp1CGDRmcQNWgbCoe9A1WPRlzBcS3Ga8hYzXgG8NQMzNJfkTVQr3tWtA1t-">
+                                <span class="font-body-sm text-body-sm text-on-surface">Alex Rivera</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 font-body-sm text-body-sm text-secondary">Oct 12, 2023</td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                                <span class="font-label-sm text-label-sm text-secondary">92</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-right space-x-1">
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="Edit">
+                                <span class="material-symbols-outlined text-[20px]">edit</span>
+                            </button>
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="Preview">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="More">
+                                <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Row 2 -->
+                    <tr class="hover:bg-surface-container-low transition-colors duration-150 group">
+                        <td class="px-6 py-5">
+                            <div class="flex flex-col">
+                                <span class="font-body-md text-body-md font-semibold text-on-surface">10 Blogging Tips for New Writers</span>
+                                <span class="font-label-sm text-label-sm text-secondary">/posts/blogging-tips-2024</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="font-body-sm text-body-sm text-on-surface bg-secondary-fixed text-on-secondary-fixed-variant px-3 py-1 rounded-full">Blogging</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Draft</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <img alt="Author" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfTAMwekU2TFiVN4uYasN5ZZ7Md8OX-R_CZpQ8jwHdXAQoc-R5xkdMq4c_vY6M_dgtvSTLS9ifZk0ARw2jy27PJvDKiDPxzcFwkTHBzowzgHHI0nl7VpG-YnDk_x9Ygt5_OegXvTp8UaDRqYs6zR0hEiLKEhBbKxxpFXYnLTRJlK0ORrDz15azdTKOzybLfxX04_FT-FjJrkwN1g5tyYZk7tsQs5S43CbUvAimW7owDJr-eVm2k-429jzGtb-uPFdNPsb2wj6HS-PP">
+                                <span class="font-body-sm text-body-sm text-on-surface">Sam Chen</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 font-body-sm text-body-sm text-secondary">Oct 14, 2023</td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                <span class="font-label-sm text-label-sm text-secondary">68</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-right space-x-1">
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="Edit">
+                                <span class="material-symbols-outlined text-[20px]">edit</span>
+                            </button>
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="Preview">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="More">
+                                <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Row 3 -->
+                    <tr class="hover:bg-surface-container-low transition-colors duration-150 group">
+                        <td class="px-6 py-5">
+                            <div class="flex flex-col">
+                                <span class="font-body-md text-body-md font-semibold text-on-surface">Mastering Long-Tail Keywords</span>
+                                <span class="font-label-sm text-label-sm text-secondary">/posts/seo-long-tail-keywords</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="font-body-sm text-body-sm text-on-surface bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full">SEO</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Scheduled</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <img alt="Author" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoVcjkpvJgsHrcRkay5u-VyG7akEl6Whx-oihLipu7cVUDWo9HYqixI-BpI0icdFUIpzG2HfdYgP4T40HPMEmn_ec7geKMDzeRCa2bvH6WgnZuC-sJ89vhaLipgPUaOemm7a2zwFLh6MfLHKrf48ZgElcXNQHz9zRyHOMS0llOMzf4b7bCREYoVWa2RH3aRtS-UjH6y1fXnTtC-mI61c2e4qJhsf1RgWGs51wY2f9b6ePZ9wnO6k_ifculVXvbiuBmpSzCvBAFnOfJ">
+                                <span class="font-body-sm text-body-sm text-on-surface">Jamie Smith</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 font-body-sm text-body-sm text-secondary">Nov 01, 2023</td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                                <span class="font-label-sm text-label-sm text-secondary">85</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-right space-x-1">
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="Edit">
+                                <span class="material-symbols-outlined text-[20px]">edit</span>
+                            </button>
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="Preview">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="More">
+                                <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Row 4 -->
+                    <tr class="hover:bg-surface-container-low transition-colors duration-150 group">
+                        <td class="px-6 py-5">
+                            <div class="flex flex-col">
+                                <span class="font-body-md text-body-md font-semibold text-on-surface">Why Static Site Generators are Winning</span>
+                                <span class="font-label-sm text-label-sm text-secondary">/posts/ssg-vs-dynamic-cms</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="font-body-sm text-body-sm text-on-surface bg-surface-container-high px-3 py-1 rounded-full">Development</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Archived</span>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <img alt="Author" class="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQpOOp96bzYqHkyIkaqO5bs_hEdny4JMIlzOgfpWqDNgREIlYwgwN6kyX2OHCeQ8zGN2IUZsOUmiZShVZ3-2rL54qW5BNuaxtKyGreOnC3O6my0vtP0X-pNW7RtNXuTuUX76OMBY4G_6knPjWtD-GYapQF4samjz0pJZZ0yVDhji5SyHnKztjtkSORdCCe7l4_Q8YX_BNj1_iwXfVEoDCxLpwAvA3VKT0BntrLBttDPgKlmTAYFtZcbQTVWqzJtQ5aAiUbkvMpkmE1">
+                                <span class="font-body-sm text-body-sm text-on-surface">Alex Rivera</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 font-body-sm text-body-sm text-secondary">Aug 20, 2023</td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                                <span class="font-label-sm text-label-sm text-secondary">42</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-right space-x-1">
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="Edit">
+                                <span class="material-symbols-outlined text-[20px]">edit</span>
+                            </button>
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="Preview">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                            <button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded-lg transition-all" title="More">
+                                <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination footer -->
+            <div class="px-6 py-4 bg-surface flex items-center justify-between border-t border-outline-variant">
+                <span class="font-label-sm text-label-sm text-secondary">Showing 1-4 of 128 posts</span>
+                <div class="flex gap-2">
+                    <button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all disabled:opacity-30" disabled="">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <button class="w-10 h-10 bg-primary text-on-primary rounded-lg font-label-md text-label-md">1</button>
+                    <button class="w-10 h-10 border border-outline-variant hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-all">2</button>
+                    <button class="w-10 h-10 border border-outline-variant hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-all">3</button>
+                    <button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Dashboard Stats Summary (Bento Style) -->
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-surface border border-outline-variant p-6 rounded-2xl flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div>
+                    <p class="font-label-sm text-label-sm text-secondary">Total Published</p>
+                    <p class="font-headline-sm text-headline-sm font-bold">84 Posts</p>
+                </div>
+            </div>
+            <div class="bg-surface border border-outline-variant p-6 rounded-2xl flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                    <span class="material-symbols-outlined">schedule</span>
+                </div>
+                <div>
+                    <p class="font-label-sm text-label-sm text-secondary">Scheduled Next 7 Days</p>
+                    <p class="font-headline-sm text-headline-sm font-bold">12 Posts</p>
+                </div>
+            </div>
+            <div class="bg-surface border border-outline-variant p-6 rounded-2xl flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined">trending_up</span>
+                </div>
+                <div>
+                    <p class="font-label-sm text-label-sm text-secondary">Avg. SEO Score</p>
+                    <p class="font-headline-sm text-headline-sm font-bold">78 / 100</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+    // Simple Interaction logic
+    document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        });
+    });
+</script>
+
+
+</body></html>

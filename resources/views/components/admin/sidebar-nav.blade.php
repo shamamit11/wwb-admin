@@ -8,6 +8,7 @@
                     :href="route($item['route'])"
                     :active="request()->routeIs($item['active'])"
                     :placeholder="$item['placeholder']"
+                    :icon="$item['icon']"
                     :title="$item['description']"
                 >
                     {{ $item['label'] }}

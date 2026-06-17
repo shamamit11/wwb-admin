@@ -51,8 +51,8 @@ class Index extends Component
         return view('livewire.admin.dashboard.index')
             ->layout('layouts.admin', [
                 'title' => 'Dashboard',
-                'pageTitle' => 'Publishing operations should start with action, not noise.',
-                'pageDescription' => 'Use the dashboard to jump into recent drafts, published posts, and the next editorial tasks. Placeholder widgets stay explicit where service support is not available yet.',
+                'pageTitle' => null,
+                'pageDescription' => null,
             ]);
     }
 

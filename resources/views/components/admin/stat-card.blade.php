@@ -7,8 +7,8 @@
 @php
     $tones = [
         'default' => 'bg-[var(--color-panel)]',
-        'accent' => 'bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-accent)_9%,white),var(--color-panel))]',
-        'soft' => 'bg-[var(--color-panel-soft)]',
+        'accent' => 'bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-accent)_10%,white),var(--color-panel))]',
+        'soft' => 'bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-info)_8%,white),var(--color-panel))]',
     ];
 @endphp
 

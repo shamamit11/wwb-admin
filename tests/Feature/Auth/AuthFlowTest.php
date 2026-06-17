@@ -84,6 +84,12 @@ class AuthFlowTest extends TestCase
 
     public function test_authenticated_session_can_access_dashboard(): void
     {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/posts*' => Http::response([
+                'data' => [],
+            ], 200),
+        ]);
+
         $response = $this
             ->withSession([
                 config('widewebblog.session.token_key') => 'test-token',
@@ -99,7 +105,7 @@ class AuthFlowTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Search the admin')
-            ->assertSee('Editorial Workspace')
+            ->assertSee('Operations Console')
             ->assertSee('Browse Admin');
     }
 
@@ -150,8 +156,8 @@ class AuthFlowTest extends TestCase
     {
         $this->get(route('login'))
             ->assertOk()
-            ->assertSee('Editorial operations for a publishing-first admin.')
-            ->assertSee('Admin Access')
+            ->assertSee('Editorial control for a modern publishing desk.')
+            ->assertSee('CMS Administrator Portal')
             ->assertSee('Admin Sign In');
     }
 }
