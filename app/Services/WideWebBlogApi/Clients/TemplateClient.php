@@ -45,4 +45,18 @@ class TemplateClient
             $this->api->authenticated($token, $tokenType)->delete("/admin/templates/{$templateId}")
         );
     }
+
+    public function preview(string $token, ?string $tokenType = 'Bearer', int $templateId = 0, array $payload = []): array
+    {
+        return $this->api->handle(
+            $this->api->authenticated($token, $tokenType)->post("/admin/templates/{$templateId}/preview", $payload)
+        );
+    }
+
+    public function seedPost(string $token, ?string $tokenType = 'Bearer', int $templateId = 0, array $payload = []): array
+    {
+        return $this->api->handle(
+            $this->api->authenticated($token, $tokenType)->post("/admin/templates/{$templateId}/seed-post", $payload)
+        );
+    }
 }

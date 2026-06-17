@@ -241,6 +241,139 @@ class TemplateIndexTest extends TestCase
             ->assertDontSee('Decision Brief Layout');
     }
 
+    public function test_template_preview_action_uses_documented_endpoint_and_renders_preview_payload(): void
+    {
+        session($this->authenticatedSession());
+
+        $template = $this->templateResource([
+            'id' => 1,
+            'name' => 'Agent Tutorial Layout',
+            'slug' => 'agent-tutorial-layout',
+            'template_type' => 'tutorial',
+        ]);
+
+        Http::fake(function (Request $request) use ($template) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/templates') {
+                return Http::response(['data' => [$template]], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/templates/1/preview') {
+                $this->assertSame('How AI Agent Memory Works', $request['title']);
+                $this->assertSame('AI agent memory', $request['topic']);
+
+                return Http::response([
+                    'data' => [
+                        'template' => $template,
+                        'preview' => [
+                            'title' => 'How AI Agent Memory Works',
+                            'topic' => 'AI agent memory',
+                            'meta' => [
+                                'seo_rules' => ['preferred_schema' => 'Article'],
+                            ],
+                            'blocks' => [
+                                [
+                                    'block_type' => 'heading',
+                                    'sort_order' => 1,
+                                    'label' => 'Title',
+                                    'is_required' => true,
+                                    'content' => [
+                                        'text' => 'How AI Agent Memory Works',
+                                        'level' => 1,
+                                    ],
+                                ],
+                                [
+                                    'block_type' => 'paragraph',
+                                    'sort_order' => 2,
+                                    'label' => 'Introduction',
+                                    'is_required' => true,
+                                    'content' => [
+                                        'markdown' => 'Introduce AI agent memory with practical context.',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Index::class)
+            ->call('openActionDrawer', 'preview', 1)
+            ->set('actionContextTitle', 'How AI Agent Memory Works')
+            ->set('actionContextTopic', 'AI agent memory')
+            ->call('runTemplateAction')
+            ->assertHasNoErrors()
+            ->assertSee('How AI Agent Memory Works')
+            ->assertSee('preferred_schema')
+            ->assertSee('Introduce AI agent memory with practical context.');
+    }
+
+    public function test_template_seed_post_action_uses_documented_endpoint_and_renders_seed_payload(): void
+    {
+        session($this->authenticatedSession());
+
+        $template = $this->templateResource([
+            'id' => 1,
+            'name' => 'Agent Tutorial Layout',
+            'slug' => 'agent-tutorial-layout',
+            'template_type' => 'tutorial',
+        ]);
+
+        Http::fake(function (Request $request) use ($template) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/templates') {
+                return Http::response(['data' => [$template]], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/templates/1/seed-post') {
+                $this->assertSame('AI Agent Memory Patterns', $request['title']);
+                $this->assertSame('AI agent memory', $request['topic']);
+
+                return Http::response([
+                    'data' => [
+                        'template' => $template,
+                        'post' => [
+                            'title' => 'AI Agent Memory Patterns',
+                            'slug' => 'ai-agent-memory-patterns',
+                            'status' => 'draft',
+                            'template_id' => 1,
+                            'template_type' => 'tutorial',
+                            'excerpt_prompt' => 'Summarize the steps and outcomes.',
+                            'meta' => [
+                                'recommended_sections' => ['introduction', 'steps', 'faq'],
+                            ],
+                            'blocks' => [
+                                [
+                                    'block_type' => 'heading',
+                                    'sort_order' => 1,
+                                    'label' => 'Title',
+                                    'is_required' => true,
+                                    'content' => [
+                                        'text' => 'AI Agent Memory Patterns',
+                                        'level' => 1,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Index::class)
+            ->call('openActionDrawer', 'seed', 1)
+            ->set('actionContextTitle', 'AI Agent Memory Patterns')
+            ->set('actionContextTopic', 'AI agent memory')
+            ->call('runTemplateAction')
+            ->assertHasNoErrors()
+            ->assertSee('ai-agent-memory-patterns')
+            ->assertSee('recommended_sections')
+            ->assertSee('AI Agent Memory Patterns');
+    }
+
     protected function authenticatedSession(): array
     {
         return [

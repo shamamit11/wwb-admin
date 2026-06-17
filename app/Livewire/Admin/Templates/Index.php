@@ -57,6 +57,22 @@ class Index extends Component
 
     public array $templates = [];
 
+    public bool $actionDrawerOpen = false;
+
+    public string $actionMode = 'preview';
+
+    public ?int $actionTemplateId = null;
+
+    public string $actionTemplateName = '';
+
+    public string $actionContextTitle = '';
+
+    public string $actionContextTopic = '';
+
+    public array $actionResult = [];
+
+    public ?string $actionError = null;
+
     public bool $drawerOpen = false;
 
     public ?int $editingTemplateId = null;
@@ -116,13 +132,15 @@ class Index extends Component
                 $this->validateJsonArrayPayload($attribute, $value, $fail);
             }],
             'blocks.*.isRequired' => ['boolean'],
+            'actionContextTitle' => ['nullable', 'string', 'max:160'],
+            'actionContextTopic' => ['nullable', 'string', 'max:160'],
         ];
     }
 
     public function updated(string $property): void
     {
         if (
-            in_array($property, ['name', 'slug', 'templateType', 'description', 'status', 'defaultExcerptPrompt', 'defaultMetaJson'], true)
+            in_array($property, ['name', 'slug', 'templateType', 'description', 'status', 'defaultExcerptPrompt', 'defaultMetaJson', 'actionContextTitle', 'actionContextTopic'], true)
             || str_starts_with($property, 'blocks.')
         ) {
             $this->validateOnly($property);
@@ -177,6 +195,38 @@ class Index extends Component
     public function closeDrawer(): void
     {
         $this->resetForm();
+    }
+
+    public function openActionDrawer(string $mode, int $templateId): void
+    {
+        if (! in_array($mode, ['preview', 'seed'], true)) {
+            return;
+        }
+
+        $template = collect($this->templates)->firstWhere('id', $templateId);
+
+        $this->resetValidation();
+        $this->actionDrawerOpen = true;
+        $this->actionMode = $mode;
+        $this->actionTemplateId = $templateId;
+        $this->actionTemplateName = (string) ($template['name'] ?? 'template');
+        $this->actionContextTitle = '';
+        $this->actionContextTopic = '';
+        $this->actionResult = [];
+        $this->actionError = null;
+    }
+
+    public function closeActionDrawer(): void
+    {
+        $this->resetValidation();
+        $this->actionDrawerOpen = false;
+        $this->actionMode = 'preview';
+        $this->actionTemplateId = null;
+        $this->actionTemplateName = '';
+        $this->actionContextTitle = '';
+        $this->actionContextTopic = '';
+        $this->actionResult = [];
+        $this->actionError = null;
     }
 
     public function addBlock(): void
@@ -253,6 +303,44 @@ class Index extends Component
             return $this->forbidden($session);
         } catch (WideWebBlogApiException $exception) {
             $this->formError = $exception->getMessage() ?: 'Template changes could not be saved.';
+
+            return null;
+        }
+    }
+
+    public function runTemplateAction(TemplateClient $templates, AdminSessionManager $session): mixed
+    {
+        if (! $this->actionTemplateId) {
+            return null;
+        }
+
+        $validated = $this->validate([
+            'actionContextTitle' => ['nullable', 'string', 'max:160'],
+            'actionContextTopic' => ['nullable', 'string', 'max:160'],
+        ]);
+
+        $payload = $this->templateActionPayload($validated);
+        $this->actionError = null;
+
+        try {
+            $response = $this->actionMode === 'seed'
+                ? $templates->seedPost($this->token($session), $session->tokenType(), $this->actionTemplateId, $payload)
+                : $templates->preview($this->token($session), $session->tokenType(), $this->actionTemplateId, $payload);
+
+            $this->actionResult = Arr::get($response, 'data', []);
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->actionError = $exception->getMessage();
+            $this->addApiErrors($this->normalizeApiErrors($exception->errors()));
+
+            return null;
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->actionError = $exception->getMessage() ?: 'Template action failed.';
 
             return null;
         }
@@ -465,6 +553,14 @@ class Index extends Component
         $this->resetBlockEditor();
     }
 
+    protected function templateActionPayload(array $validated): array
+    {
+        return [
+            'title' => filled($validated['actionContextTitle'] ?? null) ? trim((string) $validated['actionContextTitle']) : null,
+            'topic' => filled($validated['actionContextTopic'] ?? null) ? trim((string) $validated['actionContextTopic']) : null,
+        ];
+    }
+
     protected function resetBlockEditor(): void
     {
         $this->blocks = [$this->makeBlockEditorState('heading')];
@@ -536,6 +632,8 @@ class Index extends Component
                 preg_match('/^blocks\.(\d+)\.is_required$/', $field) === 1 => preg_replace('/\.is_required$/', '.isRequired', $field) ?: $field,
                 preg_match('/^blocks\.(\d+)\.settings$/', $field) === 1 => preg_replace('/\.settings$/', '.settingsJson', $field) ?: $field,
                 preg_match('/^blocks\.(\d+)\.sort_order$/', $field) === 1 => preg_replace('/\.sort_order$/', '.blockType', $field) ?: $field,
+                $field === 'title' => 'actionContextTitle',
+                $field === 'topic' => 'actionContextTopic',
                 default => $field,
             };
 

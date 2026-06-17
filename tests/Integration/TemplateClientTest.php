@@ -107,4 +107,38 @@ class TemplateClientTest extends TestCase
                 && $request->url() === $this->apiBaseUrl.'/admin/templates/12';
         });
     }
+
+    public function test_template_client_uses_documented_preview_and_seed_post_endpoints(): void
+    {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/templates/30/preview' => Http::response(['data' => ['preview' => ['title' => 'Preview title']]], 200),
+            $this->apiBaseUrl.'/admin/templates/30/seed-post' => Http::response(['data' => ['post' => ['slug' => 'preview-title']]], 200),
+        ]);
+
+        $client = app(TemplateClient::class);
+
+        $client->preview('test-token', 'Bearer', 30, [
+            'title' => 'Preview title',
+            'topic' => 'AI agent memory',
+        ]);
+
+        $client->seedPost('test-token', 'Bearer', 30, [
+            'title' => 'Preview title',
+            'topic' => 'AI agent memory',
+        ]);
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->method() === 'POST'
+                && $request->url() === $this->apiBaseUrl.'/admin/templates/30/preview'
+                && $request['title'] === 'Preview title'
+                && $request['topic'] === 'AI agent memory';
+        });
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->method() === 'POST'
+                && $request->url() === $this->apiBaseUrl.'/admin/templates/30/seed-post'
+                && $request['title'] === 'Preview title'
+                && $request['topic'] === 'AI agent memory';
+        });
+    }
 }

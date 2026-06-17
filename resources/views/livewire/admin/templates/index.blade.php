@@ -115,7 +115,23 @@
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $template['updated_at'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
-                        <div class="flex items-center justify-end gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            <x-ui.button
+                                type="button"
+                                variant="secondary"
+                                class="h-10 px-3 text-sm"
+                                wire:click="openActionDrawer('preview', {{ $template['id'] }})"
+                            >
+                                Preview
+                            </x-ui.button>
+                            <x-ui.button
+                                type="button"
+                                variant="secondary"
+                                class="h-10 px-3 text-sm"
+                                wire:click="openActionDrawer('seed', {{ $template['id'] }})"
+                            >
+                                Seed Post
+                            </x-ui.button>
                             <x-ui.button
                                 type="button"
                                 variant="ghost"
@@ -321,6 +337,133 @@
             <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save,openEditDrawer">
                 <span wire:loading.remove wire:target="save">{{ $editingTemplateId ? 'Save changes' : 'Create template' }}</span>
                 <span wire:loading wire:target="save">Saving…</span>
+            </x-ui.button>
+        </x-slot:actions>
+    </x-ui.drawer>
+
+    <x-ui.drawer
+        :open="$actionDrawerOpen"
+        :title="$actionMode === 'seed' ? 'Seed post payload' : 'Template preview'"
+        :description="$actionMode === 'seed'
+            ? 'Generate the documented seed-post payload for this template. The result is shown as service output only and does not assume editor navigation.'
+            : 'Generate a preview payload for this template using the documented preview endpoint.'"
+        width="xl"
+    >
+        <div class="space-y-6">
+            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-5 py-4">
+                <p class="text-sm font-semibold text-[var(--color-ink)]">{{ $actionTemplateName }}</p>
+                <p class="mt-1 text-sm text-[var(--color-muted)]">
+                    {{ $actionMode === 'seed' ? 'Seed a post payload from this template.' : 'Preview how this template resolves into content blocks.' }}
+                </p>
+            </div>
+
+            @if ($actionError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $actionError }}
+                </div>
+            @endif
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <x-ui.field label="Title Override" for="template-action-title" :error="$errors->first('actionContextTitle')">
+                    <x-ui.input id="template-action-title" wire:model.blur="actionContextTitle" placeholder="Optional title override" :invalid="$errors->has('actionContextTitle')" />
+                </x-ui.field>
+
+                <x-ui.field label="Topic Override" for="template-action-topic" :error="$errors->first('actionContextTopic')">
+                    <x-ui.input id="template-action-topic" wire:model.blur="actionContextTopic" placeholder="Optional topic override" :invalid="$errors->has('actionContextTopic')" />
+                </x-ui.field>
+            </div>
+
+            @if ($actionResult !== [])
+                @if ($actionMode === 'preview')
+                    <div class="space-y-5">
+                        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)]">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Title</p>
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ data_get($actionResult, 'preview.title', 'Not provided') }}</p>
+                            </div>
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)]">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Topic</p>
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ data_get($actionResult, 'preview.topic', 'Not provided') }}</p>
+                            </div>
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)]">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Blocks</p>
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ count(data_get($actionResult, 'preview.blocks', [])) }}</p>
+                            </div>
+                        </div>
+
+                        <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                            <h3 class="text-sm font-semibold text-[var(--color-ink)]">Meta</h3>
+                            <pre class="mt-3 overflow-x-auto rounded-[var(--radius-button)] bg-[var(--color-panel-soft)] px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ json_encode(data_get($actionResult, 'preview.meta', []), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+
+                        <div class="space-y-4">
+                            @foreach (data_get($actionResult, 'preview.blocks', []) as $block)
+                                <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <x-ui.badge tone="muted">{{ str((string) data_get($block, 'block_type', 'block'))->headline() }}</x-ui.badge>
+                                        <x-ui.badge tone="muted">Order {{ data_get($block, 'sort_order', '?') }}</x-ui.badge>
+                                        @if (data_get($block, 'is_required'))
+                                            <x-ui.badge tone="warning">Required</x-ui.badge>
+                                        @endif
+                                    </div>
+                                    <p class="mt-3 text-sm font-semibold text-[var(--color-ink)]">{{ data_get($block, 'label') ?: 'Unlabeled block' }}</p>
+                                    <pre class="mt-3 overflow-x-auto rounded-[var(--radius-button)] bg-[var(--color-panel-soft)] px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ json_encode(data_get($block, 'content', []), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @else
+                    <div class="space-y-5">
+                        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)]">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Title</p>
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ data_get($actionResult, 'post.title', 'Not provided') }}</p>
+                            </div>
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)]">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Slug</p>
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ data_get($actionResult, 'post.slug', 'Not provided') }}</p>
+                            </div>
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)]">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Status</p>
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ str((string) data_get($actionResult, 'post.status', 'unknown'))->headline() }}</p>
+                            </div>
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)]">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Template ID</p>
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ data_get($actionResult, 'post.template_id', 'Not provided') }}</p>
+                            </div>
+                        </div>
+
+                        <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                            <h3 class="text-sm font-semibold text-[var(--color-ink)]">Meta</h3>
+                            <p class="mt-1 text-sm text-[var(--color-muted)]">This is the returned seed payload only. It is suitable for later post-editor integration, but this screen does not assume navigation into the post editor yet.</p>
+                            <pre class="mt-3 overflow-x-auto rounded-[var(--radius-button)] bg-[var(--color-panel-soft)] px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ json_encode(data_get($actionResult, 'post.meta', []), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                        </div>
+
+                        <div class="space-y-4">
+                            @foreach (data_get($actionResult, 'post.blocks', []) as $block)
+                                <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <x-ui.badge tone="muted">{{ str((string) data_get($block, 'block_type', 'block'))->headline() }}</x-ui.badge>
+                                        <x-ui.badge tone="muted">Order {{ data_get($block, 'sort_order', '?') }}</x-ui.badge>
+                                        @if (data_get($block, 'is_required'))
+                                            <x-ui.badge tone="warning">Required</x-ui.badge>
+                                        @endif
+                                    </div>
+                                    <p class="mt-3 text-sm font-semibold text-[var(--color-ink)]">{{ data_get($block, 'label') ?: 'Unlabeled block' }}</p>
+                                    <pre class="mt-3 overflow-x-auto rounded-[var(--radius-button)] bg-[var(--color-panel-soft)] px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ json_encode(data_get($block, 'content', []), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            @endif
+        </div>
+
+        <x-slot:actions>
+            <x-ui.button type="button" variant="secondary" wire:click="closeActionDrawer">Close</x-ui.button>
+            <x-ui.button type="button" wire:click="runTemplateAction" wire:loading.attr="disabled" wire:target="runTemplateAction">
+                <span wire:loading.remove wire:target="runTemplateAction">{{ $actionMode === 'seed' ? 'Generate seed payload' : 'Generate preview' }}</span>
+                <span wire:loading wire:target="runTemplateAction">Generating…</span>
             </x-ui.button>
         </x-slot:actions>
     </x-ui.drawer>
