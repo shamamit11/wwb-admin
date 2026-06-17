@@ -273,6 +273,27 @@ class Index extends Component
         $this->syncBlockOrder();
     }
 
+    public function insertBlockSnippet(int $index, string $snippet): void
+    {
+        if (! isset($this->blocks[$index])) {
+            return;
+        }
+
+        $blockType = (string) ($this->blocks[$index]['blockType'] ?? 'paragraph');
+        $snippets = $this->toolbarSnippets($blockType);
+
+        if (! array_key_exists($snippet, $snippets)) {
+            return;
+        }
+
+        $current = rtrim((string) ($this->blocks[$index]['defaultMarkdown'] ?? ''));
+        $this->blocks[$index]['defaultMarkdown'] = $current === ''
+            ? $snippets[$snippet]
+            : $current."\n".$snippets[$snippet];
+
+        $this->validateOnly('blocks.'.$index.'.defaultMarkdown');
+    }
+
     public function save(TemplateClient $templates, AdminSessionManager $session): mixed
     {
         $validated = $this->validate();
@@ -401,6 +422,9 @@ class Index extends Component
             'templateTypes' => self::TEMPLATE_TYPES,
             'templateStatuses' => self::TEMPLATE_STATUSES,
             'blockTypes' => self::BLOCK_TYPES,
+            'blockUi' => collect($this->blocks)
+                ->map(fn (array $block): array => $this->blockUi($block))
+                ->all(),
         ])->layout('layouts.admin', [
             'title' => 'Templates',
         ]);
@@ -590,6 +614,109 @@ class Index extends Component
                 return $block;
             })
             ->all();
+    }
+
+    protected function blockUi(array $block): array
+    {
+        $blockType = (string) ($block['blockType'] ?? 'paragraph');
+
+        return [
+            'defaultMarkdownLabel' => $this->blockMarkdownLabel($blockType),
+            'defaultMarkdownHint' => $this->blockMarkdownHint($blockType),
+            'placeholder' => $this->blockMarkdownPlaceholder($blockType),
+            'toolbar' => $this->toolbarActions($blockType),
+            'showsToolbar' => $this->supportsMarkdownToolbar($blockType),
+            'settingsHint' => $this->blockSettingsHint($blockType),
+        ];
+    }
+
+    protected function blockMarkdownLabel(string $blockType): string
+    {
+        return match ($blockType) {
+            'heading' => 'Default Heading Markdown',
+            'image' => 'Default Image Content',
+            'quote' => 'Default Quote Markdown',
+            'list' => 'Default List Markdown',
+            'code' => 'Default Code Markdown',
+            'faq' => 'Default FAQ Markdown',
+            'callout' => 'Default Callout Markdown',
+            default => 'Default Markdown',
+        };
+    }
+
+    protected function blockMarkdownHint(string $blockType): string
+    {
+        return match ($blockType) {
+            'heading' => 'Set the starter heading copy editors should see when this template is used.',
+            'image' => 'Use line 1 for the primary media reference and later lines for caption or credit guidance.',
+            'quote' => 'Use this to seed a pull quote and optional attribution in a predictable format.',
+            'list' => 'Use one list item per line to keep the seed output structured and easy to scan.',
+            'code' => 'Provide a starter code example or fenced block when the template needs technical structure.',
+            'faq' => 'Seed question-and-answer patterns editors can expand later.',
+            'callout' => 'Set brief standout guidance or summary copy for the callout.',
+            default => 'Provide editorial starter copy that seeded posts can refine without rebuilding structure.',
+        };
+    }
+
+    protected function blockMarkdownPlaceholder(string $blockType): string
+    {
+        return match ($blockType) {
+            'heading' => "# {{title}}\nOptional deck line",
+            'image' => "https://example.com/image.webp\nOptional caption\nOptional credit",
+            'quote' => "> A reusable quote prompt\nAttribution",
+            'list' => "- First point\n- Second point\n- Third point",
+            'code' => "```php\n// starter snippet\n```",
+            'faq' => "## Question\nStarter answer",
+            'callout' => "**Key takeaway**\nSupporting note",
+            default => "Write reusable starter copy here",
+        };
+    }
+
+    protected function blockSettingsHint(string $blockType): string
+    {
+        return match ($blockType) {
+            'heading' => 'Optional JSON settings such as heading level.',
+            'image' => 'Optional JSON settings for presentation variants or alignment if supported downstream.',
+            'callout' => 'Optional JSON settings such as callout variant or emphasis style.',
+            default => 'Optional JSON object for block-specific settings when the template needs more structure.',
+        };
+    }
+
+    protected function supportsMarkdownToolbar(string $blockType): bool
+    {
+        return $blockType !== 'image';
+    }
+
+    protected function toolbarActions(string $blockType): array
+    {
+        if (! $this->supportsMarkdownToolbar($blockType)) {
+            return [];
+        }
+
+        return [
+            ['action' => 'bold', 'label' => 'Bold'],
+            ['action' => 'italic', 'label' => 'Italic'],
+            ['action' => 'link', 'label' => 'Link'],
+            ['action' => 'list', 'label' => 'List'],
+            ['action' => 'quote', 'label' => 'Quote'],
+            ['action' => 'code', 'label' => 'Code'],
+        ];
+    }
+
+    protected function toolbarSnippets(string $blockType): array
+    {
+        $codeSnippet = $blockType === 'code'
+            ? "```php\n// starter snippet\n```"
+            : '`inline code`';
+
+        return [
+            'bold' => '**Bold text**',
+            'italic' => '*Italic text*',
+            'link' => '[Link text](https://example.com)',
+            'list' => "- First item\n- Second item",
+            'quote' => '> Pull quote',
+            'code' => $codeSnippet,
+        ];
     }
 
     protected function templatePayload(array $validated): array

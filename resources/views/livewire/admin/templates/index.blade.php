@@ -302,7 +302,12 @@
                                         <x-ui.input id="template-block-label-{{ $index }}" wire:model.blur="blocks.{{ $index }}.label" placeholder="Internal editor label" :invalid="$errors->has('blocks.'.$index.'.label')" />
                                     </x-ui.field>
 
-                                    <x-ui.field label="Settings JSON" for="template-block-settings-{{ $index }}" :error="$errors->first('blocks.'.$index.'.settingsJson')" hint="Optional JSON object for block-specific settings such as heading level or callout variant.">
+                                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
+                                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">How seeded posts use this block</p>
+                                        <p class="mt-2 text-sm leading-6 text-[var(--color-muted)]">{{ $blockUi[$index]['defaultMarkdownHint'] }}</p>
+                                    </div>
+
+                                    <x-ui.field label="Settings JSON" for="template-block-settings-{{ $index }}" :error="$errors->first('blocks.'.$index.'.settingsJson')" :hint="$blockUi[$index]['settingsHint']">
                                         <x-ui.textarea id="template-block-settings-{{ $index }}" wire:model.blur="blocks.{{ $index }}.settingsJson" rows="5" placeholder='{"level":1}' :invalid="$errors->has('blocks.'.$index.'.settingsJson')" />
                                     </x-ui.field>
 
@@ -320,9 +325,32 @@
                                     </div>
                                 </div>
 
-                                <div>
-                                    <x-ui.field label="Default Markdown" for="template-block-markdown-{{ $index }}" :error="$errors->first('blocks.'.$index.'.defaultMarkdown')" hint="Use placeholders like `@{{title}}` or `@{{topic}}` where the service expects them.">
-                                        <x-ui.textarea id="template-block-markdown-{{ $index }}" wire:model.blur="blocks.{{ $index }}.defaultMarkdown" rows="14" placeholder="# @{{title}}" :invalid="$errors->has('blocks.'.$index.'.defaultMarkdown')" />
+                                <div class="space-y-3">
+                                    @if ($blockUi[$index]['showsToolbar'])
+                                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-3">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="mr-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Markdown tools</span>
+                                                @foreach ($blockUi[$index]['toolbar'] as $tool)
+                                                    <button
+                                                        type="button"
+                                                        wire:click="insertBlockSnippet({{ $index }}, '{{ $tool['action'] }}')"
+                                                        class="inline-flex min-h-9 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]"
+                                                    >
+                                                        {{ $tool['label'] }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <x-ui.field :label="$blockUi[$index]['defaultMarkdownLabel']" for="template-block-markdown-{{ $index }}" :error="$errors->first('blocks.'.$index.'.defaultMarkdown')" hint="Use placeholders like `@{{title}}` or `@{{topic}}` where the service expects them.">
+                                        <x-ui.textarea
+                                            id="template-block-markdown-{{ $index }}"
+                                            wire:model.blur="blocks.{{ $index }}.defaultMarkdown"
+                                            rows="14"
+                                            :placeholder="$blockUi[$index]['placeholder']"
+                                            :invalid="$errors->has('blocks.'.$index.'.defaultMarkdown')"
+                                        />
                                     </x-ui.field>
                                 </div>
                             </div>

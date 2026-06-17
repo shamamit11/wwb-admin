@@ -227,6 +227,243 @@ class PostEditorTest extends TestCase
             ->assertSee('The content field must contain at least one item.');
     }
 
+    public function test_featured_media_can_be_selected_and_cleared_from_picker(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake([
+            $this->apiBaseUrl.'/admin/categories' => Http::response(['data' => [$this->categoryResource()]], 200),
+            $this->apiBaseUrl.'/admin/tags' => Http::response(['data' => [$this->tagResource()]], 200),
+            $this->apiBaseUrl.'/admin/templates' => Http::response(['data' => [$this->templateResource()]], 200),
+            $this->apiBaseUrl.'/admin/media*' => Http::response(['data' => [$this->mediaResource()]], 200),
+        ]);
+
+        Livewire::test(Editor::class)
+            ->assertSet('featuredMediaId', '')
+            ->call('openMediaPicker')
+            ->assertSet('mediaPickerOpen', true)
+            ->set('mediaSearch', 'hero')
+            ->call('selectFeaturedMedia', 12)
+            ->assertSet('featuredMediaId', '12')
+            ->assertSet('mediaPickerOpen', false)
+            ->call('clearFeaturedMedia')
+            ->assertSet('featuredMediaId', '');
+    }
+
+    public function test_block_markdown_snippet_can_be_inserted(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake([
+            $this->apiBaseUrl.'/admin/categories' => Http::response(['data' => [$this->categoryResource()]], 200),
+            $this->apiBaseUrl.'/admin/tags' => Http::response(['data' => [$this->tagResource()]], 200),
+            $this->apiBaseUrl.'/admin/templates' => Http::response(['data' => [$this->templateResource()]], 200),
+            $this->apiBaseUrl.'/admin/media*' => Http::response(['data' => [$this->mediaResource()]], 200),
+        ]);
+
+        Livewire::test(Editor::class)
+            ->set('blocks.0.blockType', 'paragraph')
+            ->set('blocks.0.contentText', 'Lead copy')
+            ->call('insertBlockSnippet', 0, 'bold')
+            ->assertSet('blocks.0.contentText', "Lead copy\n**Bold text**");
+    }
+
+    public function test_template_linkage_is_displayed_read_only_in_editor(): void
+    {
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/categories') {
+                return Http::response(['data' => [$this->categoryResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/tags') {
+                return Http::response(['data' => [$this->tagResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/templates') {
+                return Http::response(['data' => [$this->templateResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/media')) {
+                return Http::response(['data' => [$this->mediaResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/posts/1') {
+                return Http::response([
+                    'data' => $this->postResource([
+                        'id' => 1,
+                        'title' => 'Templated Post',
+                        'blocks' => [
+                            [
+                                'id' => 100,
+                                'block_key' => 'intro',
+                                'block_type' => 'paragraph',
+                                'sort_order' => 1,
+                                'content_markdown' => 'Existing lead',
+                                'content_html_cache' => null,
+                                'plain_text_cache' => 'Existing lead',
+                                'settings' => [],
+                                'source_template_block_id' => 5,
+                                'created_at' => '2026-06-10T09:00:00Z',
+                                'updated_at' => '2026-06-10T09:00:00Z',
+                            ],
+                        ],
+                    ]),
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('posts.edit', ['post' => 1]));
+
+        $response
+            ->assertOk()
+            ->assertSee('Markdown tools')
+            ->assertSee('Template block #5')
+            ->assertDontSee('Source Template Block ID');
+    }
+
+    public function test_post_can_be_published_scheduled_unpublished_and_deleted_from_editor(): void
+    {
+        session($this->authenticatedSession());
+
+        $draft = $this->postResource([
+            'id' => 1,
+            'title' => 'Existing Post',
+            'status' => 'draft',
+            'published_at' => null,
+            'scheduled_for' => null,
+        ]);
+
+        $published = array_replace($draft, [
+            'status' => 'published',
+            'published_at' => '2026-06-17T10:00:00Z',
+        ]);
+
+        $scheduled = array_replace($draft, [
+            'status' => 'scheduled',
+            'published_at' => null,
+            'scheduled_for' => '2026-06-18T10:00:00Z',
+        ]);
+
+        $unpublished = array_replace($draft, [
+            'status' => 'unpublished',
+            'published_at' => null,
+            'scheduled_for' => null,
+        ]);
+
+        Http::fake(function (Request $request) use ($draft, $published, $scheduled, $unpublished) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/categories') {
+                return Http::response(['data' => [$this->categoryResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/tags') {
+                return Http::response(['data' => [$this->tagResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/templates') {
+                return Http::response(['data' => [$this->templateResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/media')) {
+                return Http::response(['data' => [$this->mediaResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/posts/1') {
+                return Http::response(['data' => $draft], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/1/publish') {
+                return Http::response(['data' => $published], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/1/schedule') {
+                $this->assertArrayHasKey('scheduled_for', $request->data());
+
+                return Http::response(['data' => $scheduled], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/1/unpublish') {
+                return Http::response(['data' => $unpublished], 200);
+            }
+
+            if ($request->method() === 'DELETE' && $request->url() === $this->apiBaseUrl.'/admin/posts/1') {
+                return Http::response([], 204);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Editor::class, ['post' => 1])
+            ->call('openActionDialog', 'publish')
+            ->assertSet('actionDialogOpen', true)
+            ->call('executeAction')
+            ->assertSet('status', 'published')
+            ->call('openActionDialog', 'schedule')
+            ->set('scheduledFor', now()->addDay()->format('Y-m-d\TH:i'))
+            ->call('executeAction')
+            ->assertSet('status', 'scheduled')
+            ->call('openActionDialog', 'unpublish')
+            ->call('executeAction')
+            ->assertSet('status', 'unpublished')
+            ->call('openActionDialog', 'delete')
+            ->call('executeAction')
+            ->assertRedirect(route('posts.index'));
+    }
+
+    public function test_post_schedule_action_in_editor_maps_validation_errors(): void
+    {
+        session($this->authenticatedSession());
+
+        $draft = $this->postResource([
+            'id' => 1,
+            'title' => 'Existing Post',
+            'status' => 'draft',
+        ]);
+
+        Http::fake(function (Request $request) use ($draft) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/categories') {
+                return Http::response(['data' => [$this->categoryResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/tags') {
+                return Http::response(['data' => [$this->tagResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/templates') {
+                return Http::response(['data' => [$this->templateResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/media')) {
+                return Http::response(['data' => [$this->mediaResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/posts/1') {
+                return Http::response(['data' => $draft], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/1/schedule') {
+                return Http::response([
+                    'message' => 'The given data was invalid.',
+                    'errors' => [
+                        'scheduled_for' => ['The scheduled for field must be a date after now.'],
+                    ],
+                ], 422);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Editor::class, ['post' => 1])
+            ->call('openActionDialog', 'schedule')
+            ->set('scheduledFor', now()->addDay()->format('Y-m-d\TH:i'))
+            ->call('executeAction')
+            ->assertHasErrors(['scheduledFor'])
+            ->assertSee('The given data was invalid.')
+            ->assertSee('The scheduled for field must be a date after now.');
+    }
+
     protected function authenticatedSession(): array
     {
         return [

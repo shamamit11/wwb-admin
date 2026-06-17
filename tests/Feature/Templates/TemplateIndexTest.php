@@ -88,6 +88,42 @@ class TemplateIndexTest extends TestCase
             ->assertSee('The selected blocks.0.block type is invalid.');
     }
 
+    public function test_template_block_markdown_snippet_can_be_inserted(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake([
+            $this->apiBaseUrl.'/admin/templates' => Http::response(['data' => []], 200),
+        ]);
+
+        Livewire::test(Index::class)
+            ->call('openCreateDrawer')
+            ->set('blocks.0.blockType', 'paragraph')
+            ->set('blocks.0.defaultMarkdown', 'Starter copy')
+            ->call('insertBlockSnippet', 0, 'bold')
+            ->assertSet('blocks.0.defaultMarkdown', "Starter copy\n**Bold text**");
+    }
+
+    public function test_template_drawer_renders_block_guidance_and_markdown_tools(): void
+    {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/templates' => Http::response(['data' => []], 200),
+        ]);
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('templates.index'));
+
+        $response
+            ->assertOk()
+            ->assertSee('Templates');
+
+        Livewire::test(Index::class)
+            ->call('openCreateDrawer')
+            ->assertSee('Markdown tools')
+            ->assertSee('How seeded posts use this block')
+            ->assertSee('Default Heading Markdown');
+    }
+
     public function test_templates_can_be_created_updated_and_deleted_from_the_screen_with_ordered_blocks(): void
     {
         session($this->authenticatedSession());

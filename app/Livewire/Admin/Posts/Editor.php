@@ -97,6 +97,20 @@ class Editor extends Component
 
     public ?string $formError = null;
 
+    public bool $mediaPickerOpen = false;
+
+    public string $mediaSearch = '';
+
+    public bool $actionDialogOpen = false;
+
+    public string $actionMode = 'publish';
+
+    public ?int $actionPostId = null;
+
+    public string $actionPostTitle = '';
+
+    public ?string $actionError = null;
+
     public function mount(
         AdminSessionManager $session,
         CategoryClient $categories,
@@ -212,6 +226,27 @@ class Editor extends Component
         $this->syncBlockOrder();
     }
 
+    public function insertBlockSnippet(int $index, string $snippet): void
+    {
+        if (! isset($this->blocks[$index])) {
+            return;
+        }
+
+        $blockType = (string) ($this->blocks[$index]['blockType'] ?? 'paragraph');
+        $snippets = $this->toolbarSnippets($blockType);
+
+        if (! array_key_exists($snippet, $snippets)) {
+            return;
+        }
+
+        $current = rtrim((string) ($this->blocks[$index]['contentText'] ?? ''));
+        $this->blocks[$index]['contentText'] = $current === ''
+            ? $snippets[$snippet]
+            : $current."\n".$snippets[$snippet];
+
+        $this->validateOnly('blocks.'.$index.'.contentText');
+    }
+
     public function save(PostClient $posts, AdminSessionManager $session): mixed
     {
         $validated = $this->validate();
@@ -252,12 +287,130 @@ class Editor extends Component
         }
     }
 
+    public function openMediaPicker(): void
+    {
+        $this->mediaPickerOpen = true;
+    }
+
+    public function closeMediaPicker(): void
+    {
+        $this->mediaPickerOpen = false;
+        $this->mediaSearch = '';
+    }
+
+    public function selectFeaturedMedia(int $mediaId): void
+    {
+        $match = collect($this->mediaOptions)
+            ->contains(fn (array $asset): bool => (int) $asset['id'] === $mediaId);
+
+        if (! $match) {
+            return;
+        }
+
+        $this->featuredMediaId = (string) $mediaId;
+        $this->closeMediaPicker();
+        $this->validateOnly('featuredMediaId');
+    }
+
+    public function clearFeaturedMedia(): void
+    {
+        $this->featuredMediaId = '';
+        $this->validateOnly('featuredMediaId');
+    }
+
+    public function openActionDialog(string $mode): void
+    {
+        if (! $this->editingPostId || ! in_array($mode, ['publish', 'schedule', 'unpublish', 'delete'], true)) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->actionDialogOpen = true;
+        $this->actionMode = $mode;
+        $this->actionPostId = $this->editingPostId;
+        $this->actionPostTitle = $this->title !== '' ? $this->title : 'this post';
+        $this->actionError = null;
+
+        if ($mode === 'schedule' && $this->scheduledFor === '') {
+            $this->scheduledFor = now()->addDay()->startOfHour()->format('Y-m-d\TH:i');
+        }
+    }
+
+    public function closeActionDialog(): void
+    {
+        $this->resetValidation();
+        $this->actionDialogOpen = false;
+        $this->actionMode = 'publish';
+        $this->actionPostId = null;
+        $this->actionPostTitle = '';
+        $this->actionError = null;
+    }
+
+    public function executeAction(PostClient $posts, AdminSessionManager $session): mixed
+    {
+        if (! $this->actionPostId) {
+            return null;
+        }
+
+        $this->actionError = null;
+
+        if ($this->actionMode === 'schedule') {
+            $this->validate($this->scheduleActionRules());
+        }
+
+        try {
+            $response = match ($this->actionMode) {
+                'publish' => $posts->publish($this->token($session), $session->tokenType(), $this->actionPostId),
+                'schedule' => $posts->schedule($this->token($session), $session->tokenType(), $this->actionPostId, [
+                    'scheduled_for' => Carbon::parse($this->scheduledFor)->toISOString(),
+                ]),
+                'unpublish' => $posts->unpublish($this->token($session), $session->tokenType(), $this->actionPostId),
+                'delete' => null,
+                default => null,
+            };
+
+            if ($this->actionMode === 'delete') {
+                $posts->delete($this->token($session), $session->tokenType(), $this->actionPostId);
+                session()->flash('status', 'Post deleted.');
+
+                return $this->redirectRoute('posts.index', navigate: true);
+            }
+
+            if (is_array($response)) {
+                $this->fillFromEditorData(PostEditorData::fromApi(Arr::get($response, 'data', [])));
+            }
+
+            session()->flash('status', $this->actionSuccessMessage());
+            $this->closeActionDialog();
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->actionError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeApiErrors($exception->errors()));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->actionError = $exception->getMessage() ?: 'The post action could not be completed.';
+
+            return null;
+        }
+    }
+
     public function render()
     {
         return view('livewire.admin.posts.editor', [
             'postStatuses' => self::POST_STATUSES,
             'postVisibilities' => self::POST_VISIBILITIES,
             'blockTypes' => self::BLOCK_TYPES,
+            'blockUi' => collect($this->blocks)
+                ->map(fn (array $block): array => $this->blockUi($block))
+                ->all(),
+            'actionConfig' => $this->actionConfig(),
+            'selectedFeaturedMedia' => $this->selectedFeaturedMedia(),
+            'visibleMediaOptions' => $this->visibleMediaOptions(),
         ])->layout('layouts.admin', [
             'title' => $this->editingPostId ? 'Edit Post' : 'Create Post',
         ]);
@@ -480,6 +633,182 @@ class Editor extends Component
                 return $block;
             })
             ->all();
+    }
+
+    protected function selectedFeaturedMedia(): ?array
+    {
+        if (! filled($this->featuredMediaId)) {
+            return null;
+        }
+
+        return collect($this->mediaOptions)
+            ->first(fn (array $asset): bool => (string) $asset['id'] === (string) $this->featuredMediaId);
+    }
+
+    protected function visibleMediaOptions(): array
+    {
+        $term = str($this->mediaSearch)->lower()->trim()->value();
+
+        return collect($this->mediaOptions)
+            ->filter(function (array $asset) use ($term): bool {
+                if ($term === '') {
+                    return true;
+                }
+
+                return str_contains(strtolower((string) $asset['name']), $term)
+                    || str_contains(strtolower((string) $asset['alt_text']), $term);
+            })
+            ->values()
+            ->all();
+    }
+
+    protected function blockUi(array $block): array
+    {
+        $blockType = (string) ($block['blockType'] ?? 'paragraph');
+        $sourceTemplateBlockId = (string) ($block['sourceTemplateBlockId'] ?? '');
+
+        return [
+            'contentLabel' => $this->blockContentLabel($blockType),
+            'contentHint' => $this->blockContentHint($blockType),
+            'placeholder' => $this->blockPlaceholder($blockType),
+            'toolbar' => $this->toolbarActions($blockType),
+            'showsToolbar' => $this->supportsMarkdownToolbar($blockType),
+            'sourceTemplateBlockId' => $sourceTemplateBlockId,
+            'sourceTemplateHint' => $sourceTemplateBlockId !== ''
+                ? 'This block keeps its linkage to the template block it was seeded from.'
+                : null,
+        ];
+    }
+
+    protected function blockContentLabel(string $blockType): string
+    {
+        return match ($blockType) {
+            'heading' => 'Heading Content',
+            'image' => 'Image Content',
+            'quote' => 'Quote Content',
+            'list' => 'List Content',
+            'code' => 'Code Content',
+            'faq' => 'FAQ Content',
+            'callout' => 'Callout Content',
+            default => 'Content',
+        };
+    }
+
+    protected function blockContentHint(string $blockType): string
+    {
+        return match ($blockType) {
+            'heading' => 'Keep headings concise. Each non-empty line becomes one ordered content item.',
+            'image' => 'The API stores image blocks as an ordered string array. Put the main media reference on line 1 and any supporting text on later lines.',
+            'quote' => 'Use the first line for the quote itself. Add attribution or context on later lines when needed.',
+            'list' => 'Use one list item per line so the payload stays easy to reason about.',
+            'code' => 'Paste code as plain text. The editor keeps it lightweight and preserves the line order in the payload.',
+            'faq' => 'Keep each FAQ item grouped clearly. One line becomes one ordered content item in the saved payload.',
+            'callout' => 'Use brief high-signal copy. Additional lines can hold short supporting notes.',
+            default => 'Write markdown-friendly editorial copy. Non-empty lines become ordered content items on save.',
+        };
+    }
+
+    protected function blockPlaceholder(string $blockType): string
+    {
+        return match ($blockType) {
+            'heading' => "Section heading\nOptional deck line",
+            'image' => "https://example.com/image.webp\nOptional caption\nOptional credit",
+            'quote' => "\"A useful editorial quote\"\nAttribution",
+            'list' => "First list item\nSecond list item\nThird list item",
+            'code' => "function example() {\n    return true;\n}",
+            'faq' => "Question: What is this block for?\nAnswer: Short editorial answer.",
+            'callout' => "Key takeaway\nOptional supporting note",
+            default => 'Write the block content here',
+        };
+    }
+
+    protected function supportsMarkdownToolbar(string $blockType): bool
+    {
+        return $blockType !== 'image';
+    }
+
+    protected function toolbarActions(string $blockType): array
+    {
+        if (! $this->supportsMarkdownToolbar($blockType)) {
+            return [];
+        }
+
+        return [
+            ['action' => 'bold', 'label' => 'Bold'],
+            ['action' => 'italic', 'label' => 'Italic'],
+            ['action' => 'link', 'label' => 'Link'],
+            ['action' => 'list', 'label' => 'List'],
+            ['action' => 'quote', 'label' => 'Quote'],
+            ['action' => 'code', 'label' => 'Code'],
+        ];
+    }
+
+    protected function toolbarSnippets(string $blockType): array
+    {
+        $codeSnippet = $blockType === 'code'
+            ? "```php\n// code sample\n```"
+            : '`inline code`';
+
+        return [
+            'bold' => '**Bold text**',
+            'italic' => '*Italic text*',
+            'link' => '[Link text](https://example.com)',
+            'list' => "- First item\n- Second item",
+            'quote' => '> Pull quote',
+            'code' => $codeSnippet,
+        ];
+    }
+
+    protected function actionSuccessMessage(): string
+    {
+        return match ($this->actionMode) {
+            'publish' => 'Post published.',
+            'schedule' => 'Post scheduled.',
+            'unpublish' => 'Post unpublished.',
+            'delete' => 'Post deleted.',
+            default => 'Post updated.',
+        };
+    }
+
+    protected function actionConfig(): array
+    {
+        return match ($this->actionMode) {
+            'schedule' => [
+                'title' => 'Schedule post',
+                'description' => 'Choose when this post should go live.',
+                'body' => 'Set a publish time for',
+                'confirm' => 'Schedule post',
+                'tone' => 'default',
+            ],
+            'unpublish' => [
+                'title' => 'Unpublish post',
+                'description' => 'Take this post out of the live state without deleting it.',
+                'body' => 'Move',
+                'confirm' => 'Unpublish post',
+                'tone' => 'default',
+            ],
+            'delete' => [
+                'title' => 'Delete post',
+                'description' => 'Delete the post only when it is no longer needed.',
+                'body' => 'Delete',
+                'confirm' => 'Delete post',
+                'tone' => 'destructive',
+            ],
+            default => [
+                'title' => 'Publish post',
+                'description' => 'Make the current version live immediately.',
+                'body' => 'Publish',
+                'confirm' => 'Publish post',
+                'tone' => 'default',
+            ],
+        };
+    }
+
+    protected function scheduleActionRules(): array
+    {
+        return [
+            'scheduledFor' => ['required', 'date', 'after:now'],
+        ];
     }
 
     protected function token(AdminSessionManager $session): string
