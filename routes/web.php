@@ -8,9 +8,12 @@ use App\Livewire\Admin\KnowledgeBase\Editor as KnowledgeBaseEditor;
 use App\Livewire\Admin\KnowledgeBase\Index as KnowledgeBaseIndex;
 use App\Livewire\Admin\Media\Index as MediaIndex;
 use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
+use App\Livewire\Admin\Pages\Editor as PageEditor;
+use App\Livewire\Admin\Pages\Index as PageIndex;
 use App\Livewire\Admin\Posts\Editor as PostEditor;
 use App\Livewire\Admin\Posts\Index as PostIndex;
 use App\Livewire\Admin\Seo\Index as SeoIndex;
+use App\Livewire\Admin\Settings\Index as SettingsIndex;
 use App\Livewire\Admin\Tags\Index as TagIndex;
 use App\Livewire\Admin\Templates\Index as TemplateIndex;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +34,12 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/posts/{post}/edit', PostEditor::class)->name('posts.edit');
 
+    Route::get('/pages', PageIndex::class)->name('pages.index');
+
+    Route::get('/pages/create', PageEditor::class)->name('pages.create');
+
+    Route::get('/pages/{page}/edit', PageEditor::class)->name('pages.edit');
+
     Route::get('/categories', CategoryIndex::class)->name('categories.index');
 
     Route::get('/tags', TagIndex::class)->name('tags.index');
@@ -47,20 +56,7 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/seo', SeoIndex::class)->name('seo.index');
 
-    Route::get('/settings', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Operations')
-        ->defaults('pageTitle', 'Settings are scaffolded as a clear placeholder module.')
-        ->defaults('pageDescription', 'Settings are intentionally present in the MVP route map even though most service-backed configuration work remains future scope.')
-        ->defaults('moduleLabel', 'Settings')
-        ->defaults('moduleDescription', 'This module will begin as a scoped operational placeholder and can expand as service-backed settings become concrete.')
-        ->defaults('primaryActionLabel', 'Settings Placeholder')
-        ->defaults('primaryActionHint', 'Avoid exposing unsupported sensitive configuration until the service contract explicitly allows it.')
-        ->defaults('nextSteps', [
-            'Decide which settings tabs are genuinely available in MVP versus roadmap-only.',
-            'Add read-only operational summaries where service-backed writes do not exist yet.',
-            'Expand into service-backed settings flows only after backend support is confirmed.',
-        ])
-        ->name('settings.index');
+    Route::get('/settings', SettingsIndex::class)->name('settings.index');
 
     Route::get('/topic-queue', PlaceholderIndex::class)
         ->defaults('eyebrow', 'Roadmap')

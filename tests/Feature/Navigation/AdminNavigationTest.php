@@ -25,6 +25,8 @@ class AdminNavigationTest extends TestCase
 
         foreach ([
             'posts.index',
+            'pages.index',
+            'pages.create',
             'categories.index',
             'tags.index',
             'media.index',
@@ -68,6 +70,22 @@ class AdminNavigationTest extends TestCase
             ->assertSee('Placeholder');
     }
 
+    public function test_pages_module_is_rendered_as_a_service_backed_publishing_screen(): void
+    {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/pages*' => Http::response(['data' => []], 200),
+        ]);
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('pages.index'));
+
+        $response
+            ->assertOk()
+            ->assertSee('Pages')
+            ->assertSee('Create Page')
+            ->assertSee('Manage static and evergreen page content');
+    }
+
     protected function authenticatedSession(): array
     {
         return [
@@ -103,6 +121,10 @@ class AdminNavigationTest extends TestCase
             }
 
             if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/templates')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/pages')) {
                 return Http::response(['data' => []], 200);
             }
 

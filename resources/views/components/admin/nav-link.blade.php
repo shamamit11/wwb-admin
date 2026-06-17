@@ -33,6 +33,13 @@
                         <path d="M7 7h6M7 10h6M7 13h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                     @break
+                @case('pages')
+                    <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M6 3.75h5.75L15.5 7.5V15A1.25 1.25 0 0 1 14.25 16.25H6A1.25 1.25 0 0 1 4.75 15V5A1.25 1.25 0 0 1 6 3.75Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M11.75 3.75V7.5H15.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M7.5 10h5M7.5 13h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    @break
                 @case('categories')
                     <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                         <path d="M4.75 5.25h4.5v4.5h-4.5v-4.5Zm6 0h4.5v4.5h-4.5v-4.5Zm-6 6h4.5v4.5h-4.5v-4.5Zm6 2.25h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>

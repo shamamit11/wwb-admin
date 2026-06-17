@@ -17,6 +17,7 @@ class AdminNavigation
                 'title' => 'Publishing',
                 'items' => [
                     $this->item('Posts', 'posts.index', 'Manage post inventory, status, and editorial actions.', false, 'posts'),
+                    $this->item('Pages', 'pages.index', 'Manage static and evergreen service-backed pages.', false, 'pages'),
                     $this->item('Categories', 'categories.index', 'Table-first category structure and taxonomy operations.', false, 'categories'),
                     $this->item('Tags', 'tags.index', 'Tag taxonomy and editorial labeling.', false, 'tags'),
                     $this->item('Media Library', 'media.index', 'Uploaded assets, metadata, and usage review.', false, 'media'),

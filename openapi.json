@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:8000/api/v1"
+      "url": "http://wwb-service.test/api/v1"
     }
   ],
   "paths": {
@@ -1498,6 +1498,321 @@
             "in": "path",
             "required": true,
             "description": "The media ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/pages": {
+      "get": {
+        "operationId": "v1.admin.pages.index",
+        "tags": [
+          "Page"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "draft",
+                "scheduled",
+                "published",
+                "unpublished",
+                "archived"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "legal",
+                "marketing",
+                "support",
+                "faq",
+                "standard"
+              ]
+            }
+          },
+          {
+            "name": "visibility",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "public",
+                "private",
+                "internal"
+              ]
+            }
+          },
+          {
+            "name": "created_by_user_id",
+            "in": "query",
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "title",
+                "-title",
+                "created_at",
+                "-created_at",
+                "updated_at",
+                "-updated_at",
+                "published_at",
+                "-published_at"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `PageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PageResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "v1.admin.pages.store",
+        "tags": [
+          "Page"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StorePageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`PageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/pages/{page}": {
+      "get": {
+        "operationId": "v1.admin.pages.show",
+        "tags": [
+          "Page"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "description": "The page ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`PageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "v1.admin.pages.update",
+        "tags": [
+          "Page"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "description": "The page ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`PageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "v1.admin.pages.destroy",
+        "tags": [
+          "Page"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "description": "The page ID",
             "schema": {
               "type": "integer"
             }
@@ -3970,6 +4285,119 @@
         ],
         "title": "MediaResource"
       },
+      "PageResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "ulid": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_markdown": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "published_at": {
+            "type": "string"
+          },
+          "scheduled_for": {
+            "type": "string"
+          },
+          "canonical_url": {
+            "type": "string"
+          },
+          "meta": {
+            "type": "array",
+            "items": {}
+          },
+          "created_by": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          },
+          "updated_by": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ulid",
+          "title",
+          "slug",
+          "type",
+          "status",
+          "summary",
+          "content_markdown",
+          "visibility",
+          "published_at",
+          "scheduled_for",
+          "canonical_url",
+          "meta",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PageResource"
+      },
       "PostBlockResource": {
         "type": "object",
         "properties": {
@@ -4695,6 +5123,7 @@
                 "enum": [
                   "post",
                   "category",
+                  "page",
                   "knowledge_base_entry"
                 ]
               }
@@ -5016,6 +5445,90 @@
           "source_type"
         ],
         "title": "StoreMediaRequest"
+      },
+      "StorePageRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 190
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "legal",
+              "marketing",
+              "support",
+              "faq",
+              "standard"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "published",
+              "unpublished",
+              "archived"
+            ]
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_markdown": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private",
+              "internal"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "scheduled_for": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "meta": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "type",
+          "status",
+          "content_markdown",
+          "visibility"
+        ],
+        "title": "StorePageRequest"
       },
       "StorePostRequest": {
         "type": "object",
@@ -5804,6 +6317,90 @@
           "source_type"
         ],
         "title": "UpdateMediaRequest"
+      },
+      "UpdatePageRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 190
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "legal",
+              "marketing",
+              "support",
+              "faq",
+              "standard"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "published",
+              "unpublished",
+              "archived"
+            ]
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_markdown": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private",
+              "internal"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "scheduled_for": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "meta": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "type",
+          "status",
+          "content_markdown",
+          "visibility"
+        ],
+        "title": "UpdatePageRequest"
       },
       "UpdatePostRequest": {
         "type": "object",
