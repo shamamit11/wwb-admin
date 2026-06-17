@@ -107,4 +107,55 @@ class SeoClientTest extends TestCase
         $this->assertSame('12', $response['data']['og_image_media']['id']);
         $this->assertFalse($response['data']['robots_follow']);
     }
+
+    public function test_it_can_load_seo_score_for_a_supported_entity(): void
+    {
+        Http::fake(function (Request $request) {
+            $this->assertSame('GET', $request->method());
+            $this->assertSame($this->apiBaseUrl.'/admin/seo/score/post/42', $request->url());
+
+            return Http::response([
+                'data' => [
+                    'seoable_type' => 'post',
+                    'seoable_id' => 42,
+                    'total_score' => 78,
+                    'max_score' => 100,
+                    'grade' => 'good',
+                    'advisory' => true,
+                    'subscores' => [
+                        'metadata' => ['score' => 30, 'max_score' => 35, 'suggestion_count' => 1],
+                    ],
+                    'recommendations' => ['Tighten the meta description.'],
+                ],
+            ], 200);
+        });
+
+        $response = app(SeoClient::class)->score('test-token', 'Bearer', 'post', 42);
+
+        $this->assertSame(78, $response['data']['total_score']);
+        $this->assertSame('good', $response['data']['grade']);
+    }
+
+    public function test_it_can_load_generated_schema_for_a_supported_entity(): void
+    {
+        Http::fake(function (Request $request) {
+            $this->assertSame('GET', $request->method());
+            $this->assertSame($this->apiBaseUrl.'/admin/seo/schema/post/42', $request->url());
+
+            return Http::response([
+                'data' => [
+                    '@context' => 'https://schema.org',
+                    '@graph' => [
+                        ['@type' => 'Organization'],
+                        ['@type' => 'TechArticle', 'headline' => 'SEO Title'],
+                    ],
+                ],
+            ], 200);
+        });
+
+        $response = app(SeoClient::class)->schema('test-token', 'Bearer', 'post', 42);
+
+        $this->assertSame('https://schema.org', $response['data']['@context']);
+        $this->assertSame('TechArticle', $response['data']['@graph'][1]['@type']);
+    }
 }

@@ -8,6 +8,7 @@ use App\Livewire\Admin\Media\Index as MediaIndex;
 use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
 use App\Livewire\Admin\Posts\Editor as PostEditor;
 use App\Livewire\Admin\Posts\Index as PostIndex;
+use App\Livewire\Admin\Seo\Index as SeoIndex;
 use App\Livewire\Admin\Tags\Index as TagIndex;
 use App\Livewire\Admin\Templates\Index as TemplateIndex;
 use Illuminate\Support\Facades\Route;
@@ -51,20 +52,7 @@ Route::middleware('admin.auth')->group(function (): void {
         ])
         ->name('knowledge-base.index');
 
-    Route::get('/seo', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Search Optimization')
-        ->defaults('pageTitle', 'SEO routing is ready for metadata and score management work.')
-        ->defaults('pageDescription', 'The SEO section is scaffolded so per-entity metadata, score visibility, schema, and feed inspection can be layered in without moving routes again.')
-        ->defaults('moduleLabel', 'SEO')
-        ->defaults('moduleDescription', 'This module will cover metadata editing, score surfaces, schema inspection, sitemap review, and feed visibility.')
-        ->defaults('primaryActionLabel', 'Review SEO Metadata')
-        ->defaults('primaryActionHint', 'SEO work should stay operational and low-noise rather than overly technical.')
-        ->defaults('nextSteps', [
-            'Add the SEO API client for metadata, score, schema, sitemap, and RSS endpoints.',
-            'Build operational SEO views with low-score surfacing and retry-safe error handling.',
-            'Decide which SEO screens belong as list views versus entity-linked side panels.',
-        ])
-        ->name('seo.index');
+    Route::get('/seo', SeoIndex::class)->name('seo.index');
 
     Route::get('/settings', PlaceholderIndex::class)
         ->defaults('eyebrow', 'Operations')

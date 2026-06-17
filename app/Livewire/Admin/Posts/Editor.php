@@ -16,6 +16,7 @@ use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiValidationException;
 use App\Support\Auth\AdminSessionManager;
 use App\Support\Media\MediaUrl;
+use App\Support\Seo\SeoInsightsPresenter;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -119,6 +120,14 @@ class Editor extends Component
 
     public ?string $seoFormError = null;
 
+    public array $seoScore = [];
+
+    public array $seoSchema = [];
+
+    public ?string $seoScoreLoadError = null;
+
+    public ?string $seoSchemaLoadError = null;
+
     public bool $mediaPickerOpen = false;
 
     public string $mediaSearch = '';
@@ -158,7 +167,13 @@ class Editor extends Component
                 return $loadPostResult;
             }
 
-            return $this->loadSeoMetadata($this->seoableType(), (int) $post, $seo, $session);
+            $seoMetadataResult = $this->loadSeoMetadata($this->seoableType(), (int) $post, $seo, $session);
+
+            if ($seoMetadataResult !== null) {
+                return $seoMetadataResult;
+            }
+
+            return $this->loadSeoInsights($this->seoableType(), (int) $post, $seo, $session);
         }
 
         return null;
@@ -493,6 +508,12 @@ class Editor extends Component
             'actionConfig' => $this->actionConfig(),
             'selectedFeaturedMedia' => $this->selectedFeaturedMedia(),
             'visibleMediaOptions' => $this->visibleMediaOptions(),
+            'seoScoreValue' => $this->seoPresenter()->scoreValue($this->seoScore),
+            'seoScoreGrade' => $this->seoPresenter()->scoreGrade($this->seoScore),
+            'seoScoreSubscores' => $this->seoPresenter()->scoreSubscores($this->seoScore),
+            'seoRecommendations' => $this->seoPresenter()->recommendations($this->seoScore),
+            'seoSchemaSummary' => $this->seoPresenter()->schemaSummary($this->seoSchema),
+            'seoSchemaJson' => $this->seoPresenter()->prettySchema($this->seoSchema),
         ])->layout('layouts.admin', [
             'title' => $this->editingPostId ? 'Edit Post' : 'Create Post',
         ]);
@@ -600,6 +621,38 @@ class Editor extends Component
 
             return null;
         }
+    }
+
+    protected function loadSeoInsights(string $seoableType, int $seoableId, SeoClient $seo, AdminSessionManager $session): mixed
+    {
+        $this->seoScoreLoadError = null;
+        $this->seoSchemaLoadError = null;
+        $this->seoScore = [];
+        $this->seoSchema = [];
+
+        try {
+            $scoreResponse = $seo->score($this->token($session), $session->tokenType(), $seoableType, $seoableId);
+            $this->seoScore = Arr::get($scoreResponse, 'data', []);
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->seoScoreLoadError = $exception->getMessage() ?: 'SEO score could not be loaded.';
+        }
+
+        try {
+            $schemaResponse = $seo->schema($this->token($session), $session->tokenType(), $seoableType, $seoableId);
+            $this->seoSchema = Arr::get($schemaResponse, 'data', []);
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->seoSchemaLoadError = $exception->getMessage() ?: 'Schema output could not be loaded.';
+        }
+
+        return null;
     }
 
     protected function mediaUrl(): MediaUrl
@@ -983,6 +1036,11 @@ class Editor extends Component
     protected function seoableType(): string
     {
         return 'post';
+    }
+
+    protected function seoPresenter(): SeoInsightsPresenter
+    {
+        return app(SeoInsightsPresenter::class);
     }
 
     protected function token(AdminSessionManager $session): string

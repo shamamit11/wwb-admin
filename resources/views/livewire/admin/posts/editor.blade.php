@@ -359,6 +359,67 @@
                     </div>
                 @endif
 
+                @if ($editingPostId)
+                    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO Score</p>
+                            <div class="mt-3 flex items-center gap-3">
+                                <x-admin.seo-score-badge :score="$seoScoreValue" />
+                                @if ($seoScoreGrade)
+                                    <span class="text-sm font-medium text-[var(--color-muted)]">{{ $seoScoreGrade }}</span>
+                                @endif
+                            </div>
+
+                            @if ($seoScoreLoadError)
+                                <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoScoreLoadError }}</p>
+                            @elseif ($seoRecommendations !== [])
+                                <p class="mt-3 text-sm text-[var(--color-muted)]">{{ $seoRecommendations[0] }}</p>
+                            @else
+                                <p class="mt-3 text-sm text-[var(--color-muted)]">No score recommendations were returned for this post.</p>
+                            @endif
+                        </div>
+
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Schema Output</p>
+                            @if ($seoSchemaLoadError)
+                                <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoSchemaLoadError }}</p>
+                            @elseif ($seoSchemaSummary['graph_count'] > 0 || $seoSchemaSummary['context'])
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ $seoSchemaSummary['graph_count'] }} graph {{ str('item')->plural($seoSchemaSummary['graph_count']) }}</p>
+                                <p class="mt-2 text-sm text-[var(--color-muted)]">
+                                    {{ $seoSchemaSummary['graph_types'] !== [] ? implode(', ', $seoSchemaSummary['graph_types']) : 'Schema types are present but could not be summarized.' }}
+                                </p>
+                            @else
+                                <p class="mt-3 text-sm text-[var(--color-muted)]">No generated schema payload is currently available.</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if ($seoScoreSubscores !== [])
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            @foreach ($seoScoreSubscores as $subscore)
+                                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $subscore['label'] }}</p>
+                                    <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">
+                                        {{ $subscore['score'] ?? 'TBC' }}
+                                        @if ($subscore['max_score'] !== null)
+                                            <span class="font-medium text-[var(--color-muted)]">/ {{ $subscore['max_score'] }}</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if ($seoSchemaJson !== '')
+                        <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
+                            <div class="border-b border-[var(--color-line)] px-4 py-3">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Generated JSON-LD</p>
+                            </div>
+                            <pre class="max-h-[18rem] overflow-auto px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ $seoSchemaJson }}</pre>
+                        </div>
+                    @endif
+                @endif
+
                 <div class="space-y-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Slug Preview</p>
