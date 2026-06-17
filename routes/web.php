@@ -3,8 +3,9 @@
 use App\Http\Controllers\Admin\Auth\LogoutController;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
 use App\Livewire\Admin\Categories\Index as CategoryIndex;
-use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
+use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
+use App\Livewire\Admin\Tags\Index as TagIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('admin.guest')->group(function (): void {
@@ -34,20 +35,7 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/categories', CategoryIndex::class)->name('categories.index');
 
-    Route::get('/tags', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Taxonomy')
-        ->defaults('pageTitle', 'Tags management is scaffolded and ready for lightweight CRUD.')
-        ->defaults('pageDescription', 'The tags route exists now so the taxonomy surface is stable before data wiring starts.')
-        ->defaults('moduleLabel', 'Tags')
-        ->defaults('moduleDescription', 'This module will cover simple tag CRUD, search, and editorial labeling patterns.')
-        ->defaults('primaryActionLabel', 'Create Tag')
-        ->defaults('primaryActionHint', 'Tag management should stay lightweight and table-first.')
-        ->defaults('nextSteps', [
-            'Add the tags API client and contract-driven error mapping.',
-            'Compose the tags list view with the shared management primitives.',
-            'Implement the tag form with clear validation and safe delete behavior.',
-        ])
-        ->name('tags.index');
+    Route::get('/tags', TagIndex::class)->name('tags.index');
 
     Route::get('/media', PlaceholderIndex::class)
         ->defaults('eyebrow', 'Asset Operations')
