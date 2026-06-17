@@ -54,7 +54,8 @@ class MediaIndexTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('architecture.webp')
-            ->assertSee('Media Library');
+            ->assertSee('Media Library')
+            ->assertSee('Copy URL');
     }
 
     public function test_single_media_upload_uses_the_screen_flow_and_refreshes_the_list(): void

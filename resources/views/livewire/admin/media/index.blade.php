@@ -135,7 +135,27 @@
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $item['created_at'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
-                        <div class="flex items-center justify-end gap-2">
+                        <div
+                            x-data="{ copied: false, async copyUrl() { const url = @js($item['url'] ?? ''); if (! url) { return; } if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(url); } else { const input = document.createElement('input'); input.value = url; document.body.appendChild(input); input.select(); document.execCommand('copy'); input.remove(); } this.copied = true; setTimeout(() => this.copied = false, 1600); } }"
+                            class="flex items-center justify-end gap-2"
+                        >
+                            <x-ui.button
+                                type="button"
+                                variant="ghost"
+                                class="h-12 w-12 px-0 bg-[color-mix(in_srgb,var(--color-accent)_10%,white)] text-[var(--color-accent-strong)] ring-1 ring-[color-mix(in_srgb,var(--color-accent)_18%,white)] hover:bg-[color-mix(in_srgb,var(--color-accent)_16%,white)] hover:text-[var(--color-accent-strong)]"
+                                x-on:click="copyUrl()"
+                                x-bind:aria-label="copied ? 'Copied media URL for {{ $item['original_filename'] }}' : 'Copy media URL for {{ $item['original_filename'] }}'"
+                                x-bind:title="copied ? 'Copied' : 'Copy URL'"
+                            >
+                                <span class="sr-only">Copy URL</span>
+                                <svg x-show="! copied" class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path d="M7.25 7A2.25 2.25 0 0 1 9.5 4.75h5A2.25 2.25 0 0 1 16.75 7v7A2.25 2.25 0 0 1 14.5 16.25h-5A2.25 2.25 0 0 1 7.25 14V7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M4.75 12.5V6A2.25 2.25 0 0 1 7 3.75h4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <svg x-cloak x-show="copied" class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path d="m5.75 10.25 2.5 2.5 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </x-ui.button>
                             <x-ui.button
                                 type="button"
                                 variant="ghost"
