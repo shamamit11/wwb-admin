@@ -1,4 +1,15 @@
 <div class="space-y-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <x-admin.page-header
+            title="Media Library"
+            description="Browse reusable assets, inspect usage, and maintain metadata for editorial workflows."
+        />
+
+        <div class="shrink-0 lg:pt-1">
+            <x-ui.button type="button" wire:click="openUploadDrawer">Upload Media</x-ui.button>
+        </div>
+    </div>
+
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
             {{ $pageError }}
@@ -161,6 +172,166 @@
             @endforelse
         </x-ui.table-body>
     </x-ui.table>
+
+    <x-ui.drawer
+        :open="$uploadDrawerOpen"
+        title="Upload media"
+        description="Add one file with full metadata, or upload several files with shared source details."
+        width="lg"
+    >
+        <div class="space-y-5">
+            <div class="inline-flex rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-1">
+                <button
+                    type="button"
+                    wire:click="setUploadMode('single')"
+                    class="{{ $uploadMode === 'single' ? 'bg-[var(--color-panel)] text-[var(--color-ink)] shadow-sm' : 'text-[var(--color-muted)]' }} rounded-[calc(var(--radius-button)-1px)] px-3 py-2 text-sm font-medium transition-colors"
+                >
+                    Single upload
+                </button>
+                <button
+                    type="button"
+                    wire:click="setUploadMode('batch')"
+                    class="{{ $uploadMode === 'batch' ? 'bg-[var(--color-panel)] text-[var(--color-ink)] shadow-sm' : 'text-[var(--color-muted)]' }} rounded-[calc(var(--radius-button)-1px)] px-3 py-2 text-sm font-medium transition-colors"
+                >
+                    Batch upload
+                </button>
+            </div>
+
+            @if ($uploadError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $uploadError }}
+                </div>
+            @endif
+
+            @if ($uploadMode === 'single')
+                <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false; progress = 0" x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress" class="space-y-5">
+                    <div class="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+                        <div class="space-y-5">
+                            <x-ui.field label="File" for="media-single-file" :error="$errors->first('singleFile')" required>
+                                <input
+                                    id="media-single-file"
+                                    type="file"
+                                    wire:model="singleFile"
+                                    accept=".jpg,.jpeg,.png,.webp,.gif,.svg,.pdf"
+                                    class="block w-full rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-3.5 py-3 text-sm text-[var(--color-ink)] file:mr-3 file:rounded-[var(--radius-button)] file:border-0 file:bg-[var(--color-panel-soft)] file:px-3 file:py-2 file:text-sm file:font-medium file:text-[var(--color-ink)]"
+                                >
+                            </x-ui.field>
+
+                            <div x-cloak x-show="uploading" class="space-y-2">
+                                <div class="flex items-center justify-between text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                                    <span>Uploading</span>
+                                    <span x-text="`${progress}%`"></span>
+                                </div>
+                                <div class="h-2 overflow-hidden rounded-full bg-[var(--color-panel-soft)]">
+                                    <div class="h-full bg-[var(--color-accent)] transition-all duration-150" :style="`width: ${progress}%`"></div>
+                                </div>
+                            </div>
+
+                            <x-ui.field label="Alt Text" for="media-upload-alt-text" :error="$errors->first('uploadAltText')">
+                                <x-ui.input id="media-upload-alt-text" wire:model.blur="uploadAltText" placeholder="Describe the asset for accessibility" :invalid="$errors->has('uploadAltText')" />
+                            </x-ui.field>
+
+                            <x-ui.field label="Caption" for="media-upload-caption" :error="$errors->first('uploadCaption')">
+                                <x-ui.textarea id="media-upload-caption" wire:model.blur="uploadCaption" placeholder="Editorial caption" :invalid="$errors->has('uploadCaption')" />
+                            </x-ui.field>
+                        </div>
+
+                        <div class="space-y-5">
+                            <x-ui.field label="Source Type" for="media-upload-source-type" :error="$errors->first('uploadSourceType')" required>
+                                <x-ui.select id="media-upload-source-type" wire:model.live="uploadSourceType" :invalid="$errors->has('uploadSourceType')">
+                                    <option value="uploaded">Uploaded</option>
+                                    <option value="ai_generated">AI generated</option>
+                                    <option value="stock">Stock</option>
+                                </x-ui.select>
+                            </x-ui.field>
+
+                            <x-ui.field label="Source URL" for="media-upload-source-url" :error="$errors->first('uploadSourceUrl')">
+                                <x-ui.input id="media-upload-source-url" wire:model.blur="uploadSourceUrl" placeholder="https://example.com/original" :invalid="$errors->has('uploadSourceUrl')" />
+                            </x-ui.field>
+
+                            <x-ui.field label="Attribution Text" for="media-upload-attribution-text" :error="$errors->first('uploadAttributionText')">
+                                <x-ui.input id="media-upload-attribution-text" wire:model.blur="uploadAttributionText" placeholder="Provider or photographer credit" :invalid="$errors->has('uploadAttributionText')" />
+                            </x-ui.field>
+
+                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3 text-sm text-[var(--color-muted)]">
+                                Accepted formats: JPG, PNG, WebP, GIF, SVG, and PDF up to 10 MB.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false; progress = 0" x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress" class="space-y-5">
+                    <div class="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+                        <div class="space-y-5">
+                            <x-ui.field label="Files" for="media-batch-files" :error="$errors->first('batchFiles')" required>
+                                <input
+                                    id="media-batch-files"
+                                    type="file"
+                                    wire:model="batchFiles"
+                                    multiple
+                                    accept=".jpg,.jpeg,.png,.webp,.gif,.svg,.pdf"
+                                    class="block w-full rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-3.5 py-3 text-sm text-[var(--color-ink)] file:mr-3 file:rounded-[var(--radius-button)] file:border-0 file:bg-[var(--color-panel-soft)] file:px-3 file:py-2 file:text-sm file:font-medium file:text-[var(--color-ink)]"
+                                >
+                            </x-ui.field>
+
+                            @if ($batchFiles)
+                                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3 text-sm text-[var(--color-muted)]">
+                                    {{ count($batchFiles) }} {{ str('file')->plural(count($batchFiles)) }} selected for upload.
+                                </div>
+                            @endif
+
+                            <div x-cloak x-show="uploading" class="space-y-2">
+                                <div class="flex items-center justify-between text-xs font-medium uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                                    <span>Uploading</span>
+                                    <span x-text="`${progress}%`"></span>
+                                </div>
+                                <div class="h-2 overflow-hidden rounded-full bg-[var(--color-panel-soft)]">
+                                    <div class="h-full bg-[var(--color-accent)] transition-all duration-150" :style="`width: ${progress}%`"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-5">
+                            <x-ui.field label="Source Type" for="media-batch-source-type" :error="$errors->first('uploadSourceType')" required>
+                                <x-ui.select id="media-batch-source-type" wire:model.live="uploadSourceType" :invalid="$errors->has('uploadSourceType')">
+                                    <option value="uploaded">Uploaded</option>
+                                    <option value="ai_generated">AI generated</option>
+                                    <option value="stock">Stock</option>
+                                </x-ui.select>
+                            </x-ui.field>
+
+                            <x-ui.field label="Source URL" for="media-batch-source-url" :error="$errors->first('uploadSourceUrl')">
+                                <x-ui.input id="media-batch-source-url" wire:model.blur="uploadSourceUrl" placeholder="https://example.com/original" :invalid="$errors->has('uploadSourceUrl')" />
+                            </x-ui.field>
+
+                            <x-ui.field label="Attribution Text" for="media-batch-attribution-text" :error="$errors->first('uploadAttributionText')">
+                                <x-ui.input id="media-batch-attribution-text" wire:model.blur="uploadAttributionText" placeholder="Provider or photographer credit" :invalid="$errors->has('uploadAttributionText')" />
+                            </x-ui.field>
+
+                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3 text-sm text-[var(--color-muted)]">
+                                Batch uploads apply the same source metadata to every selected file.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        <x-slot:actions>
+            <x-ui.button type="button" variant="secondary" wire:click="closeUploadDrawer">Cancel</x-ui.button>
+            @if ($uploadMode === 'single')
+                <x-ui.button type="button" wire:click="uploadSingle" wire:loading.attr="disabled" wire:target="singleFile,uploadSingle">
+                    <span wire:loading.remove wire:target="uploadSingle">Upload file</span>
+                    <span wire:loading wire:target="uploadSingle">Uploading…</span>
+                </x-ui.button>
+            @else
+                <x-ui.button type="button" wire:click="uploadBatch" wire:loading.attr="disabled" wire:target="batchFiles,uploadBatch">
+                    <span wire:loading.remove wire:target="uploadBatch">Upload batch</span>
+                    <span wire:loading wire:target="uploadBatch">Uploading…</span>
+                </x-ui.button>
+            @endif
+        </x-slot:actions>
+    </x-ui.drawer>
 
     <x-ui.drawer
         :open="$drawerOpen"

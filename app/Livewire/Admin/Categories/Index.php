@@ -221,8 +221,6 @@ class Index extends Component
             'parentOptions' => $this->parentOptions(),
         ])->layout('layouts.admin', [
             'title' => 'Categories',
-            'pageTitle' => 'Categories',
-            'pageDescription' => 'Manage category structure, ordering, activation state, and parent relationships for editorial workflows.',
         ]);
     }
 

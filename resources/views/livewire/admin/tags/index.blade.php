@@ -1,4 +1,15 @@
 <div class="space-y-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <x-admin.page-header
+            title="Tags"
+            description="Manage reusable editorial labels and activation state for post tagging workflows."
+        />
+
+        <div class="shrink-0 lg:pt-1">
+            <x-ui.button type="button" wire:click="openCreateDrawer">Create Tag</x-ui.button>
+        </div>
+    </div>
+
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
             {{ $pageError }}
@@ -30,10 +41,6 @@
                 {{ count($tags) }} {{ str('tag')->plural(count($tags)) }}
             </div>
         </x-slot:secondary>
-
-        <x-slot:actions>
-            <x-ui.button type="button" wire:click="openCreateDrawer">Create Tag</x-ui.button>
-        </x-slot:actions>
     </x-admin.filter-bar>
 
     <x-ui.table caption="Tags">

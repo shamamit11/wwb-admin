@@ -8,14 +8,18 @@ use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiAuthorizationException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiValidationException;
 use App\Support\Auth\AdminSessionManager;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class Index extends Component
 {
+    use WithFileUploads;
+
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
@@ -38,6 +42,24 @@ class Index extends Component
     public string $sortDirection = 'desc';
 
     public array $media = [];
+
+    public bool $uploadDrawerOpen = false;
+
+    public string $uploadMode = 'single';
+
+    public mixed $singleFile = null;
+
+    public array $batchFiles = [];
+
+    public string $uploadAltText = '';
+
+    public string $uploadCaption = '';
+
+    public string $uploadSourceType = 'uploaded';
+
+    public string $uploadSourceUrl = '';
+
+    public string $uploadAttributionText = '';
 
     public bool $drawerOpen = false;
 
@@ -71,6 +93,8 @@ class Index extends Component
 
     public ?string $formError = null;
 
+    public ?string $uploadError = null;
+
     public function mount(AdminSessionManager $session, MediaClient $media): mixed
     {
         return $this->loadMedia($media, $session);
@@ -87,6 +111,29 @@ class Index extends Component
         ];
     }
 
+    public function singleUploadRules(): array
+    {
+        return [
+            'singleFile' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,webp,gif,svg,pdf'],
+            'uploadAltText' => ['nullable', 'string', 'max:255'],
+            'uploadCaption' => ['nullable', 'string'],
+            'uploadSourceType' => ['required', 'in:uploaded,ai_generated,stock'],
+            'uploadSourceUrl' => ['nullable', 'url', 'max:500'],
+            'uploadAttributionText' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    public function batchUploadRules(): array
+    {
+        return [
+            'batchFiles' => ['required', 'array', 'min:1'],
+            'batchFiles.*' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,webp,gif,svg,pdf'],
+            'uploadSourceType' => ['required', 'in:uploaded,ai_generated,stock'],
+            'uploadSourceUrl' => ['nullable', 'url', 'max:500'],
+            'uploadAttributionText' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
     public function updated(string $property): void
     {
         if (in_array($property, ['altText', 'caption', 'sourceType', 'sourceUrl', 'attributionText'], true)) {
@@ -95,9 +142,44 @@ class Index extends Component
             return;
         }
 
+        if (in_array($property, ['singleFile', 'uploadAltText', 'uploadCaption', 'uploadSourceType', 'uploadSourceUrl', 'uploadAttributionText'], true)) {
+            $this->validateOnly($property, $this->singleUploadRules());
+
+            return;
+        }
+
+        if ($property === 'batchFiles' || str_starts_with($property, 'batchFiles.')) {
+            $this->validateOnly($property, $this->batchUploadRules());
+
+            return;
+        }
+
         if (in_array($property, ['search', 'sourceTypeFilter', 'statusFilter', 'usageFilter', 'imageFilter'], true)) {
             $this->loadMedia(app(MediaClient::class), app(AdminSessionManager::class));
         }
+    }
+
+    public function setUploadMode(string $mode): void
+    {
+        if (! in_array($mode, ['single', 'batch'], true)) {
+            return;
+        }
+
+        $this->uploadMode = $mode;
+        $this->uploadError = null;
+        $this->resetValidation();
+    }
+
+    public function openUploadDrawer(): void
+    {
+        $this->resetUploadForm();
+        $this->uploadDrawerOpen = true;
+    }
+
+    public function closeUploadDrawer(): void
+    {
+        $this->uploadDrawerOpen = false;
+        $this->resetUploadForm();
     }
 
     public function sortBy(string $column): void
@@ -142,6 +224,76 @@ class Index extends Component
     public function closeDrawer(): void
     {
         $this->resetDetail();
+    }
+
+    public function uploadSingle(MediaClient $media, AdminSessionManager $session): mixed
+    {
+        /** @var array{singleFile:UploadedFile,uploadAltText?:string|null,uploadCaption?:string|null,uploadSourceType:string,uploadSourceUrl?:string|null,uploadAttributionText?:string|null} $validated */
+        $validated = $this->validate($this->singleUploadRules());
+        $this->uploadError = null;
+
+        try {
+            $media->store(
+                $this->token($session),
+                $validated['singleFile'],
+                $this->singleUploadPayload($validated),
+                $session->tokenType(),
+            );
+
+            session()->flash('status', 'Media uploaded.');
+
+            $this->closeUploadDrawer();
+            $this->loadMedia($media, $session);
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->uploadError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeUploadApiErrors($exception->errors(), 'single'));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->uploadError = $exception->getMessage() ?: 'Media upload failed.';
+
+            return null;
+        }
+    }
+
+    public function uploadBatch(MediaClient $media, AdminSessionManager $session): mixed
+    {
+        /** @var array{batchFiles:array<int,UploadedFile>,uploadSourceType:string,uploadSourceUrl?:string|null,uploadAttributionText?:string|null} $validated */
+        $validated = $this->validate($this->batchUploadRules());
+        $this->uploadError = null;
+
+        try {
+            $media->batchStore(
+                $this->token($session),
+                $validated['batchFiles'],
+                $this->batchUploadPayload($validated),
+                $session->tokenType(),
+            );
+
+            session()->flash('status', count($validated['batchFiles']).' media files uploaded.');
+
+            $this->closeUploadDrawer();
+            $this->loadMedia($media, $session);
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->uploadError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeUploadApiErrors($exception->errors(), 'batch'));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->uploadError = $exception->getMessage() ?: 'Batch upload failed.';
+
+            return null;
+        }
     }
 
     public function saveMetadata(MediaClient $media, AdminSessionManager $session): mixed
@@ -250,8 +402,6 @@ class Index extends Component
             'mediaItems' => $this->visibleMedia(),
         ])->layout('layouts.admin', [
             'title' => 'Media Library',
-            'pageTitle' => 'Media Library',
-            'pageDescription' => 'Browse reusable assets, inspect usage, and maintain metadata for editorial workflows.',
         ]);
     }
 
@@ -377,6 +527,20 @@ class Index extends Component
         $this->formError = null;
     }
 
+    protected function resetUploadForm(): void
+    {
+        $this->resetValidation();
+        $this->singleFile = null;
+        $this->batchFiles = [];
+        $this->uploadAltText = '';
+        $this->uploadCaption = '';
+        $this->uploadSourceType = 'uploaded';
+        $this->uploadSourceUrl = '';
+        $this->uploadAttributionText = '';
+        $this->uploadError = null;
+        $this->uploadMode = 'single';
+    }
+
     protected function metadataPayload(array $validated): array
     {
         return [
@@ -385,6 +549,26 @@ class Index extends Component
             'source_type' => $validated['sourceType'],
             'source_url' => filled($validated['sourceUrl']) ? trim($validated['sourceUrl']) : null,
             'attribution_text' => filled($validated['attributionText']) ? trim($validated['attributionText']) : null,
+        ];
+    }
+
+    protected function singleUploadPayload(array $validated): array
+    {
+        return [
+            'alt_text' => filled($validated['uploadAltText'] ?? null) ? trim((string) $validated['uploadAltText']) : null,
+            'caption' => filled($validated['uploadCaption'] ?? null) ? trim((string) $validated['uploadCaption']) : null,
+            'source_type' => $validated['uploadSourceType'],
+            'source_url' => filled($validated['uploadSourceUrl'] ?? null) ? trim((string) $validated['uploadSourceUrl']) : null,
+            'attribution_text' => filled($validated['uploadAttributionText'] ?? null) ? trim((string) $validated['uploadAttributionText']) : null,
+        ];
+    }
+
+    protected function batchUploadPayload(array $validated): array
+    {
+        return [
+            'source_type' => $validated['uploadSourceType'],
+            'source_url' => filled($validated['uploadSourceUrl'] ?? null) ? trim((string) $validated['uploadSourceUrl']) : null,
+            'attribution_text' => filled($validated['uploadAttributionText'] ?? null) ? trim((string) $validated['uploadAttributionText']) : null,
         ];
     }
 
@@ -400,6 +584,33 @@ class Index extends Component
                 'attribution_text' => 'attributionText',
                 default => $field,
             };
+
+            $mapped[$property] = $messages;
+        }
+
+        return $mapped;
+    }
+
+    protected function normalizeUploadApiErrors(array $errors, string $mode): array
+    {
+        $mapped = [];
+
+        foreach ($errors as $field => $messages) {
+            $property = match (true) {
+                $field === 'file' => 'singleFile',
+                $field === 'files' => 'batchFiles',
+                str_starts_with($field, 'files.') => preg_replace('/^files/', 'batchFiles', $field) ?: 'batchFiles',
+                $field === 'alt_text' => 'uploadAltText',
+                $field === 'caption' => 'uploadCaption',
+                $field === 'source_type' => 'uploadSourceType',
+                $field === 'source_url' => 'uploadSourceUrl',
+                $field === 'attribution_text' => 'uploadAttributionText',
+                default => $field,
+            };
+
+            if ($mode === 'batch' && in_array($property, ['uploadAltText', 'uploadCaption'], true)) {
+                continue;
+            }
 
             $mapped[$property] = $messages;
         }

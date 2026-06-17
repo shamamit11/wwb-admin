@@ -212,8 +212,6 @@ class Index extends Component
             'tags' => $this->visibleTags(),
         ])->layout('layouts.admin', [
             'title' => 'Tags',
-            'pageTitle' => 'Tags',
-            'pageDescription' => 'Manage reusable editorial labels and activation state for post tagging workflows.',
         ]);
     }
 

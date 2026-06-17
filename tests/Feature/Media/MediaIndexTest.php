@@ -4,6 +4,7 @@ namespace Tests\Feature\Media;
 
 use App\Livewire\Admin\Media\Index;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -54,6 +55,90 @@ class MediaIndexTest extends TestCase
             ->assertOk()
             ->assertSee('architecture.webp')
             ->assertSee('Media Library');
+    }
+
+    public function test_single_media_upload_uses_the_screen_flow_and_refreshes_the_list(): void
+    {
+        session($this->authenticatedSession());
+
+        $uploaded = $this->mediaResource([
+            'id' => 2,
+            'original_filename' => 'diagram.webp',
+            'alt_text' => 'Architecture diagram',
+            'caption' => 'Agent memory map',
+        ]);
+
+        $getIndexCount = 0;
+
+        Http::fake(function (Request $request) use (&$getIndexCount, $uploaded) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/media') {
+                $getIndexCount++;
+
+                return Http::response([
+                    'data' => $getIndexCount === 1 ? [] : [$uploaded],
+                ], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/media') {
+                return Http::response(['data' => $uploaded], 201);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Index::class)
+            ->set('singleFile', UploadedFile::fake()->image('diagram.webp', 1600, 900))
+            ->set('uploadAltText', 'Architecture diagram')
+            ->set('uploadCaption', 'Agent memory map')
+            ->set('uploadSourceType', 'uploaded')
+            ->call('uploadSingle')
+            ->assertHasNoErrors()
+            ->assertSee('diagram.webp');
+    }
+
+    public function test_batch_media_upload_uses_the_screen_flow_and_refreshes_the_list(): void
+    {
+        session($this->authenticatedSession());
+
+        $first = $this->mediaResource([
+            'id' => 3,
+            'original_filename' => 'first.png',
+        ]);
+
+        $second = $this->mediaResource([
+            'id' => 4,
+            'original_filename' => 'second.png',
+        ]);
+
+        $getIndexCount = 0;
+
+        Http::fake(function (Request $request) use (&$getIndexCount, $first, $second) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/media') {
+                $getIndexCount++;
+
+                return Http::response([
+                    'data' => $getIndexCount === 1 ? [] : [$first, $second],
+                ], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/media/batch') {
+                return Http::response(['data' => [$first, $second]], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Index::class)
+            ->call('setUploadMode', 'batch')
+            ->set('batchFiles', [
+                UploadedFile::fake()->image('first.png', 800, 600),
+                UploadedFile::fake()->image('second.png', 640, 480),
+            ])
+            ->set('uploadSourceType', 'uploaded')
+            ->call('uploadBatch')
+            ->assertHasNoErrors()
+            ->assertSee('first.png')
+            ->assertSee('second.png');
     }
 
     public function test_media_metadata_can_be_edited_from_the_detail_drawer(): void
@@ -183,6 +268,36 @@ class MediaIndexTest extends TestCase
             ->assertSee('Featured post usage')
             ->call('delete')
             ->assertSee('This asset is still in use and cannot be deleted.');
+    }
+
+    public function test_single_upload_maps_api_validation_errors(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/media') {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/media') {
+                return Http::response([
+                    'message' => 'The given data was invalid.',
+                    'errors' => [
+                        'file' => ['The file field is required.'],
+                        'source_type' => ['The selected source type is invalid.'],
+                    ],
+                ], 422);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Index::class)
+            ->call('openUploadDrawer')
+            ->set('singleFile', UploadedFile::fake()->image('invalid.webp', 100, 100))
+            ->set('uploadSourceType', 'uploaded')
+            ->call('uploadSingle')
+            ->assertSee('The given data was invalid.');
     }
 
     protected function authenticatedSession(): array
