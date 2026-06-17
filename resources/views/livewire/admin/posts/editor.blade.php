@@ -174,6 +174,192 @@
                     @endforeach
                 </div>
             </section>
+
+            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+                <div class="space-y-1">
+                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO & Metadata</h2>
+                    <p class="text-sm text-[var(--color-muted)]">This panel edits per-entity SEO metadata only. Sitewide defaults are not shown because the service does not expose them here.</p>
+                </div>
+
+                @if ($seoLoadError)
+                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                        {{ $seoLoadError }}
+                    </div>
+                @endif
+
+                @if ($seoFormError)
+                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                        {{ $seoFormError }}
+                    </div>
+                @endif
+
+                @if ($editingPostId)
+                    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO Score</p>
+                            <div class="mt-3 flex items-center gap-3">
+                                <x-admin.seo-score-badge :score="$seoScoreValue" />
+                                @if ($seoScoreGrade)
+                                    <span class="text-sm font-medium text-[var(--color-muted)]">{{ $seoScoreGrade }}</span>
+                                @endif
+                            </div>
+
+                            @if ($seoScoreLoadError)
+                                <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoScoreLoadError }}</p>
+                            @elseif ($seoRecommendations !== [])
+                                <p class="mt-3 text-sm text-[var(--color-muted)]">{{ $seoRecommendations[0] }}</p>
+                            @else
+                                <p class="mt-3 text-sm text-[var(--color-muted)]">No score recommendations were returned for this post.</p>
+                            @endif
+                        </div>
+
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Schema Output</p>
+                            @if ($seoSchemaLoadError)
+                                <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoSchemaLoadError }}</p>
+                            @elseif ($seoSchemaSummary['graph_count'] > 0 || $seoSchemaSummary['context'])
+                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ $seoSchemaSummary['graph_count'] }} graph {{ str('item')->plural($seoSchemaSummary['graph_count']) }}</p>
+                                <p class="mt-2 text-sm text-[var(--color-muted)]">
+                                    {{ $seoSchemaSummary['graph_types'] !== [] ? implode(', ', $seoSchemaSummary['graph_types']) : 'Schema types are present but could not be summarized.' }}
+                                </p>
+                            @else
+                                <p class="mt-3 text-sm text-[var(--color-muted)]">No generated schema payload is currently available.</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if ($seoScoreSubscores !== [])
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            @foreach ($seoScoreSubscores as $subscore)
+                                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $subscore['label'] }}</p>
+                                    <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">
+                                        {{ $subscore['score'] ?? 'TBC' }}
+                                        @if ($subscore['max_score'] !== null)
+                                            <span class="font-medium text-[var(--color-muted)]">/ {{ $subscore['max_score'] }}</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if ($seoSchemaJson !== '')
+                        <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
+                            <div class="border-b border-[var(--color-line)] px-4 py-3">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Generated JSON-LD</p>
+                            </div>
+                            <pre class="max-h-[18rem] overflow-auto px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ $seoSchemaJson }}</pre>
+                        </div>
+                    @endif
+                @endif
+
+                <div class="grid gap-3 lg:grid-cols-2">
+                    <div class="space-y-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Slug Preview</p>
+                            <p class="mt-2 text-sm text-[var(--color-ink)]">/{{ $slug !== '' ? $slug : 'generated-on-save' }}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Canonical URL</p>
+                            <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $canonicalUrl !== '' ? $canonicalUrl : 'Save the post first, then set a canonical URL if needed.' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-3 sm:grid-cols-3">
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Content Version</p>
+                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $contentVersion ?? 'TBC' }}</p>
+                        </div>
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Reading Time</p>
+                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $readingTimeMinutes !== null ? $readingTimeMinutes.' min' : 'TBC' }}</p>
+                        </div>
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Word Count</p>
+                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $wordCount !== null ? number_format($wordCount) : 'TBC' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if ($editingPostId)
+                    <div class="flex items-center justify-end">
+                        <x-ui.button type="button" size="sm" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
+                            <span wire:loading.remove wire:target="saveSeo">Update SEO</span>
+                            <span wire:loading wire:target="saveSeo">Saving…</span>
+                        </x-ui.button>
+                    </div>
+
+                    <div class="grid gap-5 lg:grid-cols-2">
+                        <x-ui.field label="Meta Title" for="post-meta-title" :error="$errors->first('metaTitle')" hint="Keep it concise and specific to the post.">
+                            <x-ui.input id="post-meta-title" wire:model.blur="metaTitle" placeholder="SEO title" :invalid="$errors->has('metaTitle')" />
+                        </x-ui.field>
+
+                        <x-ui.field label="Focus Keyword" for="post-focus-keyword" :error="$errors->first('focusKeyword')" hint="Editorial guidance only; this stays per entity.">
+                            <x-ui.input id="post-focus-keyword" wire:model.blur="focusKeyword" placeholder="primary topic phrase" :invalid="$errors->has('focusKeyword')" />
+                        </x-ui.field>
+                    </div>
+
+                    <x-ui.field label="Meta Description" for="post-meta-description" :error="$errors->first('metaDescription')" hint="Aim for a compact search snippet.">
+                        <x-ui.textarea id="post-meta-description" rows="4" wire:model.blur="metaDescription" placeholder="Search description" :invalid="$errors->has('metaDescription')" />
+                    </x-ui.field>
+
+                    <x-ui.field label="Canonical URL" for="post-canonical-url" :error="$errors->first('canonicalUrl')" hint="Use a full absolute URL when canonicalization is needed.">
+                        <x-ui.input id="post-canonical-url" wire:model.blur="canonicalUrl" placeholder="https://example.com/posts/post-slug" :invalid="$errors->has('canonicalUrl')" />
+                    </x-ui.field>
+
+                    <div class="grid gap-3 lg:grid-cols-2">
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <label class="flex items-start gap-3">
+                                <input wire:model.live="robotsIndex" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
+                                <span>
+                                    <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow indexing</span>
+                                    <span class="mt-1 block text-sm text-[var(--color-muted)]">Turn this off only when the post should not appear in search indexes.</span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <label class="flex items-start gap-3">
+                                <input wire:model.live="robotsFollow" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
+                                <span>
+                                    <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow link following</span>
+                                    <span class="mt-1 block text-sm text-[var(--color-muted)]">Keep this on unless the service should mark outbound link crawling as disallowed.</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-5 lg:grid-cols-2">
+                        <x-ui.field label="OpenGraph Title" for="post-og-title" :error="$errors->first('ogTitle')" hint="Optional override for social share cards.">
+                            <x-ui.input id="post-og-title" wire:model.blur="ogTitle" placeholder="Social share title" :invalid="$errors->has('ogTitle')" />
+                        </x-ui.field>
+
+                        <x-ui.field label="OpenGraph Image" for="post-og-image" :error="$errors->first('ogImageMediaId')" hint="Choose a media asset to use for social previews.">
+                            <x-ui.select id="post-og-image" wire:model.live="ogImageMediaId" :invalid="$errors->has('ogImageMediaId')">
+                                <option value="">No OpenGraph image override</option>
+                                @foreach ($mediaOptions as $asset)
+                                    <option value="{{ $asset['id'] }}">{{ $asset['name'] }}</option>
+                                @endforeach
+                            </x-ui.select>
+                        </x-ui.field>
+                    </div>
+
+                    <x-ui.field label="OpenGraph Description" for="post-og-description" :error="$errors->first('ogDescription')" hint="Optional override for social share descriptions.">
+                        <x-ui.textarea id="post-og-description" rows="4" wire:model.blur="ogDescription" placeholder="Social share description" :invalid="$errors->has('ogDescription')" />
+                    </x-ui.field>
+                @else
+                    <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line-strong)] bg-[var(--color-panel-soft)] px-4 py-4">
+                        <p class="text-sm font-semibold text-[var(--color-ink)]">SEO editing starts after the post exists.</p>
+                        <p class="mt-1 text-sm text-[var(--color-muted)]">Create the post first, then return here to manage per-entity metadata through the SEO service endpoints.</p>
+                    </div>
+                @endif
+
+                <x-ui.field label="Meta JSON Array" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional JSON array of strings stored in the post meta payload.">
+                    <x-ui.textarea id="post-meta-json" rows="5" wire:model.blur="metaJson" placeholder='["editorial-note","campaign:summer"]' :invalid="$errors->has('metaJson')" />
+                </x-ui.field>
+            </section>
         </div>
 
         <aside class="space-y-6 xl:sticky xl:top-6 xl:self-start">
@@ -341,185 +527,6 @@
                 </div>
             </section>
 
-            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                <div class="space-y-1">
-                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO & Metadata</h2>
-                    <p class="text-sm text-[var(--color-muted)]">This panel edits per-entity SEO metadata only. Sitewide defaults are not shown because the service does not expose them here.</p>
-                </div>
-
-                @if ($seoLoadError)
-                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
-                        {{ $seoLoadError }}
-                    </div>
-                @endif
-
-                @if ($seoFormError)
-                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
-                        {{ $seoFormError }}
-                    </div>
-                @endif
-
-                @if ($editingPostId)
-                    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO Score</p>
-                            <div class="mt-3 flex items-center gap-3">
-                                <x-admin.seo-score-badge :score="$seoScoreValue" />
-                                @if ($seoScoreGrade)
-                                    <span class="text-sm font-medium text-[var(--color-muted)]">{{ $seoScoreGrade }}</span>
-                                @endif
-                            </div>
-
-                            @if ($seoScoreLoadError)
-                                <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoScoreLoadError }}</p>
-                            @elseif ($seoRecommendations !== [])
-                                <p class="mt-3 text-sm text-[var(--color-muted)]">{{ $seoRecommendations[0] }}</p>
-                            @else
-                                <p class="mt-3 text-sm text-[var(--color-muted)]">No score recommendations were returned for this post.</p>
-                            @endif
-                        </div>
-
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Schema Output</p>
-                            @if ($seoSchemaLoadError)
-                                <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoSchemaLoadError }}</p>
-                            @elseif ($seoSchemaSummary['graph_count'] > 0 || $seoSchemaSummary['context'])
-                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ $seoSchemaSummary['graph_count'] }} graph {{ str('item')->plural($seoSchemaSummary['graph_count']) }}</p>
-                                <p class="mt-2 text-sm text-[var(--color-muted)]">
-                                    {{ $seoSchemaSummary['graph_types'] !== [] ? implode(', ', $seoSchemaSummary['graph_types']) : 'Schema types are present but could not be summarized.' }}
-                                </p>
-                            @else
-                                <p class="mt-3 text-sm text-[var(--color-muted)]">No generated schema payload is currently available.</p>
-                            @endif
-                        </div>
-                    </div>
-
-                    @if ($seoScoreSubscores !== [])
-                        <div class="grid gap-3 sm:grid-cols-2">
-                            @foreach ($seoScoreSubscores as $subscore)
-                                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $subscore['label'] }}</p>
-                                    <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">
-                                        {{ $subscore['score'] ?? 'TBC' }}
-                                        @if ($subscore['max_score'] !== null)
-                                            <span class="font-medium text-[var(--color-muted)]">/ {{ $subscore['max_score'] }}</span>
-                                        @endif
-                                    </p>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    @if ($seoSchemaJson !== '')
-                        <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
-                            <div class="border-b border-[var(--color-line)] px-4 py-3">
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Generated JSON-LD</p>
-                            </div>
-                            <pre class="max-h-[18rem] overflow-auto px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ $seoSchemaJson }}</pre>
-                        </div>
-                    @endif
-                @endif
-
-                <div class="space-y-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Slug Preview</p>
-                        <p class="mt-2 text-sm text-[var(--color-ink)]">/{{ $slug !== '' ? $slug : 'generated-on-save' }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Canonical URL</p>
-                        <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $canonicalUrl !== '' ? $canonicalUrl : 'Save the post first, then set a canonical URL if needed.' }}</p>
-                    </div>
-                </div>
-
-                @if ($editingPostId)
-                    <div class="flex items-center justify-end">
-                        <x-ui.button type="button" size="sm" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
-                            <span wire:loading.remove wire:target="saveSeo">Update SEO</span>
-                            <span wire:loading wire:target="saveSeo">Saving…</span>
-                        </x-ui.button>
-                    </div>
-
-                    <x-ui.field label="Meta Title" for="post-meta-title" :error="$errors->first('metaTitle')" hint="Keep it concise and specific to the post.">
-                        <x-ui.input id="post-meta-title" wire:model.blur="metaTitle" placeholder="SEO title" :invalid="$errors->has('metaTitle')" />
-                    </x-ui.field>
-
-                    <x-ui.field label="Meta Description" for="post-meta-description" :error="$errors->first('metaDescription')" hint="Aim for a compact search snippet.">
-                        <x-ui.textarea id="post-meta-description" rows="4" wire:model.blur="metaDescription" placeholder="Search description" :invalid="$errors->has('metaDescription')" />
-                    </x-ui.field>
-
-                    <x-ui.field label="Canonical URL" for="post-canonical-url" :error="$errors->first('canonicalUrl')" hint="Use a full absolute URL when canonicalization is needed.">
-                        <x-ui.input id="post-canonical-url" wire:model.blur="canonicalUrl" placeholder="https://example.com/posts/post-slug" :invalid="$errors->has('canonicalUrl')" />
-                    </x-ui.field>
-
-                    <x-ui.field label="Focus Keyword" for="post-focus-keyword" :error="$errors->first('focusKeyword')" hint="Editorial guidance only; this stays per entity.">
-                        <x-ui.input id="post-focus-keyword" wire:model.blur="focusKeyword" placeholder="primary topic phrase" :invalid="$errors->has('focusKeyword')" />
-                    </x-ui.field>
-
-                    <div class="grid gap-3">
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <label class="flex items-start gap-3">
-                                <input wire:model.live="robotsIndex" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                                <span>
-                                    <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow indexing</span>
-                                    <span class="mt-1 block text-sm text-[var(--color-muted)]">Turn this off only when the post should not appear in search indexes.</span>
-                                </span>
-                            </label>
-                        </div>
-
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <label class="flex items-start gap-3">
-                                <input wire:model.live="robotsFollow" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                                <span>
-                                    <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow link following</span>
-                                    <span class="mt-1 block text-sm text-[var(--color-muted)]">Keep this on unless the service should mark outbound link crawling as disallowed.</span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <x-ui.field label="OpenGraph Title" for="post-og-title" :error="$errors->first('ogTitle')" hint="Optional override for social share cards.">
-                        <x-ui.input id="post-og-title" wire:model.blur="ogTitle" placeholder="Social share title" :invalid="$errors->has('ogTitle')" />
-                    </x-ui.field>
-
-                    <x-ui.field label="OpenGraph Description" for="post-og-description" :error="$errors->first('ogDescription')" hint="Optional override for social share descriptions.">
-                        <x-ui.textarea id="post-og-description" rows="4" wire:model.blur="ogDescription" placeholder="Social share description" :invalid="$errors->has('ogDescription')" />
-                    </x-ui.field>
-
-                    <x-ui.field label="OpenGraph Image" for="post-og-image" :error="$errors->first('ogImageMediaId')" hint="Choose a media asset to use for social previews.">
-                        <x-ui.select id="post-og-image" wire:model.live="ogImageMediaId" :invalid="$errors->has('ogImageMediaId')">
-                            <option value="">No OpenGraph image override</option>
-                            @foreach ($mediaOptions as $asset)
-                                <option value="{{ $asset['id'] }}">{{ $asset['name'] }}</option>
-                            @endforeach
-                        </x-ui.select>
-                    </x-ui.field>
-                @else
-                    <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line-strong)] bg-[var(--color-panel-soft)] px-4 py-4">
-                        <p class="text-sm font-semibold text-[var(--color-ink)]">SEO editing starts after the post exists.</p>
-                        <p class="mt-1 text-sm text-[var(--color-muted)]">Create the post first, then return here to manage per-entity metadata through the SEO service endpoints.</p>
-                    </div>
-                @endif
-
-                <x-ui.field label="Meta JSON Array" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional JSON array of strings stored in the post meta payload.">
-                    <x-ui.textarea id="post-meta-json" rows="5" wire:model.blur="metaJson" placeholder='["editorial-note","campaign:summer"]' :invalid="$errors->has('metaJson')" />
-                </x-ui.field>
-
-                <div class="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Content Version</p>
-                        <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $contentVersion ?? 'TBC' }}</p>
-                    </div>
-                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Reading Time</p>
-                        <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $readingTimeMinutes !== null ? $readingTimeMinutes.' min' : 'TBC' }}</p>
-                    </div>
-                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Word Count</p>
-                        <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $wordCount !== null ? number_format($wordCount) : 'TBC' }}</p>
-                    </div>
-                </div>
-            </section>
         </aside>
     </div>
 
