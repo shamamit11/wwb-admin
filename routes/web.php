@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\Auth\LogoutController;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
 use App\Livewire\Admin\Categories\Index as CategoryIndex;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
+use App\Livewire\Admin\KnowledgeBase\Editor as KnowledgeBaseEditor;
+use App\Livewire\Admin\KnowledgeBase\Index as KnowledgeBaseIndex;
 use App\Livewire\Admin\Media\Index as MediaIndex;
 use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
 use App\Livewire\Admin\Posts\Editor as PostEditor;
@@ -37,20 +39,11 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/templates', TemplateIndex::class)->name('templates.index');
 
-    Route::get('/knowledge-base', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Editorial Context')
-        ->defaults('pageTitle', 'Knowledge base routing is scaffolded for searchable editorial context management.')
-        ->defaults('pageDescription', 'This route makes the knowledge base a first-class admin section before its list and markdown editing workflows are implemented.')
-        ->defaults('moduleLabel', 'Knowledge Base')
-        ->defaults('moduleDescription', 'This module will support searchable entries, metadata editing, and post/topic linking once integrated.')
-        ->defaults('primaryActionLabel', 'Create Knowledge Entry')
-        ->defaults('primaryActionHint', 'Later work should keep the list searchable and the editing flow content-first.')
-        ->defaults('nextSteps', [
-            'Add the knowledge base API client and response mapping.',
-            'Build the index screen using the shared search, filters, and row action patterns.',
-            'Add the editing flow with markdown content and related-link support.',
-        ])
-        ->name('knowledge-base.index');
+    Route::get('/knowledge-base', KnowledgeBaseIndex::class)->name('knowledge-base.index');
+
+    Route::get('/knowledge-base/create', KnowledgeBaseEditor::class)->name('knowledge-base.create');
+
+    Route::get('/knowledge-base/{knowledgeBaseEntry}/edit', KnowledgeBaseEditor::class)->name('knowledge-base.edit');
 
     Route::get('/seo', SeoIndex::class)->name('seo.index');
 

@@ -1,0 +1,154 @@
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <x-admin.page-header
+            title="Knowledge Base"
+            description="Manage editorial reference entries, practical markdown notes, and structured context for future workflow tooling."
+        />
+
+        <div class="shrink-0 lg:pt-1">
+            <x-ui.button as="a" :href="route('knowledge-base.create')">Create Knowledge Entry</x-ui.button>
+        </div>
+    </div>
+
+    @if ($pageError)
+        <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+            {{ $pageError }}
+        </div>
+    @endif
+
+    <x-admin.filter-bar>
+        <x-slot:search>
+            <label class="block">
+                <span class="sr-only">Search knowledge entries</span>
+                <x-ui.input
+                    type="search"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search by title, summary, or markdown context"
+                />
+            </label>
+        </x-slot:search>
+
+        <x-slot:filters>
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="w-[11rem] shrink-0">
+                    <x-ui.select wire:model.live="typeFilter">
+                        <option value="all">All types</option>
+                        @foreach ($entryTypes as $type)
+                            <option value="{{ $type }}">{{ str($type)->headline() }}</option>
+                        @endforeach
+                    </x-ui.select>
+                </div>
+
+                <div class="w-[11rem] shrink-0">
+                    <x-ui.select wire:model.live="statusFilter">
+                        <option value="all">All statuses</option>
+                        @foreach ($entryStatuses as $statusOption)
+                            <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
+                        @endforeach
+                    </x-ui.select>
+                </div>
+            </div>
+        </x-slot:filters>
+
+        <x-slot:secondary>
+            <div class="text-sm text-[var(--color-muted)]">
+                {{ count($entries) }} {{ str('entry')->plural(count($entries)) }}
+            </div>
+        </x-slot:secondary>
+    </x-admin.filter-bar>
+
+    <x-ui.table caption="Knowledge base entries">
+        <x-ui.table-head>
+            <tr>
+                <x-ui.table-heading class="w-[35%]">
+                    <button type="button" wire:click="sortBy('title')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
+                        <span>Title</span>
+                        <span class="text-[10px] leading-none">{{ $sortColumn === 'title' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
+                    </button>
+                </x-ui.table-heading>
+                <x-ui.table-heading>Type</x-ui.table-heading>
+                <x-ui.table-heading>Status</x-ui.table-heading>
+                <x-ui.table-heading>Source</x-ui.table-heading>
+                <x-ui.table-heading>
+                    <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
+                        <span>Updated</span>
+                        <span class="text-[10px] leading-none">{{ $sortColumn === 'updated_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
+                    </button>
+                </x-ui.table-heading>
+                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+            </tr>
+        </x-ui.table-head>
+
+        <x-ui.table-body>
+            @forelse ($entries as $entry)
+                <x-ui.table-row interactive wire:key="knowledge-entry-{{ $entry['id'] }}">
+                    <x-ui.table-cell class="w-[35%]">
+                        <div class="min-w-0">
+                            <p class="truncate font-semibold text-[var(--color-ink)]">{{ $entry['title'] }}</p>
+                            <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $entry['slug'] ?: 'Auto-generated slug' }}</p>
+                            @if ($entry['summary'])
+                                <p class="mt-2 text-sm text-[var(--color-muted)]">{{ $entry['summary'] }}</p>
+                            @endif
+                        </div>
+                    </x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ str($entry['entry_type'])->headline() }}</x-ui.table-cell>
+                    <x-ui.table-cell>
+                        <x-admin.status-badge :status="$entry['status']" />
+                    </x-ui.table-cell>
+                    <x-ui.table-cell subdued>
+                        @if ($entry['source_url'])
+                            <a href="{{ $entry['source_url'] }}" target="_blank" rel="noreferrer" class="text-[var(--color-accent-strong)] underline decoration-[color-mix(in_srgb,var(--color-accent)_38%,white)] underline-offset-4">
+                                Source link
+                            </a>
+                        @else
+                            No source URL
+                        @endif
+                    </x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $entry['updated_at'] ?: 'Unknown' }}</x-ui.table-cell>
+                    <x-ui.table-cell align="right">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            <x-ui.button as="a" :href="route('knowledge-base.edit', ['knowledgeBaseEntry' => $entry['id']])" variant="outline" size="sm">Edit</x-ui.button>
+                            <x-ui.button type="button" variant="ghost" size="sm" class="text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="confirmDelete({{ $entry['id'] }})">
+                                Delete
+                            </x-ui.button>
+                        </div>
+                    </x-ui.table-cell>
+                </x-ui.table-row>
+            @empty
+                <x-ui.table-empty
+                    colspan="6"
+                    title="No knowledge entries match the current view"
+                    message="Adjust the search or filters, or create a reference entry to start building editorial context."
+                />
+            @endforelse
+        </x-ui.table-body>
+    </x-ui.table>
+
+    <x-ui.dialog
+        :open="$deleteDialogOpen"
+        title="Delete knowledge entry"
+        description="Delete the entry only when the editorial context is no longer needed."
+        tone="destructive"
+        maxWidth="lg"
+    >
+        <div class="space-y-5">
+            @if ($deleteError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $deleteError }}
+                </div>
+            @endif
+
+            <p class="text-sm leading-6 text-[var(--color-muted)]">
+                Delete <span class="font-semibold text-[var(--color-ink)]">{{ $deleteEntryTitle }}</span>? This removes the entry from the current editorial workflow.
+            </p>
+        </div>
+
+        <x-slot:actions>
+            <x-ui.button type="button" variant="secondary" wire:click="closeDeleteDialog">Cancel</x-ui.button>
+            <x-ui.button type="button" variant="destructive" wire:click="delete" wire:loading.attr="disabled" wire:target="delete">
+                <span wire:loading.remove wire:target="delete">Delete entry</span>
+                <span wire:loading wire:target="delete">Deleting…</span>
+            </x-ui.button>
+        </x-slot:actions>
+    </x-ui.dialog>
+</div>

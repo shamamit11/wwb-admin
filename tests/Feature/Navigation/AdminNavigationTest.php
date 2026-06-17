@@ -106,6 +106,10 @@ class AdminNavigationTest extends TestCase
                 return Http::response(['data' => []], 200);
             }
 
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/knowledge-base')) {
+                return Http::response(['data' => []], 200);
+            }
+
             return Http::response(['message' => 'Unexpected request.'], 500);
         });
     }
