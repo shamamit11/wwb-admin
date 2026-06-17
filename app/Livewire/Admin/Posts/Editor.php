@@ -7,6 +7,7 @@ use App\Data\Posts\PostEditorData;
 use App\Services\WideWebBlogApi\Clients\CategoryClient;
 use App\Services\WideWebBlogApi\Clients\MediaClient;
 use App\Services\WideWebBlogApi\Clients\PostClient;
+use App\Services\WideWebBlogApi\Clients\SeoClient;
 use App\Services\WideWebBlogApi\Clients\TagClient;
 use App\Services\WideWebBlogApi\Clients\TemplateClient;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiAuthenticationException;
@@ -84,7 +85,23 @@ class Editor extends Component
 
     public array $blocks = [];
 
-    public ?string $canonicalUrl = null;
+    public string $metaTitle = '';
+
+    public string $metaDescription = '';
+
+    public string $canonicalUrl = '';
+
+    public bool $robotsIndex = true;
+
+    public bool $robotsFollow = true;
+
+    public string $ogTitle = '';
+
+    public string $ogDescription = '';
+
+    public string $ogImageMediaId = '';
+
+    public string $focusKeyword = '';
 
     public array $categoryOptions = [];
 
@@ -97,6 +114,10 @@ class Editor extends Component
     public ?string $pageError = null;
 
     public ?string $formError = null;
+
+    public ?string $seoLoadError = null;
+
+    public ?string $seoFormError = null;
 
     public bool $mediaPickerOpen = false;
 
@@ -119,6 +140,7 @@ class Editor extends Component
         TemplateClient $templates,
         MediaClient $media,
         PostClient $posts,
+        SeoClient $seo,
         mixed $post = null,
     ): mixed {
         $this->fillFromEditorData(PostEditorData::blank());
@@ -130,7 +152,13 @@ class Editor extends Component
         }
 
         if (is_numeric($post)) {
-            return $this->loadPost((int) $post, $posts, $session);
+            $loadPostResult = $this->loadPost((int) $post, $posts, $session);
+
+            if ($loadPostResult !== null || $this->pageError !== null) {
+                return $loadPostResult;
+            }
+
+            return $this->loadSeoMetadata($this->seoableType(), (int) $post, $seo, $session);
         }
 
         return null;
@@ -172,6 +200,22 @@ class Editor extends Component
 
     public function updated(string $property): void
     {
+        if (in_array($property, [
+            'metaTitle',
+            'metaDescription',
+            'canonicalUrl',
+            'robotsIndex',
+            'robotsFollow',
+            'ogTitle',
+            'ogDescription',
+            'ogImageMediaId',
+            'focusKeyword',
+        ], true)) {
+            $this->validateOnly($property, $this->seoRules());
+
+            return;
+        }
+
         if (
             in_array($property, [
                 'title', 'slug', 'excerpt', 'categoryId', 'templateId', 'featuredMediaId',
@@ -182,6 +226,43 @@ class Editor extends Component
             || str_starts_with($property, 'blocks.')
         ) {
             $this->validateOnly($property);
+        }
+    }
+
+    public function saveSeo(SeoClient $seo, AdminSessionManager $session): mixed
+    {
+        if (! $this->editingPostId) {
+            return null;
+        }
+
+        $validated = $this->validate($this->seoRules());
+        $this->seoFormError = null;
+
+        try {
+            $response = $seo->update(
+                $this->token($session),
+                $session->tokenType(),
+                $this->seoableType(),
+                $this->editingPostId,
+                $this->seoPayload($validated),
+            );
+
+            $this->fillFromSeoMetadata(Arr::get($response, 'data', []));
+            session()->flash('status', 'SEO metadata updated.');
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->seoFormError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeApiErrors($exception->errors()));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->seoFormError = $exception->getMessage() ?: 'SEO metadata could not be updated.';
+
+            return null;
         }
     }
 
@@ -500,6 +581,27 @@ class Editor extends Component
         }
     }
 
+    protected function loadSeoMetadata(string $seoableType, int $seoableId, SeoClient $seo, AdminSessionManager $session): mixed
+    {
+        $this->seoLoadError = null;
+        $this->seoFormError = null;
+
+        try {
+            $response = $seo->show($this->token($session), $session->tokenType(), $seoableType, $seoableId);
+            $this->fillFromSeoMetadata(Arr::get($response, 'data', []));
+
+            return null;
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->seoLoadError = $exception->getMessage() ?: 'SEO metadata could not be loaded.';
+
+            return null;
+        }
+    }
+
     protected function mediaUrl(): MediaUrl
     {
         return app(MediaUrl::class);
@@ -526,7 +628,22 @@ class Editor extends Component
         $this->metaJson = $data->metaJson;
         $this->tagIds = $data->tagIds;
         $this->blocks = $data->blocks;
-        $this->canonicalUrl = $data->canonicalUrl;
+        $this->canonicalUrl = $data->canonicalUrl ?? '';
+    }
+
+    protected function fillFromSeoMetadata(array $seo): void
+    {
+        $this->metaTitle = (string) Arr::get($seo, 'meta_title', '');
+        $this->metaDescription = (string) Arr::get($seo, 'meta_description', '');
+        $this->canonicalUrl = (string) Arr::get($seo, 'canonical_url', '');
+        $this->robotsIndex = (bool) Arr::get($seo, 'robots_index', true);
+        $this->robotsFollow = (bool) Arr::get($seo, 'robots_follow', true);
+        $this->ogTitle = (string) Arr::get($seo, 'og_title', '');
+        $this->ogDescription = (string) Arr::get($seo, 'og_description', '');
+        $this->ogImageMediaId = Arr::get($seo, 'og_image_media.id')
+            ? (string) Arr::get($seo, 'og_image_media.id')
+            : '';
+        $this->focusKeyword = (string) Arr::get($seo, 'focus_keyword', '');
     }
 
     protected function postPayload(array $validated): array
@@ -568,6 +685,52 @@ class Editor extends Component
         $decoded = json_decode($this->metaJson, true);
 
         return is_array($decoded) ? array_values($decoded) : null;
+    }
+
+    protected function seoRules(): array
+    {
+        return [
+            'metaTitle' => ['nullable', 'string', 'max:255'],
+            'metaDescription' => ['nullable', 'string', 'max:320'],
+            'canonicalUrl' => ['nullable', 'string', 'max:500', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) || trim($value) === '') {
+                    return;
+                }
+
+                if (filter_var($value, FILTER_VALIDATE_URL) === false) {
+                    $fail('The canonical url field must be a valid URL.');
+                }
+            }],
+            'robotsIndex' => ['boolean'],
+            'robotsFollow' => ['boolean'],
+            'ogTitle' => ['nullable', 'string', 'max:255'],
+            'ogDescription' => ['nullable', 'string', 'max:320'],
+            'ogImageMediaId' => ['nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if ($value === null || $value === '') {
+                    return;
+                }
+
+                if (filter_var($value, FILTER_VALIDATE_INT) === false) {
+                    $fail('The open graph image field must be an integer.');
+                }
+            }],
+            'focusKeyword' => ['nullable', 'string', 'max:190'],
+        ];
+    }
+
+    protected function seoPayload(array $validated): array
+    {
+        return [
+            'meta_title' => filled($validated['metaTitle']) ? trim($validated['metaTitle']) : null,
+            'meta_description' => filled($validated['metaDescription']) ? trim($validated['metaDescription']) : null,
+            'canonical_url' => filled($validated['canonicalUrl']) ? trim($validated['canonicalUrl']) : null,
+            'robots_index' => (bool) $validated['robotsIndex'],
+            'robots_follow' => (bool) $validated['robotsFollow'],
+            'og_title' => filled($validated['ogTitle']) ? trim($validated['ogTitle']) : null,
+            'og_description' => filled($validated['ogDescription']) ? trim($validated['ogDescription']) : null,
+            'og_image_media_id' => filled($validated['ogImageMediaId']) ? (int) $validated['ogImageMediaId'] : null,
+            'focus_keyword' => filled($validated['focusKeyword']) ? trim($validated['focusKeyword']) : null,
+        ];
     }
 
     protected function validateJsonStringArrayPayload(string $attribute, mixed $value, \Closure $fail): void
@@ -815,6 +978,11 @@ class Editor extends Component
         return [
             'scheduledFor' => ['required', 'date', 'after:now'],
         ];
+    }
+
+    protected function seoableType(): string
+    {
+        return 'post';
     }
 
     protected function token(AdminSessionManager $session): string

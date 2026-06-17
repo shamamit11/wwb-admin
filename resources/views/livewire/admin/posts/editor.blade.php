@@ -344,20 +344,101 @@
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO & Metadata</h2>
-                    <p class="text-sm text-[var(--color-muted)]">The editor shows the current SEO context without inventing unsupported post payload fields.</p>
+                    <p class="text-sm text-[var(--color-muted)]">This panel edits per-entity SEO metadata only. Sitewide defaults are not shown because the service does not expose them here.</p>
                 </div>
 
-                <div class="space-y-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Canonical URL</p>
-                        <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $canonicalUrl ?: 'Set by the service or SEO metadata endpoints later.' }}</p>
+                @if ($seoLoadError)
+                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                        {{ $seoLoadError }}
                     </div>
+                @endif
 
+                @if ($seoFormError)
+                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                        {{ $seoFormError }}
+                    </div>
+                @endif
+
+                <div class="space-y-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Slug Preview</p>
                         <p class="mt-2 text-sm text-[var(--color-ink)]">/{{ $slug !== '' ? $slug : 'generated-on-save' }}</p>
                     </div>
+
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Canonical URL</p>
+                        <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $canonicalUrl !== '' ? $canonicalUrl : 'Save the post first, then set a canonical URL if needed.' }}</p>
+                    </div>
                 </div>
+
+                @if ($editingPostId)
+                    <div class="flex items-center justify-end">
+                        <x-ui.button type="button" size="sm" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
+                            <span wire:loading.remove wire:target="saveSeo">Update SEO</span>
+                            <span wire:loading wire:target="saveSeo">Saving…</span>
+                        </x-ui.button>
+                    </div>
+
+                    <x-ui.field label="Meta Title" for="post-meta-title" :error="$errors->first('metaTitle')" hint="Keep it concise and specific to the post.">
+                        <x-ui.input id="post-meta-title" wire:model.blur="metaTitle" placeholder="SEO title" :invalid="$errors->has('metaTitle')" />
+                    </x-ui.field>
+
+                    <x-ui.field label="Meta Description" for="post-meta-description" :error="$errors->first('metaDescription')" hint="Aim for a compact search snippet.">
+                        <x-ui.textarea id="post-meta-description" rows="4" wire:model.blur="metaDescription" placeholder="Search description" :invalid="$errors->has('metaDescription')" />
+                    </x-ui.field>
+
+                    <x-ui.field label="Canonical URL" for="post-canonical-url" :error="$errors->first('canonicalUrl')" hint="Use a full absolute URL when canonicalization is needed.">
+                        <x-ui.input id="post-canonical-url" wire:model.blur="canonicalUrl" placeholder="https://example.com/posts/post-slug" :invalid="$errors->has('canonicalUrl')" />
+                    </x-ui.field>
+
+                    <x-ui.field label="Focus Keyword" for="post-focus-keyword" :error="$errors->first('focusKeyword')" hint="Editorial guidance only; this stays per entity.">
+                        <x-ui.input id="post-focus-keyword" wire:model.blur="focusKeyword" placeholder="primary topic phrase" :invalid="$errors->has('focusKeyword')" />
+                    </x-ui.field>
+
+                    <div class="grid gap-3">
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <label class="flex items-start gap-3">
+                                <input wire:model.live="robotsIndex" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
+                                <span>
+                                    <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow indexing</span>
+                                    <span class="mt-1 block text-sm text-[var(--color-muted)]">Turn this off only when the post should not appear in search indexes.</span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <label class="flex items-start gap-3">
+                                <input wire:model.live="robotsFollow" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
+                                <span>
+                                    <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow link following</span>
+                                    <span class="mt-1 block text-sm text-[var(--color-muted)]">Keep this on unless the service should mark outbound link crawling as disallowed.</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <x-ui.field label="OpenGraph Title" for="post-og-title" :error="$errors->first('ogTitle')" hint="Optional override for social share cards.">
+                        <x-ui.input id="post-og-title" wire:model.blur="ogTitle" placeholder="Social share title" :invalid="$errors->has('ogTitle')" />
+                    </x-ui.field>
+
+                    <x-ui.field label="OpenGraph Description" for="post-og-description" :error="$errors->first('ogDescription')" hint="Optional override for social share descriptions.">
+                        <x-ui.textarea id="post-og-description" rows="4" wire:model.blur="ogDescription" placeholder="Social share description" :invalid="$errors->has('ogDescription')" />
+                    </x-ui.field>
+
+                    <x-ui.field label="OpenGraph Image" for="post-og-image" :error="$errors->first('ogImageMediaId')" hint="Choose a media asset to use for social previews.">
+                        <x-ui.select id="post-og-image" wire:model.live="ogImageMediaId" :invalid="$errors->has('ogImageMediaId')">
+                            <option value="">No OpenGraph image override</option>
+                            @foreach ($mediaOptions as $asset)
+                                <option value="{{ $asset['id'] }}">{{ $asset['name'] }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </x-ui.field>
+                @else
+                    <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line-strong)] bg-[var(--color-panel-soft)] px-4 py-4">
+                        <p class="text-sm font-semibold text-[var(--color-ink)]">SEO editing starts after the post exists.</p>
+                        <p class="mt-1 text-sm text-[var(--color-muted)]">Create the post first, then return here to manage per-entity metadata through the SEO service endpoints.</p>
+                    </div>
+                @endif
 
                 <x-ui.field label="Meta JSON Array" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional JSON array of strings stored in the post meta payload.">
                     <x-ui.textarea id="post-meta-json" rows="5" wire:model.blur="metaJson" placeholder='["editorial-note","campaign:summer"]' :invalid="$errors->has('metaJson')" />
