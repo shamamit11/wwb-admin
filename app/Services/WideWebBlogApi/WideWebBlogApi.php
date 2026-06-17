@@ -46,12 +46,14 @@ class WideWebBlogApi
         }
 
         $message = $response->json('message') ?: 'Service API request failed.';
+        $errors = $response->json('errors', []);
+        $meta = $response->json('meta', []);
 
         match ($response->status()) {
             401 => throw new WideWebBlogApiAuthenticationException($message),
             403 => throw new WideWebBlogApiAuthorizationException($message),
-            422 => throw new WideWebBlogApiValidationException($message, $response->json('errors', [])),
-            default => throw new WideWebBlogApiException($message),
+            422 => throw new WideWebBlogApiValidationException($message, $errors),
+            default => throw new WideWebBlogApiException($message, $response->status(), $errors, $meta),
         };
     }
 }

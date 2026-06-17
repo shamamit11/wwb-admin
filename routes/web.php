@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\Auth\LogoutController;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
 use App\Livewire\Admin\Categories\Index as CategoryIndex;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
+use App\Livewire\Admin\Media\Index as MediaIndex;
 use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
 use App\Livewire\Admin\Tags\Index as TagIndex;
 use Illuminate\Support\Facades\Route;
@@ -37,20 +38,7 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/tags', TagIndex::class)->name('tags.index');
 
-    Route::get('/media', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Asset Operations')
-        ->defaults('pageTitle', 'Media library routing is ready for upload and asset-management workflows.')
-        ->defaults('pageDescription', 'The media route is scaffolded so upload, list, and metadata inspection work can land on a stable shell.')
-        ->defaults('moduleLabel', 'Media Library')
-        ->defaults('moduleDescription', 'This module will own uploads, asset search, metadata editing, and deletion safety checks.')
-        ->defaults('primaryActionLabel', 'Upload Media')
-        ->defaults('primaryActionHint', 'Future work should connect upload flows to the multipart media endpoints and visible activity feedback.')
-        ->defaults('nextSteps', [
-            'Add the media API client and multipart upload handling.',
-            'Build the media index using search, filters, table or grid decisions, and detail drawer patterns.',
-            'Implement asset metadata editing and usage-aware delete safeguards.',
-        ])
-        ->name('media.index');
+    Route::get('/media', MediaIndex::class)->name('media.index');
 
     Route::get('/templates', PlaceholderIndex::class)
         ->defaults('eyebrow', 'Publishing Structure')
