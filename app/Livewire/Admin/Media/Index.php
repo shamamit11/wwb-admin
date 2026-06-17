@@ -8,6 +8,7 @@ use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiAuthorizationException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiValidationException;
 use App\Support\Auth\AdminSessionManager;
+use App\Support\Media\MediaUrl;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -487,7 +488,7 @@ class Index extends Component
             'height' => Arr::get($media, 'height'),
             'alt_text' => Arr::get($media, 'alt_text'),
             'caption' => Arr::get($media, 'caption'),
-            'url' => Arr::get($media, 'url'),
+            'url' => $this->mediaUrl()->resolve(Arr::get($media, 'url')),
             'status' => Arr::get($media, 'status', 'ready'),
             'usage_count' => (int) Arr::get($media, 'usage_count', 0),
             'usage' => Arr::get($media, 'usage', []),
@@ -499,6 +500,11 @@ class Index extends Component
             'updated_at_raw' => $updatedAtRaw,
             'file_size_label' => $this->formatBytes((int) Arr::get($media, 'file_size_bytes', 0)),
         ];
+    }
+
+    protected function mediaUrl(): MediaUrl
+    {
+        return app(MediaUrl::class);
     }
 
     protected function fillSelectedMedia(array $media): void

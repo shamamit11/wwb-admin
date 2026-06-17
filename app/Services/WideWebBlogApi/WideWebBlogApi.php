@@ -26,6 +26,20 @@ class WideWebBlogApi
             );
     }
 
+    public function multipartRequest(): PendingRequest
+    {
+        return Http::acceptJson()
+            ->baseUrl(config('widewebblog.api.base_url'))
+            ->timeout(config('widewebblog.api.timeout'))
+            ->connectTimeout(config('widewebblog.api.connect_timeout'))
+            ->retry(
+                config('widewebblog.api.retry_times'),
+                config('widewebblog.api.retry_sleep_ms'),
+                throw: false,
+            )
+            ->asMultipart();
+    }
+
     public function authenticated(string $token, ?string $tokenType = 'Bearer'): PendingRequest
     {
         $request = $this->request();

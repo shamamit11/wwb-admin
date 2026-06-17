@@ -98,6 +98,7 @@ class MediaClientTest extends TestCase
 
             return $request->method() === 'POST'
                 && $request->url() === $this->apiBaseUrl.'/admin/media'
+                && ! $request->hasHeader('Content-Type', 'application/json')
                 && str_contains($body, 'name="file"; filename="diagram.webp"')
                 && str_contains($body, 'name="source_type"')
                 && str_contains($body, 'uploaded')
@@ -127,6 +128,7 @@ class MediaClientTest extends TestCase
 
             return $request->method() === 'POST'
                 && $request->url() === $this->apiBaseUrl.'/admin/media/batch'
+                && ! $request->hasHeader('Content-Type', 'application/json')
                 && str_contains($body, 'name="files[]"; filename="first.png"')
                 && str_contains($body, 'name="files[]"; filename="second.png"')
                 && str_contains($body, 'name="source_type"')

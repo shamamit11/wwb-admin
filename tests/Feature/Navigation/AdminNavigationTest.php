@@ -2,12 +2,25 @@
 
 namespace Tests\Feature\Navigation;
 
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AdminNavigationTest extends TestCase
 {
+    protected string $apiBaseUrl;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->apiBaseUrl = rtrim(config('widewebblog.api.base_url'), '/');
+    }
+
     public function test_authenticated_admin_can_access_mvp_placeholder_routes(): void
     {
+        $this->fakeModuleIndexRequests();
+
         $session = $this->authenticatedSession();
 
         foreach ([
@@ -28,6 +41,8 @@ class AdminNavigationTest extends TestCase
 
     public function test_sidebar_navigation_highlights_the_current_section(): void
     {
+        $this->fakeModuleIndexRequests();
+
         $response = $this->withSession($this->authenticatedSession())
             ->get(route('categories.index'));
 
@@ -64,5 +79,34 @@ class AdminNavigationTest extends TestCase
                 'email' => 'admin@example.com',
             ],
         ];
+    }
+
+    protected function fakeModuleIndexRequests(): void
+    {
+        Http::fake(function (Request $request) {
+            $url = $request->url();
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/posts')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/categories')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/tags')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/media')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/templates')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
     }
 }

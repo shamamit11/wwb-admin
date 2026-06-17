@@ -123,18 +123,19 @@ The admin depends on service API base URL, auth/session handling, and predictabl
 **Implementation notes**  
 - add base API config entries
 - add timeout and auth-related config as needed
+- add media base URL config for service-returned relative asset paths
 - keep all service URLs environment-driven
 - do not hard-code dev URLs in page classes
 
 **Acceptance criteria**  
-- [ ] service base URL config exists
-- [ ] environment keys for API access are documented in code
-- [ ] no feature code depends on hard-coded service URLs
+- [x] service base URL config exists
+- [x] environment keys for API access are documented in code
+- [x] no feature code depends on hard-coded service URLs
 
 **Validation**  
 - config inspection
-- `php artisan config:clear` if available
-- `TBC until commands are confirmed`
+- `php artisan config:clear`
+- verified `.env`, `.env.example`, and `config/widewebblog.php` include API and media host settings
 
 **Risks / assumptions**  
 - final config file names may vary slightly after bootstrap

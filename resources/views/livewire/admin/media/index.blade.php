@@ -204,7 +204,15 @@
             @endif
 
             @if ($uploadMode === 'single')
-                <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false; progress = 0" x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress" class="space-y-5">
+                <form
+                    wire:submit="uploadSingle"
+                    x-data="{ uploading: false, progress: 0 }"
+                    x-on:livewire-upload-start="uploading = true"
+                    x-on:livewire-upload-finish="uploading = false; progress = 0"
+                    x-on:livewire-upload-error="uploading = false"
+                    x-on:livewire-upload-progress="progress = $event.detail.progress"
+                    class="space-y-5"
+                >
                     <div class="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
                         <div class="space-y-5">
                             <x-ui.field label="File" for="media-single-file" :error="$errors->first('singleFile')" required>
@@ -258,9 +266,26 @@
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <div class="flex items-center justify-end gap-3 border-t border-[var(--color-line)] pt-5">
+                        <x-ui.button type="button" variant="secondary" wire:click="closeUploadDrawer" x-bind:disabled="uploading">Cancel</x-ui.button>
+                        <x-ui.button type="submit" wire:loading.attr="disabled" wire:target="singleFile,uploadSingle" x-bind:disabled="uploading">
+                            <span wire:loading.remove wire:target="uploadSingle" x-show="! uploading">Upload file</span>
+                            <span x-show="uploading">Preparing upload…</span>
+                            <span wire:loading wire:target="uploadSingle">Uploading…</span>
+                        </x-ui.button>
+                    </div>
+                </form>
             @else
-                <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false; progress = 0" x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress" class="space-y-5">
+                <form
+                    wire:submit="uploadBatch"
+                    x-data="{ uploading: false, progress: 0 }"
+                    x-on:livewire-upload-start="uploading = true"
+                    x-on:livewire-upload-finish="uploading = false; progress = 0"
+                    x-on:livewire-upload-error="uploading = false"
+                    x-on:livewire-upload-progress="progress = $event.detail.progress"
+                    class="space-y-5"
+                >
                     <div class="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
                         <div class="space-y-5">
                             <x-ui.field label="Files" for="media-batch-files" :error="$errors->first('batchFiles')" required>
@@ -313,24 +338,18 @@
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <div class="flex items-center justify-end gap-3 border-t border-[var(--color-line)] pt-5">
+                        <x-ui.button type="button" variant="secondary" wire:click="closeUploadDrawer" x-bind:disabled="uploading">Cancel</x-ui.button>
+                        <x-ui.button type="submit" wire:loading.attr="disabled" wire:target="batchFiles,uploadBatch" x-bind:disabled="uploading">
+                            <span wire:loading.remove wire:target="uploadBatch" x-show="! uploading">Upload batch</span>
+                            <span x-show="uploading">Preparing upload…</span>
+                            <span wire:loading wire:target="uploadBatch">Uploading…</span>
+                        </x-ui.button>
+                    </div>
+                </form>
             @endif
         </div>
-
-        <x-slot:actions>
-            <x-ui.button type="button" variant="secondary" wire:click="closeUploadDrawer">Cancel</x-ui.button>
-            @if ($uploadMode === 'single')
-                <x-ui.button type="button" wire:click="uploadSingle" wire:loading.attr="disabled" wire:target="singleFile,uploadSingle">
-                    <span wire:loading.remove wire:target="uploadSingle">Upload file</span>
-                    <span wire:loading wire:target="uploadSingle">Uploading…</span>
-                </x-ui.button>
-            @else
-                <x-ui.button type="button" wire:click="uploadBatch" wire:loading.attr="disabled" wire:target="batchFiles,uploadBatch">
-                    <span wire:loading.remove wire:target="uploadBatch">Upload batch</span>
-                    <span wire:loading wire:target="uploadBatch">Uploading…</span>
-                </x-ui.button>
-            @endif
-        </x-slot:actions>
     </x-ui.drawer>
 
     <x-ui.drawer

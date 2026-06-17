@@ -14,6 +14,7 @@ use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiAuthorizationException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiValidationException;
 use App\Support\Auth\AdminSessionManager;
+use App\Support\Media\MediaUrl;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -460,7 +461,7 @@ class Editor extends Component
                         ?? Arr::get($asset, 'filename')
                         ?? 'Media asset'),
                     'alt_text' => (string) (Arr::get($asset, 'alt_text') ?? ''),
-                    'url' => Arr::get($asset, 'url'),
+                    'url' => $this->mediaUrl()->resolve(Arr::get($asset, 'url')),
                 ])
                 ->values()
                 ->all();
@@ -497,6 +498,11 @@ class Editor extends Component
 
             return null;
         }
+    }
+
+    protected function mediaUrl(): MediaUrl
+    {
+        return app(MediaUrl::class);
     }
 
     protected function fillFromEditorData(PostEditorData $data): void

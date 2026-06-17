@@ -82,7 +82,7 @@ class MediaClient
 
     protected function multipartAuthenticated(string $token, ?string $tokenType = 'Bearer'): PendingRequest
     {
-        $request = $this->api->request()->asMultipart();
+        $request = $this->api->multipartRequest();
 
         if ($tokenType && strtolower($tokenType) !== 'bearer') {
             return $request->withHeaders([

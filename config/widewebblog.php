@@ -23,6 +23,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Media URL Configuration
+    |--------------------------------------------------------------------------
+    |
+    | The service may return media paths without a host. Normalize those
+    | paths through this base URL so admin screens can render previews and
+    | featured-media assets consistently across environments.
+    |
+    */
+
+    'media' => [
+        'base_url' => env('WIDEWEBBLOG_MEDIA_BASE_URL', 'https://media.widewebblog.com'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Admin Session Bridge
     |--------------------------------------------------------------------------
     |
