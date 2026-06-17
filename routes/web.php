@@ -7,6 +7,7 @@ use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
 use App\Livewire\Admin\Media\Index as MediaIndex;
 use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
 use App\Livewire\Admin\Tags\Index as TagIndex;
+use App\Livewire\Admin\Templates\Index as TemplateIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('admin.guest')->group(function (): void {
@@ -40,20 +41,7 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/media', MediaIndex::class)->name('media.index');
 
-    Route::get('/templates', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Publishing Structure')
-        ->defaults('pageTitle', 'Templates are routed and ready for structured configuration work.')
-        ->defaults('pageDescription', 'The template area is now part of the protected route map, keeping later list and editor flows anchored to a stable navigation target.')
-        ->defaults('moduleLabel', 'Templates')
-        ->defaults('moduleDescription', 'This module will manage template lists, preview actions, and structured block configuration.')
-        ->defaults('primaryActionLabel', 'Create Template')
-        ->defaults('primaryActionHint', 'Future work should keep templates structured, explicit, and not page-builder heavy.')
-        ->defaults('nextSteps', [
-            'Add the templates API client including preview and seed-post actions.',
-            'Build the templates index table with status and block-count visibility.',
-            'Introduce the dedicated template editor flow later.',
-        ])
-        ->name('templates.index');
+    Route::get('/templates', TemplateIndex::class)->name('templates.index');
 
     Route::get('/knowledge-base', PlaceholderIndex::class)
         ->defaults('eyebrow', 'Editorial Context')
