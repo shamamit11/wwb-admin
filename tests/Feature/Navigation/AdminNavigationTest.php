@@ -37,6 +37,7 @@ class AdminNavigationTest extends TestCase
             'settings.index',
             'topic-queue.index',
             'content-briefs.index',
+            'ai-prompts.index',
             'ai-jobs.index',
         ] as $route) {
             $this->withSession($session)
@@ -164,6 +165,10 @@ class AdminNavigationTest extends TestCase
             }
 
             if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/ai-jobs')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/ai-prompts')) {
                 return Http::response(['data' => []], 200);
             }
 

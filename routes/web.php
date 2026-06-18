@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\LogoutController;
+use App\Livewire\Admin\AiPrompts\Index as AiPromptIndex;
+use App\Livewire\Admin\AiPrompts\Show as AiPromptShow;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
 use App\Livewire\Admin\AiJobs\Index as AiJobIndex;
 use App\Livewire\Admin\AiJobs\Show as AiJobShow;
@@ -73,6 +75,12 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/content-briefs', ContentBriefIndex::class)->name('content-briefs.index');
 
     Route::get('/content-briefs/{contentBrief}', ContentBriefShow::class)->name('content-briefs.show');
+
+    Route::get('/ai-prompts', AiPromptIndex::class)->name('ai-prompts.index');
+
+    Route::get('/ai-prompts/create', AiPromptShow::class)->name('ai-prompts.create');
+
+    Route::get('/ai-prompts/{aiPrompt}', AiPromptShow::class)->name('ai-prompts.show');
 
     Route::get('/ai-jobs', AiJobIndex::class)->name('ai-jobs.index');
 
