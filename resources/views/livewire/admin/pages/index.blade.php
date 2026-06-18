@@ -66,27 +66,27 @@
         <x-ui.table-head>
             <tr>
                 <x-ui.table-heading class="w-[34%]">
-                    <button type="button" wire:click="sortBy('title')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Title</span>
+                    <button type="button" wire:click="sortBy('title')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>TITLE</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'title' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading>Type</x-ui.table-heading>
-                <x-ui.table-heading>Status</x-ui.table-heading>
-                <x-ui.table-heading>Visibility</x-ui.table-heading>
+                <x-ui.table-heading>TYPE</x-ui.table-heading>
+                <x-ui.table-heading>STATUS</x-ui.table-heading>
+                <x-ui.table-heading>VISIBILITY</x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('published_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Published</span>
+                    <button type="button" wire:click="sortBy('published_at')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>PUBLISHED</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'published_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Updated</span>
+                    <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>UPDATED</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'updated_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 

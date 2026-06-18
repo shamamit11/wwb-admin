@@ -64,31 +64,31 @@
     <x-ui.table caption="AI jobs">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading>Job ID</x-ui.table-heading>
-                <x-ui.table-heading>Type</x-ui.table-heading>
-                <x-ui.table-heading>Status</x-ui.table-heading>
-                <x-ui.table-heading>Entity</x-ui.table-heading>
-                <x-ui.table-heading>Provider</x-ui.table-heading>
-                <x-ui.table-heading>Model</x-ui.table-heading>
+                <x-ui.table-heading>JOB ID</x-ui.table-heading>
+                <x-ui.table-heading>TYPE</x-ui.table-heading>
+                <x-ui.table-heading>STATUS</x-ui.table-heading>
+                <x-ui.table-heading>ENTITY</x-ui.table-heading>
+                <x-ui.table-heading>PROVIDER</x-ui.table-heading>
+                <x-ui.table-heading>MODEL</x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'started_at' ? '-started_at' : 'started_at' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Started</span>
+                    <button type="button" wire:click="sortBy('{{ $sort === 'started_at' ? '-started_at' : 'started_at' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>STARTED</span>
                         <span class="text-[10px] leading-none">{{ str($sort)->contains('started_at') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'completed_at' ? '-completed_at' : 'completed_at' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Completed</span>
+                    <button type="button" wire:click="sortBy('{{ $sort === 'completed_at' ? '-completed_at' : 'completed_at' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>COMPLETED</span>
                         <span class="text-[10px] leading-none">{{ str($sort)->contains('completed_at') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'failed_at' ? '-failed_at' : 'failed_at' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Failed</span>
+                    <button type="button" wire:click="sortBy('{{ $sort === 'failed_at' ? '-failed_at' : 'failed_at' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>FAILED</span>
                         <span class="text-[10px] leading-none">{{ str($sort)->contains('failed_at') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 

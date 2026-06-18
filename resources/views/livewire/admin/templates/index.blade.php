@@ -57,36 +57,36 @@
         <x-ui.table-head>
             <tr>
                 <x-ui.table-heading class="w-[34%]">
-                    <button type="button" wire:click="sortBy('name')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Name</span>
+                    <button type="button" wire:click="sortBy('name')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>NAME</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'name' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('template_type')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Type</span>
+                    <button type="button" wire:click="sortBy('template_type')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>TYPE</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'template_type' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('status')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Status</span>
+                    <button type="button" wire:click="sortBy('status')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>STATUS</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'status' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading align="center">
-                    <button type="button" wire:click="sortBy('blocks_count')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Blocks</span>
+                    <button type="button" wire:click="sortBy('blocks_count')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>BLOCKS</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'blocks_count' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Updated</span>
+                    <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>UPDATED</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'updated_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 

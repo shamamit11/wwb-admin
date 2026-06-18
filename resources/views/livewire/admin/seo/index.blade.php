@@ -236,12 +236,12 @@
                 <x-ui.table caption="RSS feed entries">
                     <x-ui.table-head>
                         <tr>
-                            <x-ui.table-heading class="w-[28%]">Title</x-ui.table-heading>
-                            <x-ui.table-heading>Author</x-ui.table-heading>
-                            <x-ui.table-heading>Category</x-ui.table-heading>
-                            <x-ui.table-heading>Published</x-ui.table-heading>
-                            <x-ui.table-heading>Updated</x-ui.table-heading>
-                            <x-ui.table-heading>Link</x-ui.table-heading>
+                            <x-ui.table-heading class="w-[28%]">TITLE</x-ui.table-heading>
+                            <x-ui.table-heading>AUTHOR</x-ui.table-heading>
+                            <x-ui.table-heading>CATEGORY</x-ui.table-heading>
+                            <x-ui.table-heading>PUBLISHED</x-ui.table-heading>
+                            <x-ui.table-heading>UPDATED</x-ui.table-heading>
+                            <x-ui.table-heading>LINK</x-ui.table-heading>
                         </tr>
                     </x-ui.table-head>
                     <x-ui.table-body>
@@ -290,10 +290,10 @@
                 <x-ui.table caption="Sitemap entries">
                     <x-ui.table-head>
                         <tr>
-                            <x-ui.table-heading>Slug</x-ui.table-heading>
-                            <x-ui.table-heading>Canonical URL</x-ui.table-heading>
-                            <x-ui.table-heading>Published</x-ui.table-heading>
-                            <x-ui.table-heading>Last Modified</x-ui.table-heading>
+                            <x-ui.table-heading>SLUG</x-ui.table-heading>
+                            <x-ui.table-heading>CANONICAL URL</x-ui.table-heading>
+                            <x-ui.table-heading>PUBLISHED</x-ui.table-heading>
+                            <x-ui.table-heading>LAST MODIFIED</x-ui.table-heading>
                         </tr>
                     </x-ui.table-head>
                     <x-ui.table-body>

@@ -13,7 +13,7 @@
     ];
 @endphp
 
-<th {{ $attributes->class('px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)] sm:px-5 '.$alignment[$align]) }}>
+<th {{ $attributes->class('px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)] sm:px-5 '.$alignment[$align].' [&_button]:uppercase [&_button]:tracking-[0.18em] [&_a]:uppercase [&_a]:tracking-[0.18em]') }}>
     @if ($sortable && $href)
         <a href="{{ $href }}" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
             <span>{{ $slot }}</span>

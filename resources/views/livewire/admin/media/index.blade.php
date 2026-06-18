@@ -62,38 +62,38 @@
     <x-ui.table caption="Media library">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[12%]">Preview</x-ui.table-heading>
+                <x-ui.table-heading class="w-[12%]">PREVIEW</x-ui.table-heading>
                 <x-ui.table-heading class="w-[34%]">
-                    <button type="button" wire:click="sortBy('original_filename')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>File</span>
+                    <button type="button" wire:click="sortBy('original_filename')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>FILE</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'original_filename' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('source_type')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Source</span>
+                    <button type="button" wire:click="sortBy('source_type')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>SOURCE</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'source_type' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('status')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Status</span>
+                    <button type="button" wire:click="sortBy('status')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>STATUS</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'status' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading align="center">
-                    <button type="button" wire:click="sortBy('usage_count')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Usage</span>
+                    <button type="button" wire:click="sortBy('usage_count')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>USAGE</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'usage_count' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('created_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Created</span>
+                    <button type="button" wire:click="sortBy('created_at')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>CREATED</span>
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'created_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 

@@ -4,18 +4,10 @@
     'tone' => 'default',
 ])
 
-@php
-    $classes = $tone === 'danger'
-        ? 'text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]'
-        : null;
-@endphp
-
-<x-ui.button
-    :as="$as"
+<x-ui.dropdown-item
     :href="$href"
-    variant="ghost"
-    size="xs"
-    {{ $attributes->class($classes) }}
+    :destructive="$tone === 'danger'"
+    {{ $attributes }}
 >
     {{ $slot }}
-</x-ui.button>
+</x-ui.dropdown-item>

@@ -78,29 +78,29 @@
         <x-ui.table-head>
             <tr>
                 <x-ui.table-heading class="w-[24%]">
-                    <button type="button" wire:click="sortBy('{{ $sort === 'title' ? '-title' : 'title' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Title</span>
+                    <button type="button" wire:click="sortBy('{{ $sort === 'title' ? '-title' : 'title' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>TITLE</span>
                         <span class="text-[10px] leading-none">{{ str($sort)->contains('title') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading>Cluster</x-ui.table-heading>
-                <x-ui.table-heading>Primary Keyword</x-ui.table-heading>
-                <x-ui.table-heading>Search Intent</x-ui.table-heading>
+                <x-ui.table-heading>CLUSTER</x-ui.table-heading>
+                <x-ui.table-heading>PRIMARY KEYWORD</x-ui.table-heading>
+                <x-ui.table-heading>SEARCH INTENT</x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'priority_score' ? '-priority_score' : 'priority_score' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Priority</span>
+                    <button type="button" wire:click="sortBy('{{ $sort === 'priority_score' ? '-priority_score' : 'priority_score' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>PRIORITY</span>
                         <span class="text-[10px] leading-none">{{ str($sort)->contains('priority_score') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading>Status</x-ui.table-heading>
-                <x-ui.table-heading>Source</x-ui.table-heading>
+                <x-ui.table-heading>STATUS</x-ui.table-heading>
+                <x-ui.table-heading>SOURCE</x-ui.table-heading>
                 <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'created_at' ? '-created_at' : 'created_at' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Created</span>
+                    <button type="button" wire:click="sortBy('{{ $sort === 'created_at' ? '-created_at' : 'created_at' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
+                        <span>CREATED</span>
                         <span class="text-[10px] leading-none">{{ str($sort)->contains('created_at') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 
