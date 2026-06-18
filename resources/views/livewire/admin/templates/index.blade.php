@@ -427,22 +427,25 @@
         </x-slot:actions>
     </x-ui.drawer>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$deleteDialogOpen"
         title="Delete template"
         description="This will remove the template and its ordered block configuration. Confirm before continuing."
-        tone="destructive"
+        destructive
     >
         <p class="text-sm leading-6 text-[var(--color-muted)]">
             Delete <span class="font-semibold text-[var(--color-ink)]">{{ $deleteTemplateName }}</span>? Only continue when you are sure this structured template is no longer needed for editorial workflows.
         </p>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="cancelDelete">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
             <x-ui.button type="button" variant="destructive" wire:click="delete" wire:loading.attr="disabled" wire:target="delete">
                 <span wire:loading.remove wire:target="delete">Delete template</span>
                 <span wire:loading wire:target="delete">Deleting…</span>
             </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
 </div>

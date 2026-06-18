@@ -449,11 +449,11 @@
         </x-slot:actions>
     </x-ui.drawer>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$deleteDialogOpen"
         title="Delete media asset"
         :description="$deleteBlocked ? 'This asset is currently in use and cannot be deleted.' : 'Delete only when the asset is no longer needed anywhere in editorial workflows.'"
-        tone="destructive"
+        destructive
     >
         <div class="space-y-4 text-sm leading-6 text-[var(--color-muted)]">
             <p>
@@ -480,14 +480,17 @@
             @endif
         </div>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="cancelDelete">Cancel</x-ui.button>
-            @unless ($deleteBlocked)
+        </x-slot:cancel>
+
+        @unless ($deleteBlocked)
+            <x-slot:confirm>
                 <x-ui.button type="button" variant="destructive" wire:click="delete" wire:loading.attr="disabled" wire:target="delete">
                     <span wire:loading.remove wire:target="delete">Delete asset</span>
                     <span wire:loading wire:target="delete">Deleting…</span>
                 </x-ui.button>
-            @endunless
-        </x-slot:actions>
-    </x-ui.dialog>
+            </x-slot:confirm>
+        @endunless
+    </x-admin.confirm-dialog>
 </div>

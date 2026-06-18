@@ -258,7 +258,7 @@
         </x-ui.table-body>
     </x-ui.table>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$actionDialogOpen"
         :title="match ($actionMode) {
             'publish' => 'Publish post',
@@ -274,7 +274,7 @@
             'delete' => 'Delete the post only when it is no longer needed.',
             default => null,
         }"
-        :tone="$actionMode === 'delete' ? 'destructive' : 'default'"
+        :destructive="$actionMode === 'delete'"
         maxWidth="lg"
     >
         <div class="space-y-5">
@@ -308,8 +308,11 @@
             @endif
         </div>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="closeActionDialog">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
             <x-ui.button
                 type="button"
                 :variant="$actionMode === 'delete' ? 'destructive' : 'primary'"
@@ -328,6 +331,6 @@
                 </span>
                 <span wire:loading wire:target="executeAction">Saving…</span>
             </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
 </div>

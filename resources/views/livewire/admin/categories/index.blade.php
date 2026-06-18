@@ -141,22 +141,25 @@
         </x-slot:actions>
     </x-ui.drawer>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$deleteDialogOpen"
         title="Delete category"
         description="This will soft-delete the category. Confirm before continuing."
-        tone="destructive"
+        destructive
     >
         <p class="text-sm leading-6 text-[var(--color-muted)]">
             Delete <span class="font-semibold text-[var(--color-ink)]">{{ $deleteCategoryName }}</span>? This action should only be taken when you are confident the category is no longer needed in editorial workflows.
         </p>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="cancelDelete">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
             <x-ui.button type="button" variant="destructive" wire:click="delete" wire:loading.attr="disabled" wire:target="delete">
                 <span wire:loading.remove wire:target="delete">Delete category</span>
                 <span wire:loading wire:target="delete">Deleting…</span>
             </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
 </div>

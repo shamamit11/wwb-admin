@@ -729,11 +729,11 @@
         </x-slot:actions>
     </x-ui.dialog>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$actionDialogOpen"
         :title="$actionConfig['title']"
         :description="$actionConfig['description']"
-        :tone="$actionConfig['tone']"
+        :destructive="$actionConfig['tone'] === 'destructive'"
         maxWidth="lg"
     >
         <div class="space-y-5">
@@ -767,8 +767,11 @@
             @endif
         </div>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="closeActionDialog">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
             <x-ui.button
                 type="button"
                 :variant="$actionConfig['tone'] === 'destructive' ? 'destructive' : 'primary'"
@@ -779,8 +782,8 @@
                 <span wire:loading.remove wire:target="executeAction">{{ $actionConfig['confirm'] }}</span>
                 <span wire:loading wire:target="executeAction">Saving…</span>
             </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
 
     <x-ui.dialog
         :open="$reviewActionDialogOpen"

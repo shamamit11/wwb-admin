@@ -107,11 +107,11 @@
         </x-ui.table-body>
     </x-ui.table>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$deleteDialogOpen"
         title="Delete page"
         description="Delete the page only when the public content should no longer exist."
-        tone="destructive"
+        destructive
         maxWidth="lg"
     >
         <div class="space-y-5">
@@ -126,12 +126,15 @@
             </p>
         </div>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="closeDeleteDialog">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
             <x-ui.button type="button" variant="destructive" wire:click="delete" wire:loading.attr="disabled" wire:target="delete">
                 <span wire:loading.remove wire:target="delete">Delete page</span>
                 <span wire:loading wire:target="delete">Deleting…</span>
             </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
 </div>
