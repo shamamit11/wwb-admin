@@ -48,10 +48,10 @@
         <x-slot:results>{{ $pagination['total'] }} {{ str('brief')->plural($pagination['total']) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Content briefs">
+    <x-ui.table caption="Content briefs" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[24%]" sortable sort-key="title" :sort-state="$sort">TITLE</x-ui.table-heading>
+                <x-ui.table-heading width="workflow-primary" sortable sort-key="title" :sort-state="$sort">TITLE</x-ui.table-heading>
                 <x-ui.table-heading>TOPIC</x-ui.table-heading>
                 <x-ui.table-heading>PRIMARY KEYWORD</x-ui.table-heading>
                 <x-ui.table-heading>SEARCH INTENT</x-ui.table-heading>
@@ -65,7 +65,7 @@
         <x-ui.table-body>
             @forelse ($briefs as $brief)
                 <x-ui.table-row interactive wire:key="brief-{{ $brief['id'] }}">
-                    <x-ui.table-cell class="w-[24%]">
+                    <x-ui.table-cell width="workflow-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $brief['title'] }}</p>
                             <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $brief['slug'] ?: 'Slug pending' }}</p>

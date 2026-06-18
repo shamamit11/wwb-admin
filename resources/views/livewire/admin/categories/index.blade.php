@@ -35,10 +35,10 @@
         <x-slot:results>{{ count($categories) }} {{ str('category')->plural(count($categories)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Categories">
+    <x-ui.table caption="Categories" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[36%]" sortable sort-key="name" :sort-column="$sortColumn" :sort-direction="$sortDirection">NAME</x-ui.table-heading>
+                <x-ui.table-heading width="taxonomy-primary" sortable sort-key="name" :sort-column="$sortColumn" :sort-direction="$sortDirection">NAME</x-ui.table-heading>
                 <x-ui.table-heading sortable sort-key="slug" :sort-column="$sortColumn" :sort-direction="$sortDirection">SLUG</x-ui.table-heading>
                 <x-ui.table-heading>PARENT</x-ui.table-heading>
                 <x-ui.table-heading sortable sort-key="is_active" :sort-column="$sortColumn" :sort-direction="$sortDirection">STATUS</x-ui.table-heading>
@@ -50,7 +50,7 @@
         <x-ui.table-body>
             @forelse ($categories as $category)
                 <x-ui.table-row interactive wire:key="category-{{ $category['id'] }}">
-                    <x-ui.table-cell class="w-[36%]">
+                    <x-ui.table-cell width="taxonomy-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $category['name'] }}</p>
                             @if ($category['description'])

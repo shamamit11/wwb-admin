@@ -50,7 +50,7 @@
         <x-slot:results>{{ $pagination['total'] }} {{ str('job')->plural($pagination['total']) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="AI jobs">
+    <x-ui.table caption="AI jobs" density="compact">
         <x-ui.table-head>
             <tr>
                 <x-ui.table-heading>JOB ID</x-ui.table-heading>

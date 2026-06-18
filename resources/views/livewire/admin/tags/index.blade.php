@@ -35,10 +35,10 @@
         <x-slot:results>{{ count($tags) }} {{ str('tag')->plural(count($tags)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Tags">
+    <x-ui.table caption="Tags" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[44%]" sortable sort-key="name" :sort-column="$sortColumn" :sort-direction="$sortDirection">NAME</x-ui.table-heading>
+                <x-ui.table-heading width="taxonomy-primary" sortable sort-key="name" :sort-column="$sortColumn" :sort-direction="$sortDirection">NAME</x-ui.table-heading>
                 <x-ui.table-heading sortable sort-key="slug" :sort-column="$sortColumn" :sort-direction="$sortDirection">SLUG</x-ui.table-heading>
                 <x-ui.table-heading sortable sort-key="is_active" :sort-column="$sortColumn" :sort-direction="$sortDirection">STATUS</x-ui.table-heading>
                 <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
@@ -48,7 +48,7 @@
         <x-ui.table-body>
             @forelse ($tags as $tag)
                 <x-ui.table-row interactive wire:key="tag-{{ $tag['id'] }}">
-                    <x-ui.table-cell class="w-[44%]">
+                    <x-ui.table-cell width="taxonomy-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $tag['name'] }}</p>
                             @if ($tag['description'])

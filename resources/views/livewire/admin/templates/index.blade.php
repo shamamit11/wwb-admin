@@ -49,10 +49,10 @@
         <x-slot:results>{{ count($templates) }} {{ str('template')->plural(count($templates)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Templates">
+    <x-ui.table caption="Templates" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[34%]" sortable sort-key="name" :sort-column="$sortColumn" :sort-direction="$sortDirection">NAME</x-ui.table-heading>
+                <x-ui.table-heading width="content-primary" sortable sort-key="name" :sort-column="$sortColumn" :sort-direction="$sortDirection">NAME</x-ui.table-heading>
                 <x-ui.table-heading sortable sort-key="template_type" :sort-column="$sortColumn" :sort-direction="$sortDirection">TYPE</x-ui.table-heading>
                 <x-ui.table-heading sortable sort-key="status" :sort-column="$sortColumn" :sort-direction="$sortDirection">STATUS</x-ui.table-heading>
                 <x-ui.table-heading align="center" sortable sort-key="blocks_count" :sort-column="$sortColumn" :sort-direction="$sortDirection">BLOCKS</x-ui.table-heading>
@@ -64,7 +64,7 @@
         <x-ui.table-body>
             @forelse ($templates as $template)
                 <x-ui.table-row interactive wire:key="template-{{ $template['id'] }}">
-                    <x-ui.table-cell class="w-[34%]">
+                    <x-ui.table-cell width="content-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $template['name'] }}</p>
                             <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $template['slug'] ?: 'Auto-generated slug' }}</p>

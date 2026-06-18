@@ -1,6 +1,7 @@
 @props([
     'align' => 'left',
     'subdued' => false,
+    'width' => null,
 ])
 
 @php
@@ -9,8 +10,16 @@
         'center' => 'text-center',
         'right' => 'text-right',
     ];
+
+    $widths = [
+        'asset-preview' => 'w-[12%]',
+        'workflow-primary' => 'w-[24%]',
+        'feed-primary' => 'w-[28%]',
+        'content-primary' => 'w-[34%]',
+        'taxonomy-primary' => 'w-[40%]',
+    ];
 @endphp
 
-<td {{ $attributes->class('px-4 py-4 align-middle sm:px-5 '.$alignment[$align].' '.($subdued ? 'text-[var(--color-muted)]' : 'text-[var(--color-ink)]')) }}>
+<td data-table-cell {{ $attributes->class('align-middle '.$alignment[$align].' '.($widths[$width] ?? '').' '.($subdued ? 'text-[var(--color-muted)]' : 'text-[var(--color-ink)]')) }}>
     {{ $slot }}
 </td>

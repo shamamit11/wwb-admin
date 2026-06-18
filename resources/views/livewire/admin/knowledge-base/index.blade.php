@@ -49,10 +49,10 @@
         <x-slot:results>{{ count($entries) }} {{ str('entry')->plural(count($entries)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Knowledge base entries">
+    <x-ui.table caption="Knowledge base entries" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[35%]" sortable sort-key="title" :sort-column="$sortColumn" :sort-direction="$sortDirection">TITLE</x-ui.table-heading>
+                <x-ui.table-heading width="content-primary" sortable sort-key="title" :sort-column="$sortColumn" :sort-direction="$sortDirection">TITLE</x-ui.table-heading>
                 <x-ui.table-heading>TYPE</x-ui.table-heading>
                 <x-ui.table-heading>STATUS</x-ui.table-heading>
                 <x-ui.table-heading>SOURCE</x-ui.table-heading>
@@ -64,7 +64,7 @@
         <x-ui.table-body>
             @forelse ($entries as $entry)
                 <x-ui.table-row interactive wire:key="knowledge-entry-{{ $entry['id'] }}">
-                    <x-ui.table-cell class="w-[35%]">
+                    <x-ui.table-cell width="content-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $entry['title'] }}</p>
                             <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $entry['slug'] ?: 'Auto-generated slug' }}</p>

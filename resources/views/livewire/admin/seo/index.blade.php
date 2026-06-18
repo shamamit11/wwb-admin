@@ -233,10 +233,10 @@
                     </div>
                 @endif
 
-                <x-ui.table caption="RSS feed entries">
+                <x-ui.table caption="RSS feed entries" density="compact">
                     <x-ui.table-head>
                         <tr>
-                            <x-ui.table-heading class="w-[28%]">TITLE</x-ui.table-heading>
+                            <x-ui.table-heading width="feed-primary">TITLE</x-ui.table-heading>
                             <x-ui.table-heading>AUTHOR</x-ui.table-heading>
                             <x-ui.table-heading>CATEGORY</x-ui.table-heading>
                             <x-ui.table-heading>PUBLISHED</x-ui.table-heading>
@@ -247,7 +247,7 @@
                     <x-ui.table-body>
                         @forelse ($rssEntries as $entry)
                             <x-ui.table-row wire:key="rss-entry-{{ $entry['id'] }}">
-                                <x-ui.table-cell class="w-[28%]">
+                                <x-ui.table-cell width="feed-primary">
                                     <div class="min-w-0">
                                         <p class="truncate font-semibold text-[var(--color-ink)]">{{ $entry['title'] }}</p>
                                         <p class="mt-1 text-sm text-[var(--color-muted)]">/{{ $entry['slug'] }}</p>
@@ -287,7 +287,7 @@
                     </div>
                 @endif
 
-                <x-ui.table caption="Sitemap entries">
+                <x-ui.table caption="Sitemap entries" density="compact">
                     <x-ui.table-head>
                         <tr>
                             <x-ui.table-heading>SLUG</x-ui.table-heading>

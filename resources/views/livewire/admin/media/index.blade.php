@@ -59,11 +59,11 @@
         <x-slot:results>{{ count($mediaItems) }} {{ str('asset')->plural(count($mediaItems)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Media library">
+    <x-ui.table caption="Media library" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[12%]">PREVIEW</x-ui.table-heading>
-                <x-ui.table-heading class="w-[34%]" sortable sort-key="original_filename" :sort-column="$sortColumn" :sort-direction="$sortDirection">FILE</x-ui.table-heading>
+                <x-ui.table-heading width="asset-preview">PREVIEW</x-ui.table-heading>
+                <x-ui.table-heading width="content-primary" sortable sort-key="original_filename" :sort-column="$sortColumn" :sort-direction="$sortDirection">FILE</x-ui.table-heading>
                 <x-ui.table-heading sortable sort-key="source_type" :sort-column="$sortColumn" :sort-direction="$sortDirection">SOURCE</x-ui.table-heading>
                 <x-ui.table-heading sortable sort-key="status" :sort-column="$sortColumn" :sort-direction="$sortDirection">STATUS</x-ui.table-heading>
                 <x-ui.table-heading align="center" sortable sort-key="usage_count" :sort-column="$sortColumn" :sort-direction="$sortDirection">USAGE</x-ui.table-heading>
@@ -75,7 +75,7 @@
         <x-ui.table-body>
             @forelse ($mediaItems as $item)
                 <x-ui.table-row interactive wire:key="media-{{ $item['id'] }}">
-                    <x-ui.table-cell>
+                    <x-ui.table-cell width="asset-preview">
                         <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
                             @if ($item['is_image'] && $item['url'])
                                 <img src="{{ $item['url'] }}" alt="{{ $item['alt_text'] ?: $item['original_filename'] }}" class="h-full w-full object-cover">
@@ -84,7 +84,7 @@
                             @endif
                         </button>
                     </x-ui.table-cell>
-                    <x-ui.table-cell class="w-[34%]">
+                    <x-ui.table-cell width="content-primary">
                         <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="min-w-0 text-left">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $item['original_filename'] }}</p>
                             <p class="mt-1 text-sm text-[var(--color-muted)]">

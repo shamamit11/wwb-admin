@@ -55,7 +55,7 @@
         <x-slot:results>{{ $pagination['total'] }} {{ str('prompt')->plural($pagination['total']) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="AI prompt templates">
+    <x-ui.table caption="AI prompt templates" density="compact">
         <x-ui.table-head>
             <tr>
                 <x-ui.table-heading sortable sort-key="name" :sort-state="$sort">NAME</x-ui.table-heading>

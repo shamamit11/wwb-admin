@@ -58,10 +58,10 @@
         <x-slot:results>{{ count($pages) }} {{ str('page')->plural(count($pages)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Pages">
+    <x-ui.table caption="Pages" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[34%]" sortable sort-key="title" :sort-column="$sortColumn" :sort-direction="$sortDirection">TITLE</x-ui.table-heading>
+                <x-ui.table-heading width="content-primary" sortable sort-key="title" :sort-column="$sortColumn" :sort-direction="$sortDirection">TITLE</x-ui.table-heading>
                 <x-ui.table-heading>TYPE</x-ui.table-heading>
                 <x-ui.table-heading>STATUS</x-ui.table-heading>
                 <x-ui.table-heading>VISIBILITY</x-ui.table-heading>
@@ -74,7 +74,7 @@
         <x-ui.table-body>
             @forelse ($pages as $page)
                 <x-ui.table-row interactive wire:key="page-{{ $page['id'] }}">
-                    <x-ui.table-cell class="w-[34%]">
+                    <x-ui.table-cell width="content-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $page['title'] }}</p>
                             <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $page['slug'] !== '' ? '/'.$page['slug'] : 'Auto-generated slug' }}</p>

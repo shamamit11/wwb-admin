@@ -93,10 +93,10 @@
         <x-slot:results>{{ count($posts) }} {{ str('post')->plural(count($posts)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Posts">
+    <x-ui.table caption="Posts" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[31%]" sortable sort-key="title" :sort-column="$sortColumn" :sort-direction="$sortDirection">TITLE</x-ui.table-heading>
+                <x-ui.table-heading width="content-primary" sortable sort-key="title" :sort-column="$sortColumn" :sort-direction="$sortDirection">TITLE</x-ui.table-heading>
                 @if ($aiReviewMode)
                     <x-ui.table-heading>SOURCE BRIEF</x-ui.table-heading>
                     <x-ui.table-heading>SOURCE TOPIC</x-ui.table-heading>
@@ -116,7 +116,7 @@
         <x-ui.table-body>
             @forelse ($posts as $post)
                 <x-ui.table-row interactive wire:key="post-{{ $post['id'] }}">
-                    <x-ui.table-cell class="w-[31%]">
+                    <x-ui.table-cell width="content-primary">
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2">
                                 <p class="truncate font-semibold text-[var(--color-ink)]">{{ $post['title'] }}</p>

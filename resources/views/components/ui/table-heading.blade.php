@@ -3,6 +3,7 @@
     'direction' => null,
     'href' => null,
     'align' => 'left',
+    'width' => null,
     'sortKey' => null,
     'sortColumn' => null,
     'sortDirection' => null,
@@ -15,6 +16,14 @@
         'left' => 'text-left',
         'center' => 'text-center',
         'right' => 'text-right',
+    ];
+
+    $widths = [
+        'asset-preview' => 'w-[12%]',
+        'workflow-primary' => 'w-[24%]',
+        'feed-primary' => 'w-[28%]',
+        'content-primary' => 'w-[34%]',
+        'taxonomy-primary' => 'w-[40%]',
     ];
 
     $resolvedDirection = $direction;
@@ -50,7 +59,8 @@
 @endphp
 
 <th
-    {{ $attributes->class('px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)] sm:px-5 '.$alignment[$align].' [&_button]:uppercase [&_button]:tracking-[0.18em] [&_a]:uppercase [&_a]:tracking-[0.18em]') }}
+    data-table-heading
+    {{ $attributes->class('text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)] '.$alignment[$align].' '.($widths[$width] ?? '').' [&_button]:uppercase [&_button]:tracking-[0.18em] [&_a]:uppercase [&_a]:tracking-[0.18em]') }}
     aria-sort="{{ $ariaSort }}"
 >
     @if ($sortable && $href)
