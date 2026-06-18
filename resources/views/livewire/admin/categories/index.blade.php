@@ -32,11 +32,7 @@
             </x-ui.select>
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ count($categories) }} {{ str('category')->plural(count($categories)) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ count($categories) }} {{ str('category')->plural(count($categories)) }}</x-slot:results>
     </x-admin.filter-bar>
 
     <x-ui.table caption="Categories">

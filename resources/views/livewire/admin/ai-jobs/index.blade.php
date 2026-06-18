@@ -17,7 +17,7 @@
     </div>
 
     <x-admin.filter-bar>
-        <x-slot:search>
+        <x-slot:filters>
             <div class="flex flex-wrap items-center gap-3">
                 <div class="w-[12rem] shrink-0">
                     <x-ui.select wire:model.live="statusFilter">
@@ -36,11 +36,7 @@
                         @endforeach
                     </x-ui.select>
                 </div>
-            </div>
-        </x-slot:search>
 
-        <x-slot:filters>
-            <div class="flex flex-wrap items-center gap-3">
                 <div class="w-[12rem] shrink-0">
                     <x-ui.input wire:model.live.debounce.300ms="providerFilter" placeholder="Filter by provider" />
                 </div>
@@ -51,11 +47,7 @@
             </div>
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ $pagination['total'] }} {{ str('job')->plural($pagination['total']) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ $pagination['total'] }} {{ str('job')->plural($pagination['total']) }}</x-slot:results>
     </x-admin.filter-bar>
 
     <x-ui.table caption="AI jobs">

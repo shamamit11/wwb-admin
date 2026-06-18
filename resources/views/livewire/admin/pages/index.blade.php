@@ -55,11 +55,7 @@
             </div>
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ count($pages) }} {{ str('page')->plural(count($pages)) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ count($pages) }} {{ str('page')->plural(count($pages)) }}</x-slot:results>
     </x-admin.filter-bar>
 
     <x-ui.table caption="Pages">

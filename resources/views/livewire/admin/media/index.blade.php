@@ -12,19 +12,21 @@
         </div>
     @endif
 
-    <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-4 shadow-[var(--shadow-card)]">
-        <div class="flex flex-col gap-3 2xl:flex-row 2xl:items-center">
-            <div class="min-w-0 flex-1 2xl:max-w-[25rem]">
-                <label for="media-search" class="sr-only">Search media</label>
+    <x-admin.filter-bar>
+        <x-slot:search>
+            <label class="block">
+                <span class="sr-only">Search media</span>
                 <x-ui.input
                     id="media-search"
                     type="search"
                     wire:model.live.debounce.350ms="search"
                     placeholder="Search media by filename or metadata"
                 />
-            </div>
+            </label>
+        </x-slot:search>
 
-            <div class="grid flex-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:min-w-0">
+        <x-slot:filters>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <x-ui.select wire:model.live="sourceTypeFilter">
                     <option value="all">All sources</option>
                     <option value="uploaded">Uploaded</option>
@@ -52,12 +54,10 @@
                     <option value="non-images">Non-images only</option>
                 </x-ui.select>
             </div>
+        </x-slot:filters>
 
-            <div class="shrink-0 text-right text-sm text-[var(--color-muted)] 2xl:min-w-[5.5rem]">
-                {{ count($mediaItems) }} {{ str('asset')->plural(count($mediaItems)) }}
-            </div>
-        </div>
-    </div>
+        <x-slot:results>{{ count($mediaItems) }} {{ str('asset')->plural(count($mediaItems)) }}</x-slot:results>
+    </x-admin.filter-bar>
 
     <x-ui.table caption="Media library">
         <x-ui.table-head>

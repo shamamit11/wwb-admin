@@ -46,11 +46,7 @@
             </div>
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ count($templates) }} {{ str('template')->plural(count($templates)) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ count($templates) }} {{ str('template')->plural(count($templates)) }}</x-slot:results>
     </x-admin.filter-bar>
 
     <x-ui.table caption="Templates">

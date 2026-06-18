@@ -46,11 +46,7 @@
             </div>
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ count($entries) }} {{ str('entry')->plural(count($entries)) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ count($entries) }} {{ str('entry')->plural(count($entries)) }}</x-slot:results>
     </x-admin.filter-bar>
 
     <x-ui.table caption="Knowledge base entries">

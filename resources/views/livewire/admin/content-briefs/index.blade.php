@@ -45,11 +45,7 @@
             </div>
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ $pagination['total'] }} {{ str('brief')->plural($pagination['total']) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ $pagination['total'] }} {{ str('brief')->plural($pagination['total']) }}</x-slot:results>
     </x-admin.filter-bar>
 
     <x-ui.table caption="Content briefs">

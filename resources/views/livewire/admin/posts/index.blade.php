@@ -90,11 +90,7 @@
             @endif
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ count($posts) }} {{ str('post')->plural(count($posts)) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ count($posts) }} {{ str('post')->plural(count($posts)) }}</x-slot:results>
     </x-admin.filter-bar>
 
     <x-ui.table caption="Posts">

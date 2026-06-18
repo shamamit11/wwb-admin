@@ -64,11 +64,7 @@
             </div>
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ $pagination['total'] }} {{ str('topic')->plural($pagination['total']) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ $pagination['total'] }} {{ str('topic')->plural($pagination['total']) }}</x-slot:results>
     </x-admin.filter-bar>
 
     <x-ui.table caption="Topic queue">

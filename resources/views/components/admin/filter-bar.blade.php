@@ -13,10 +13,23 @@
         @endisset
     </div>
 
-    @if (isset($actions) || isset($secondary))
-        <div class="flex flex-wrap items-center gap-3">
+    @if (isset($actions) || isset($results) || isset($secondary))
+        <div class="flex flex-wrap items-center gap-3 lg:justify-end">
+            @isset($results)
+                <div class="shrink-0 text-sm text-[var(--color-muted)]">
+                    {{ $results }}
+                </div>
+            @elseif (isset($secondary))
+                <div class="shrink-0 text-sm text-[var(--color-muted)]">
+                    {{ $secondary }}
+                </div>
+            @endif
+
             @isset($secondary)
-                {{ $secondary }}
+                @if (! isset($results))
+                @else
+                    {{ $secondary }}
+                @endif
             @endisset
 
             @isset($actions)
