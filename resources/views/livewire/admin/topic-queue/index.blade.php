@@ -4,7 +4,10 @@
             title="Topic Queue"
             description="Review service-generated topic suggestions, filter editorial opportunities, and move approved topics toward the briefing workflow."
         >
-            <x-ui.button type="button" wire:click="openDiscoveryDialog">Run Topic Discovery</x-ui.button>
+            <x-ui.button type="button" wire:click="openDiscoveryDialog" wire:loading.attr="disabled" wire:target="openDiscoveryDialog">
+                <span wire:loading.remove wire:target="openDiscoveryDialog">Run Topic Discovery</span>
+                <span wire:loading wire:target="openDiscoveryDialog">Opening…</span>
+            </x-ui.button>
         </x-admin.page-header>
     </div>
 
@@ -193,11 +196,16 @@
         </div>
 
         <x-slot:cancel>
-            <x-ui.button variant="secondary" type="button" wire:click="closeDiscoveryDialog">Cancel</x-ui.button>
+            <x-ui.button variant="secondary" type="button" wire:click="closeDiscoveryDialog" wire:loading.attr="disabled" wire:target="closeDiscoveryDialog,runTopicDiscovery">
+                Cancel
+            </x-ui.button>
         </x-slot:cancel>
 
         <x-slot:confirm>
-            <x-ui.button type="button" wire:click="runTopicDiscovery">Create AI Job</x-ui.button>
+            <x-ui.button type="button" wire:click="runTopicDiscovery" wire:loading.attr="disabled" wire:target="runTopicDiscovery">
+                <span wire:loading.remove wire:target="runTopicDiscovery">Create AI Job</span>
+                <span wire:loading wire:target="runTopicDiscovery">Creating…</span>
+            </x-ui.button>
         </x-slot:confirm>
     </x-admin.confirm-dialog>
 </div>

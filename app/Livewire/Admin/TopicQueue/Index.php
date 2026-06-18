@@ -149,7 +149,7 @@ class Index extends Component
             $jobId = Arr::get($response, 'data.id');
 
             $this->closeDiscoveryDialog();
-            session()->flash('status', 'Topic discovery job created.');
+            $this->flashJobAlert('Topic discovery job created.', $jobId);
 
             if (is_int($jobId) || ctype_digit((string) $jobId)) {
                 return $this->redirectRoute('ai-jobs.show', ['aiJob' => (int) $jobId], navigate: true);
@@ -215,6 +215,21 @@ class Index extends Component
     protected function refreshTopics(): void
     {
         $this->loadTopics(app(ContentTopicClient::class), app(AdminSessionManager::class));
+    }
+
+    protected function flashJobAlert(string $message, mixed $jobId): void
+    {
+        if (is_int($jobId) || ctype_digit((string) $jobId)) {
+            session()->flash('status', [
+                'message' => $message,
+                'link_href' => route('ai-jobs.show', ['aiJob' => (int) $jobId]),
+                'link_label' => 'Open AI Job',
+            ]);
+
+            return;
+        }
+
+        session()->flash('status', $message);
     }
 
     protected function discoveryRules(): array

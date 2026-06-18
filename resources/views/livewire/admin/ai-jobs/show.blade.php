@@ -6,8 +6,15 @@
             description="Inspect job lifecycle, generation steps, payload summaries, and retry state from the service-owned AI orchestration pipeline."
         >
             <x-ui.button as="a" :href="route('ai-jobs.index')" variant="secondary">Back to Jobs</x-ui.button>
+            <x-ui.button type="button" variant="secondary" wire:click="refreshJob" wire:loading.attr="disabled" wire:target="refreshJob">
+                <span wire:loading.remove wire:target="refreshJob">Refresh Status</span>
+                <span wire:loading wire:target="refreshJob">Refreshing…</span>
+            </x-ui.button>
             @if (($job['can_retry'] ?? false) === true)
-                <x-ui.button type="button" wire:click="retry">Retry Failed Job</x-ui.button>
+                <x-ui.button type="button" wire:click="retry" wire:loading.attr="disabled" wire:target="retry">
+                    <span wire:loading.remove wire:target="retry">Retry Failed Job</span>
+                    <span wire:loading wire:target="retry">Retrying…</span>
+                </x-ui.button>
             @endif
         </x-admin.page-header>
     </div>

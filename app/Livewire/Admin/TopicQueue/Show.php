@@ -226,7 +226,7 @@ class Show extends Component
             $response = $topics->generateBrief($this->token($session), $session->tokenType(), $this->topicId);
             $briefId = Arr::get($response, 'data.id');
             $this->closeBriefDialog();
-            session()->flash('status', 'Content brief generated.');
+            $this->flashBriefAlert('Content brief generated.', $briefId);
 
             if (is_int($briefId) || ctype_digit((string) $briefId)) {
                 return $this->redirectRoute('content-briefs.show', ['contentBrief' => (int) $briefId], navigate: true);
@@ -255,6 +255,21 @@ class Show extends Component
         ])->layout('layouts.admin', [
             'title' => 'Topic Review',
         ]);
+    }
+
+    protected function flashBriefAlert(string $message, mixed $briefId): void
+    {
+        if (is_int($briefId) || ctype_digit((string) $briefId)) {
+            session()->flash('status', [
+                'message' => $message,
+                'link_href' => route('content-briefs.show', ['contentBrief' => (int) $briefId]),
+                'link_label' => 'Open Brief',
+            ]);
+
+            return;
+        }
+
+        session()->flash('status', $message);
     }
 
     protected function loadTopic(ContentTopicClient $topics, AdminSessionManager $session): mixed

@@ -92,18 +92,33 @@
                     </div>
 
                     <div class="mt-6 flex flex-wrap items-center gap-3">
-                        <x-ui.button type="button" wire:click="save">Save Changes</x-ui.button>
+                        <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+                            <span wire:loading.remove wire:target="save">Save Changes</span>
+                            <span wire:loading wire:target="save">Saving…</span>
+                        </x-ui.button>
                         @if ($canApprove)
-                            <x-ui.button type="button" variant="secondary" wire:click="openTransitionDialog('approve')">Approve Topic</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" wire:click="openTransitionDialog('approve')" wire:loading.attr="disabled" wire:target="openTransitionDialog">
+                                <span wire:loading.remove wire:target="openTransitionDialog">Approve Topic</span>
+                                <span wire:loading wire:target="openTransitionDialog">Opening…</span>
+                            </x-ui.button>
                         @endif
                         @if ($canReject)
-                            <x-ui.button type="button" variant="secondary" wire:click="openTransitionDialog('reject')">Reject Topic</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" wire:click="openTransitionDialog('reject')" wire:loading.attr="disabled" wire:target="openTransitionDialog">
+                                <span wire:loading.remove wire:target="openTransitionDialog">Reject Topic</span>
+                                <span wire:loading wire:target="openTransitionDialog">Opening…</span>
+                            </x-ui.button>
                         @endif
                         @if ($canMarkUsed)
-                            <x-ui.button type="button" variant="secondary" wire:click="openTransitionDialog('mark-used')">Mark as Used</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" wire:click="openTransitionDialog('mark-used')" wire:loading.attr="disabled" wire:target="openTransitionDialog">
+                                <span wire:loading.remove wire:target="openTransitionDialog">Mark as Used</span>
+                                <span wire:loading wire:target="openTransitionDialog">Opening…</span>
+                            </x-ui.button>
                         @endif
                         @if ($canGenerateContentBrief)
-                            <x-ui.button type="button" variant="secondary" wire:click="openBriefDialog">Generate Brief</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" wire:click="openBriefDialog" wire:loading.attr="disabled" wire:target="openBriefDialog">
+                                <span wire:loading.remove wire:target="openBriefDialog">Generate Brief</span>
+                                <span wire:loading wire:target="openBriefDialog">Opening…</span>
+                            </x-ui.button>
                         @endif
                     </div>
                 </div>
@@ -176,12 +191,15 @@
         </div>
 
         <x-slot:cancel>
-            <x-ui.button variant="secondary" type="button" wire:click="closeTransitionDialog">Cancel</x-ui.button>
+            <x-ui.button variant="secondary" type="button" wire:click="closeTransitionDialog" wire:loading.attr="disabled" wire:target="closeTransitionDialog,executeTransition">
+                Cancel
+            </x-ui.button>
         </x-slot:cancel>
 
         <x-slot:confirm>
-            <x-ui.button :variant="$transitionAction === 'reject' ? 'destructive' : 'primary'" type="button" wire:click="executeTransition">
-                Confirm
+            <x-ui.button :variant="$transitionAction === 'reject' ? 'destructive' : 'primary'" type="button" wire:click="executeTransition" wire:loading.attr="disabled" wire:target="executeTransition">
+                <span wire:loading.remove wire:target="executeTransition">Confirm</span>
+                <span wire:loading wire:target="executeTransition">Saving…</span>
             </x-ui.button>
         </x-slot:confirm>
     </x-admin.confirm-dialog>
@@ -204,11 +222,16 @@
         </div>
 
         <x-slot:cancel>
-            <x-ui.button variant="secondary" type="button" wire:click="closeBriefDialog">Cancel</x-ui.button>
+            <x-ui.button variant="secondary" type="button" wire:click="closeBriefDialog" wire:loading.attr="disabled" wire:target="closeBriefDialog,generateBrief">
+                Cancel
+            </x-ui.button>
         </x-slot:cancel>
 
         <x-slot:confirm>
-            <x-ui.button type="button" wire:click="generateBrief">Generate Brief</x-ui.button>
+            <x-ui.button type="button" wire:click="generateBrief" wire:loading.attr="disabled" wire:target="generateBrief">
+                <span wire:loading.remove wire:target="generateBrief">Generate Brief</span>
+                <span wire:loading wire:target="generateBrief">Generating…</span>
+            </x-ui.button>
         </x-slot:confirm>
     </x-admin.confirm-dialog>
 </div>

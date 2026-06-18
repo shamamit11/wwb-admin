@@ -52,6 +52,13 @@ class Show extends Component
         }
     }
 
+    public function refreshJob(AiJobClient $jobs, AdminSessionManager $session): mixed
+    {
+        $this->actionError = null;
+
+        return $this->loadJob($jobs, $session);
+    }
+
     public function render()
     {
         return view('livewire.admin.ai-jobs.show', [

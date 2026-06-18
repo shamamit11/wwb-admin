@@ -102,15 +102,27 @@
                     </div>
 
                     <div class="mt-6 flex flex-wrap items-center gap-3">
-                        <x-ui.button type="button" wire:click="save">Save Changes</x-ui.button>
+                        <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+                            <span wire:loading.remove wire:target="save">Save Changes</span>
+                            <span wire:loading wire:target="save">Saving…</span>
+                        </x-ui.button>
                         @if ($canApprove)
-                            <x-ui.button type="button" variant="secondary" wire:click="approve">Approve Brief</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" wire:click="approve" wire:loading.attr="disabled" wire:target="approve">
+                                <span wire:loading.remove wire:target="approve">Approve Brief</span>
+                                <span wire:loading wire:target="approve">Approving…</span>
+                            </x-ui.button>
                         @endif
                         @if ($canReject)
-                            <x-ui.button type="button" variant="secondary" wire:click="reject">Reject Brief</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" wire:click="reject" wire:loading.attr="disabled" wire:target="reject">
+                                <span wire:loading.remove wire:target="reject">Reject Brief</span>
+                                <span wire:loading wire:target="reject">Rejecting…</span>
+                            </x-ui.button>
                         @endif
                         @if ($canGenerateDraft)
-                            <x-ui.button type="button" variant="secondary" wire:click="openDraftDialog">Generate Draft</x-ui.button>
+                            <x-ui.button type="button" variant="secondary" wire:click="openDraftDialog" wire:loading.attr="disabled" wire:target="openDraftDialog">
+                                <span wire:loading.remove wire:target="openDraftDialog">Generate Draft</span>
+                                <span wire:loading wire:target="openDraftDialog">Opening…</span>
+                            </x-ui.button>
                         @endif
                     </div>
                 </div>
@@ -215,11 +227,16 @@
         </div>
 
         <x-slot:cancel>
-            <x-ui.button variant="secondary" type="button" wire:click="closeDraftDialog">Cancel</x-ui.button>
+            <x-ui.button variant="secondary" type="button" wire:click="closeDraftDialog" wire:loading.attr="disabled" wire:target="closeDraftDialog,generateDraft">
+                Cancel
+            </x-ui.button>
         </x-slot:cancel>
 
         <x-slot:confirm>
-            <x-ui.button type="button" wire:click="generateDraft">Create AI Job</x-ui.button>
+            <x-ui.button type="button" wire:click="generateDraft" wire:loading.attr="disabled" wire:target="generateDraft">
+                <span wire:loading.remove wire:target="generateDraft">Create AI Job</span>
+                <span wire:loading wire:target="generateDraft">Creating…</span>
+            </x-ui.button>
         </x-slot:confirm>
     </x-admin.confirm-dialog>
 </div>

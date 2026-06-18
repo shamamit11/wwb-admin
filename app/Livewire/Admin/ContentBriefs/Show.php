@@ -205,7 +205,7 @@ class Show extends Component
             $jobId = Arr::get($response, 'data.id');
 
             $this->closeDraftDialog();
-            session()->flash('status', 'Blog draft generation job created.');
+            $this->flashJobAlert('Blog draft generation job created.', $jobId);
 
             if (is_int($jobId) || ctype_digit((string) $jobId)) {
                 return $this->redirectRoute('ai-jobs.show', ['aiJob' => (int) $jobId], navigate: true);
@@ -239,6 +239,21 @@ class Show extends Component
         ])->layout('layouts.admin', [
             'title' => 'Content Brief Review',
         ]);
+    }
+
+    protected function flashJobAlert(string $message, mixed $jobId): void
+    {
+        if (is_int($jobId) || ctype_digit((string) $jobId)) {
+            session()->flash('status', [
+                'message' => $message,
+                'link_href' => route('ai-jobs.show', ['aiJob' => (int) $jobId]),
+                'link_label' => 'Open AI Job',
+            ]);
+
+            return;
+        }
+
+        session()->flash('status', $message);
     }
 
     protected function loadBrief(ContentBriefClient $briefs, AdminSessionManager $session): mixed
