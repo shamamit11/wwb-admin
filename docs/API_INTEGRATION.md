@@ -156,6 +156,7 @@ The current service API supports these admin-facing modules:
 - `PUT /admin/posts/{post}`
 - `DELETE /admin/posts/{post}`
 - `POST /admin/posts/{post}/publish`
+- `POST /admin/posts/{post}/rewrite`
 - `POST /admin/posts/{post}/schedule`
 - `POST /admin/posts/{post}/unpublish`
 
@@ -260,6 +261,8 @@ The admin must support:
 - status values: `draft`, `scheduled`, `published`, `unpublished`, `archived`
 - visibility values: `public`, `private`, `internal`
 - structured `blocks` arrays
+- rewrite job scopes: `full_draft`, `section`, `paragraph`
+- targeted rewrite requests through `POST /admin/posts/{post}/rewrite` with optional `target_block_ids`, optional `instructions`, and optional `prompt_template_key`
 - explicit schedule flow through `POST /admin/posts/{post}/schedule`
 
 ### Templates

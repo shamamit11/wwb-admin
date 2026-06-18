@@ -4983,6 +4983,67 @@
         }
       }
     },
+    "/admin/posts/{post}/rewrite": {
+      "post": {
+        "operationId": "v1.admin.posts.rewrite",
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "post",
+            "in": "path",
+            "required": true,
+            "description": "The post ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueuePostRewriteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "`AiJobResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiJobResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
     "/admin/posts/{post}/publish": {
       "post": {
         "operationId": "v1.admin.posts.publish",
@@ -9194,6 +9255,42 @@
           "post_count"
         ],
         "title": "PublicTagSummaryResource"
+      },
+      "QueuePostRewriteRequest": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "full_draft",
+              "section",
+              "paragraph"
+            ]
+          },
+          "instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "prompt_template_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 190
+          },
+          "target_block_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "scope"
+        ],
+        "title": "QueuePostRewriteRequest"
       },
       "RssFeedEntryResource": {
         "type": "object",

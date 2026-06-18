@@ -441,6 +441,42 @@
                 </section>
             @endif
 
+            @if ($aiReviewMode)
+                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                    <div class="space-y-1">
+                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Draft Rewrite</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Queue a review-only AI rewrite job against the current draft. This never publishes the post automatically.</p>
+                    </div>
+
+                    @if ($canQueueRewrite)
+                        <div class="space-y-4">
+                            <div class="grid gap-3">
+                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('full_draft')">
+                                    Rewrite Full Draft
+                                </x-ui.button>
+                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('section')" :disabled="! $hasRewriteableBlocks">
+                                    Regenerate Section
+                                </x-ui.button>
+                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('paragraph')" :disabled="$rewriteParagraphBlocks === []">
+                                    Regenerate Paragraph
+                                </x-ui.button>
+                            </div>
+
+                            @if (! $hasRewriteableBlocks)
+                                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_20%,white)] bg-[color-mix(in_srgb,var(--color-warning)_10%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
+                                    Targeted regeneration needs persisted post block IDs. Save the draft first if new blocks were added locally and have not been reloaded from the service yet.
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-sm font-semibold text-[var(--color-ink)]">Rewrite is unavailable for this post.</p>
+                            <p class="mt-1 text-sm text-[var(--color-muted)]">The current service rule only allows rewrite jobs for AI-generated draft posts that still retain source brief or topic provenance.</p>
+                        </div>
+                    @endif
+                </section>
+            @endif
+
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Status</h2>
@@ -730,6 +766,130 @@
             >
                 <span wire:loading.remove wire:target="executeAction">{{ $actionConfig['confirm'] }}</span>
                 <span wire:loading wire:target="executeAction">Saving…</span>
+            </x-ui.button>
+        </x-slot:actions>
+    </x-ui.dialog>
+
+    <x-ui.dialog
+        :open="$rewriteDialogOpen"
+        title="Queue draft rewrite"
+        description="Choose whether to rewrite the full draft or regenerate a targeted section or paragraph. The service will queue an AI job and update draft content only when that job runs."
+        maxWidth="lg"
+    >
+        <div class="space-y-5">
+            @if ($rewriteError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $rewriteError }}
+                </div>
+            @endif
+
+            <div class="space-y-3">
+                <p class="text-sm font-semibold text-[var(--color-ink)]">Rewrite scope</p>
+
+                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                    <input wire:model.live="rewriteScope" type="radio" value="full_draft" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
+                    <span>
+                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Full Draft</span>
+                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Queue a full review rewrite for the entire draft.</span>
+                    </span>
+                </label>
+
+                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                    <input wire:model.live="rewriteScope" type="radio" value="section" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" @disabled(! $hasRewriteableBlocks)>
+                    <span>
+                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Section</span>
+                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Select a contiguous run of persisted blocks to regenerate together.</span>
+                    </span>
+                </label>
+
+                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                    <input wire:model.live="rewriteScope" type="radio" value="paragraph" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" @disabled($rewriteParagraphBlocks === [])>
+                    <span>
+                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Paragraph</span>
+                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Select exactly one persisted paragraph block to regenerate.</span>
+                    </span>
+                </label>
+
+                @error('rewriteScope')
+                    <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
+                @enderror
+            </div>
+
+            @if (in_array($rewriteScope, ['section', 'paragraph'], true))
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-semibold text-[var(--color-ink)]">Target blocks</p>
+                        <p class="text-xs uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                            {{ $rewriteScope === 'paragraph' ? 'Pick one paragraph block' : 'Pick contiguous blocks' }}
+                        </p>
+                    </div>
+
+                    @php
+                        $targetOptions = $rewriteScope === 'paragraph' ? $rewriteParagraphBlocks : $rewriteableBlocks;
+                    @endphp
+
+                    @if ($targetOptions !== [])
+                        <div class="max-h-[18rem] space-y-3 overflow-y-auto pr-1">
+                            @foreach ($targetOptions as $block)
+                                <label wire:key="rewrite-block-{{ $block['id'] }}" class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                                    <input
+                                        type="checkbox"
+                                        value="{{ $block['id'] }}"
+                                        wire:model.live="rewriteTargetBlockIds"
+                                        class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]"
+                                    >
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-[var(--color-ink)]">{{ $block['label'] }} <span class="text-[var(--color-muted)]">#{{ $block['id'] }}</span></span>
+                                        <span class="mt-1 block text-sm text-[var(--color-muted)]">{{ $block['preview'] }}</span>
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-sm text-[var(--color-muted)]">No persisted blocks are available for this rewrite scope yet.</p>
+                        </div>
+                    @endif
+
+                    @error('rewriteTargetBlockIds')
+                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
+                    @enderror
+                    @error('rewriteTargetBlockIds.*')
+                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endif
+
+            <x-ui.field label="Instructions" for="rewrite-instructions" :error="$errors->first('rewriteInstructions')" hint="Optional editor guidance for the rewrite job.">
+                <x-ui.textarea
+                    id="rewrite-instructions"
+                    rows="5"
+                    wire:model.blur="rewriteInstructions"
+                    placeholder="Tighten the intro and make the guidance more actionable."
+                    :invalid="$errors->has('rewriteInstructions')"
+                />
+            </x-ui.field>
+
+            <x-ui.field label="Prompt Template Key" for="rewrite-prompt-template-key" :error="$errors->first('rewritePromptTemplateKey')" hint="Optional override when the default draft-rewrite prompt should be replaced.">
+                <x-ui.input
+                    id="rewrite-prompt-template-key"
+                    wire:model.blur="rewritePromptTemplateKey"
+                    placeholder="post_rewrite_default"
+                    :invalid="$errors->has('rewritePromptTemplateKey')"
+                />
+            </x-ui.field>
+        </div>
+
+        <x-slot:actions>
+            <x-ui.button type="button" variant="secondary" wire:click="closeRewriteDialog">Cancel</x-ui.button>
+            <x-ui.button
+                type="button"
+                wire:click="queueRewrite"
+                wire:loading.attr="disabled"
+                wire:target="queueRewrite"
+            >
+                <span wire:loading.remove wire:target="queueRewrite">Queue Rewrite Job</span>
+                <span wire:loading wire:target="queueRewrite">Queueing…</span>
             </x-ui.button>
         </x-slot:actions>
     </x-ui.dialog>
