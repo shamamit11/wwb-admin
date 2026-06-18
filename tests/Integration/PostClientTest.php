@@ -29,6 +29,8 @@ class PostClientTest extends TestCase
                 $request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/11/publish' => Http::response(['data' => ['id' => 11]], 200),
                 $request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/12/schedule' => Http::response(['data' => ['id' => 12]], 200),
                 $request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/13/unpublish' => Http::response(['data' => ['id' => 13]], 200),
+                $request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/15/suggest-metadata' => Http::response(['data' => ['id' => 15]], 202),
+                $request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/16/refine-title-excerpt' => Http::response(['data' => ['id' => 16]], 202),
                 $request->method() === 'DELETE' && $request->url() === $this->apiBaseUrl.'/admin/posts/14' => Http::response([], 204),
                 default => Http::response(['message' => 'Unexpected request.'], 500),
             };
@@ -77,6 +79,14 @@ class PostClientTest extends TestCase
         ]);
         $client->unpublish('test-token', 'Bearer', 13);
         $client->delete('test-token', 'Bearer', 14);
+        $client->suggestMetadata('test-token', 'Bearer', 15, [
+            'instructions' => 'Prioritize search intent clarity.',
+            'prompt_template_key' => 'post_metadata_review_default',
+        ]);
+        $client->refineTitleExcerpt('test-token', 'Bearer', 16, [
+            'instructions' => 'Tighten the title and excerpt.',
+            'prompt_template_key' => 'post_title_excerpt_refinement_default',
+        ]);
 
         Http::assertSent(function (Request $request): bool {
             $url = $request->url();
@@ -130,6 +140,20 @@ class PostClientTest extends TestCase
         Http::assertSent(function (Request $request): bool {
             return $request->method() === 'DELETE'
                 && $request->url() === $this->apiBaseUrl.'/admin/posts/14';
+        });
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->method() === 'POST'
+                && $request->url() === $this->apiBaseUrl.'/admin/posts/15/suggest-metadata'
+                && $request['instructions'] === 'Prioritize search intent clarity.'
+                && $request['prompt_template_key'] === 'post_metadata_review_default';
+        });
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->method() === 'POST'
+                && $request->url() === $this->apiBaseUrl.'/admin/posts/16/refine-title-excerpt'
+                && $request['instructions'] === 'Tighten the title and excerpt.'
+                && $request['prompt_template_key'] === 'post_title_excerpt_refinement_default';
         });
     }
 }

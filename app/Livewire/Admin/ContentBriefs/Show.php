@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\ContentBriefs;
 
+use App\Data\Ai\GenerateDraftRequestData;
+use App\Data\Ai\QueuedAiJobData;
 use App\Services\WideWebBlogApi\Clients\CategoryClient;
 use App\Services\WideWebBlogApi\Clients\ContentBriefClient;
 use App\Services\WideWebBlogApi\Clients\TemplateClient;
@@ -17,6 +19,13 @@ use Livewire\Component;
 
 class Show extends Component
 {
+    private const DRAFT_GENERATION_MODES = [
+        'tutorial',
+        'comparison',
+        'opinionated_analysis',
+        'checklist',
+    ];
+
     private const BRIEF_EDIT_STATUSES = [
         'draft',
         'rejected',
@@ -50,6 +59,7 @@ class Show extends Component
     public string $draftTemplateId = '';
     public string $draftVisibility = 'public';
     public string $draftPromptTemplateKey = '';
+    public string $draftGenerationMode = '';
     public array $categoryOptions = [];
     public array $templateOptions = [];
 
@@ -101,12 +111,13 @@ class Show extends Component
             'draftTemplateId' => ['nullable', 'integer', 'min:1'],
             'draftVisibility' => ['required', 'in:public,private,internal'],
             'draftPromptTemplateKey' => ['nullable', 'string', 'max:190'],
+            'draftGenerationMode' => ['nullable', 'in:'.implode(',', self::DRAFT_GENERATION_MODES)],
         ];
     }
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['draftCategoryId', 'draftTemplateId', 'draftVisibility', 'draftPromptTemplateKey'], true)) {
+        if (in_array($property, ['draftCategoryId', 'draftTemplateId', 'draftVisibility', 'draftPromptTemplateKey', 'draftGenerationMode'], true)) {
             $this->validateOnly($property, $this->draftRules());
 
             return;
@@ -180,6 +191,7 @@ class Show extends Component
         $this->draftTemplateId = '';
         $this->draftVisibility = 'public';
         $this->draftPromptTemplateKey = '';
+        $this->draftGenerationMode = '';
     }
 
     public function closeDraftDialog(): void
@@ -195,20 +207,26 @@ class Show extends Component
         $this->draftError = null;
 
         try {
-            $response = $briefs->generateDraft($this->token($session), $session->tokenType(), $this->briefId, [
-                'category_id' => (int) $validated['draftCategoryId'],
-                'template_id' => filled($validated['draftTemplateId']) ? (int) $validated['draftTemplateId'] : null,
-                'visibility' => $validated['draftVisibility'],
-                'prompt_template_key' => filled($validated['draftPromptTemplateKey']) ? trim($validated['draftPromptTemplateKey']) : null,
-            ]);
+            $response = $briefs->generateDraft(
+                $this->token($session),
+                $session->tokenType(),
+                $this->briefId,
+                (new GenerateDraftRequestData(
+                    categoryId: (int) $validated['draftCategoryId'],
+                    templateId: filled($validated['draftTemplateId']) ? (int) $validated['draftTemplateId'] : null,
+                    visibility: $validated['draftVisibility'],
+                    promptTemplateKey: filled($validated['draftPromptTemplateKey']) ? trim($validated['draftPromptTemplateKey']) : null,
+                    generationMode: filled($validated['draftGenerationMode']) ? $validated['draftGenerationMode'] : null,
+                ))->toArray(),
+            );
 
-            $jobId = Arr::get($response, 'data.id');
+            $job = QueuedAiJobData::fromApi(Arr::get($response, 'data', []));
 
             $this->closeDraftDialog();
-            $this->flashJobAlert('Blog draft generation job created.', $jobId);
+            $this->flashJobAlert('Blog draft generation job created.', $job->id);
 
-            if (is_int($jobId) || ctype_digit((string) $jobId)) {
-                return $this->redirectRoute('ai-jobs.show', ['aiJob' => (int) $jobId], navigate: true);
+            if ($job->id !== null) {
+                return $this->redirectRoute('ai-jobs.show', ['aiJob' => $job->id], navigate: true);
             }
 
             return null;
@@ -231,6 +249,7 @@ class Show extends Component
     {
         return view('livewire.admin.content-briefs.show', [
             'statusOptions' => self::BRIEF_EDIT_STATUSES,
+            'draftGenerationModes' => self::DRAFT_GENERATION_MODES,
             'canApprove' => in_array($this->status, ['draft', 'rejected'], true),
             'canReject' => $this->status === 'draft',
             'topicLink' => filled($this->topic['id'] ?? null)

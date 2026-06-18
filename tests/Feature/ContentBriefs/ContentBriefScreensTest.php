@@ -98,6 +98,7 @@ class ContentBriefScreensTest extends TestCase
                 $this->assertSame(3, $request['category_id']);
                 $this->assertSame(9, $request['template_id']);
                 $this->assertSame('public', $request['visibility']);
+                $this->assertSame('checklist', $request['generation_mode']);
 
                 return Http::response(['data' => ['id' => 42, 'status' => 'queued']], 202);
             }
@@ -117,6 +118,7 @@ class ContentBriefScreensTest extends TestCase
             ->set('draftCategoryId', '3')
             ->set('draftTemplateId', '9')
             ->set('draftVisibility', 'public')
+            ->set('draftGenerationMode', 'checklist')
             ->call('generateDraft')
             ->assertRedirect(route('ai-jobs.show', ['aiJob' => 42]));
     }

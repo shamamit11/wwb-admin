@@ -156,12 +156,87 @@ class PostEditorTest extends TestCase
             ->assertSee('Job #22')
             ->assertSee('Suggested Tags')
             ->assertSee('Editorial Ops')
+            ->assertSee('AI Review Actions')
+            ->assertSee('Suggest Metadata')
+            ->assertSeeText('Refine Title & Excerpt')
             ->assertSee('FAQ Suggestions')
             ->assertSee('What should be reviewed first?')
             ->assertSee('Image Placement Notes')
             ->assertSee('Add a workflow diagram after the introduction.')
             ->assertSee('Alt Text Suggestions')
             ->assertSee('Workflow diagram showing AI editorial review stages');
+    }
+
+    public function test_ai_draft_review_can_queue_metadata_and_title_excerpt_jobs(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/categories') {
+                return Http::response(['data' => [$this->categoryResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/tags') {
+                return Http::response(['data' => [$this->tagResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/templates') {
+                return Http::response(['data' => [$this->templateResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/media')) {
+                return Http::response(['data' => [$this->mediaResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/posts/1') {
+                return Http::response([
+                    'data' => $this->postResource([
+                        'id' => 1,
+                        'title' => 'AI Draft',
+                        'status' => 'draft',
+                        'is_ai_generated' => true,
+                        'source_content_brief_id' => 14,
+                        'source_content_topic_id' => 8,
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && str_contains($request->url(), '/admin/seo/')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/1/suggest-metadata') {
+                $this->assertSame('Prioritize keyword clarity.', $request['instructions']);
+                $this->assertSame('post_metadata_review_default', $request['prompt_template_key']);
+
+                return Http::response(['data' => ['id' => 31, 'status' => 'queued']], 202);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/posts/1/refine-title-excerpt') {
+                $this->assertSame('Make the hook sharper.', $request['instructions']);
+                $this->assertSame('post_title_excerpt_refinement_default', $request['prompt_template_key']);
+
+                return Http::response(['data' => ['id' => 32, 'status' => 'queued']], 202);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Editor::class, ['post' => 1])
+            ->set('aiReviewMode', true)
+            ->call('openReviewActionDialog', 'suggest_metadata')
+            ->set('reviewActionInstructions', 'Prioritize keyword clarity.')
+            ->set('reviewActionPromptTemplateKey', 'post_metadata_review_default')
+            ->call('queueReviewAction')
+            ->assertRedirect(route('ai-jobs.show', ['aiJob' => 31]));
+
+        Livewire::test(Editor::class, ['post' => 1])
+            ->set('aiReviewMode', true)
+            ->call('openReviewActionDialog', 'refine_title_excerpt')
+            ->set('reviewActionInstructions', 'Make the hook sharper.')
+            ->set('reviewActionPromptTemplateKey', 'post_title_excerpt_refinement_default')
+            ->call('queueReviewAction')
+            ->assertRedirect(route('ai-jobs.show', ['aiJob' => 32]));
     }
 
     public function test_existing_post_can_be_loaded_and_updated_from_editor(): void

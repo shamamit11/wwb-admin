@@ -440,6 +440,22 @@
             @if ($aiReviewMode)
                 <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                     <div class="space-y-1">
+                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">AI Review Actions</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Queue review-only jobs for metadata or title/excerpt suggestions. Results are tracked in AI jobs and never auto-applied or published from this screen.</p>
+                    </div>
+
+                    <div class="grid gap-3">
+                        <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openReviewActionDialog('suggest_metadata')">
+                            Suggest Metadata
+                        </x-ui.button>
+                        <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openReviewActionDialog('refine_title_excerpt')">
+                            Refine Title & Excerpt
+                        </x-ui.button>
+                    </div>
+                </section>
+
+                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                    <div class="space-y-1">
                         <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Draft Rewrite</h2>
                         <p class="text-sm text-[var(--color-muted)]">Queue a review-only AI rewrite job against the current draft. This never publishes the post automatically.</p>
                     </div>
@@ -762,6 +778,53 @@
             >
                 <span wire:loading.remove wire:target="executeAction">{{ $actionConfig['confirm'] }}</span>
                 <span wire:loading wire:target="executeAction">Saving…</span>
+            </x-ui.button>
+        </x-slot:actions>
+    </x-ui.dialog>
+
+    <x-ui.dialog
+        :open="$reviewActionDialogOpen"
+        :title="$reviewActionHeading"
+        :description="$reviewActionDescription"
+        maxWidth="lg"
+    >
+        <div class="space-y-5">
+            @if ($reviewActionError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $reviewActionError }}
+                </div>
+            @endif
+
+            <x-ui.field label="Instructions" for="review-action-instructions" :error="$errors->first('reviewActionInstructions')" hint="Optional editor guidance for this review-only AI workflow.">
+                <x-ui.textarea
+                    id="review-action-instructions"
+                    rows="5"
+                    wire:model.blur="reviewActionInstructions"
+                    placeholder="Emphasize search clarity and keep the recommendations aligned with the current draft."
+                    :invalid="$errors->has('reviewActionInstructions')"
+                />
+            </x-ui.field>
+
+            <x-ui.field label="Prompt Template Key" for="review-action-prompt-template-key" :error="$errors->first('reviewActionPromptTemplateKey')" hint="Optional override when the default service prompt template should be replaced.">
+                <x-ui.input
+                    id="review-action-prompt-template-key"
+                    wire:model.blur="reviewActionPromptTemplateKey"
+                    placeholder="post_metadata_review_default"
+                    :invalid="$errors->has('reviewActionPromptTemplateKey')"
+                />
+            </x-ui.field>
+        </div>
+
+        <x-slot:actions>
+            <x-ui.button type="button" variant="secondary" wire:click="closeReviewActionDialog">Cancel</x-ui.button>
+            <x-ui.button
+                type="button"
+                wire:click="queueReviewAction"
+                wire:loading.attr="disabled"
+                wire:target="queueReviewAction"
+            >
+                <span wire:loading.remove wire:target="queueReviewAction">{{ $reviewActionButtonLabel }}</span>
+                <span wire:loading wire:target="queueReviewAction">Queueing…</span>
             </x-ui.button>
         </x-slot:actions>
     </x-ui.dialog>

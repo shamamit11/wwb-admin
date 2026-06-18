@@ -180,7 +180,7 @@
     <x-admin.confirm-dialog
         :open="$draftDialogOpen"
         title="Generate Blog Draft"
-        description="Create a service-side AI job for draft generation. The resulting post must still be reviewed manually before publish."
+        description="Create a review-only service-side AI job for draft generation. The resulting post must still be reviewed manually before publish."
     >
         <div class="space-y-4">
             @if ($draftError)
@@ -222,6 +222,15 @@
                     <x-ui.input id="draft-prompt-template-key" wire:model.blur="draftPromptTemplateKey" :invalid="$errors->has('draftPromptTemplateKey')" placeholder="blog-writer-editorial" />
                 </x-ui.field>
             </div>
+
+            <x-ui.field label="Generation Mode" for="draft-generation-mode" :error="$errors->first('draftGenerationMode')" hint="Optional editorial mode override. Leave blank to keep the existing service behavior.">
+                <x-ui.select id="draft-generation-mode" wire:model.live="draftGenerationMode" :invalid="$errors->has('draftGenerationMode')">
+                    <option value="">Default service mode</option>
+                    @foreach ($draftGenerationModes as $draftGenerationMode)
+                        <option value="{{ $draftGenerationMode }}">{{ str($draftGenerationMode)->replace('_', ' ')->title() }}</option>
+                    @endforeach
+                </x-ui.select>
+            </x-ui.field>
         </div>
 
         <x-slot:cancel>

@@ -69,6 +69,7 @@ class ContentBriefClientTest extends TestCase
                 $this->assertSame(9, $request['template_id']);
                 $this->assertSame('public', $request['visibility']);
                 $this->assertSame('blog-writer-editorial', $request['prompt_template_key']);
+                $this->assertSame('comparison', $request['generation_mode']);
 
                 return Http::response([
                     'data' => ['id' => 33, 'status' => 'queued'],
@@ -91,6 +92,7 @@ class ContentBriefClientTest extends TestCase
             'template_id' => 9,
             'visibility' => 'public',
             'prompt_template_key' => 'blog-writer-editorial',
+            'generation_mode' => 'comparison',
         ]);
 
         $this->assertSame('Updated Brief', $updated['data']['title']);

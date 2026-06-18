@@ -531,6 +531,7 @@
                 "blog_writer",
                 "editor",
                 "seo_optimizer",
+                "editorial_refiner",
                 "publishing"
               ]
             }
@@ -4983,6 +4984,126 @@
         }
       }
     },
+    "/admin/posts/{post}/suggest-metadata": {
+      "post": {
+        "operationId": "v1.admin.posts.suggest-metadata",
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "post",
+            "in": "path",
+            "required": true,
+            "description": "The post ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueuePostMetadataSuggestionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "`AiJobResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiJobResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/posts/{post}/refine-title-excerpt": {
+      "post": {
+        "operationId": "v1.admin.posts.refine-title-excerpt",
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "post",
+            "in": "path",
+            "required": true,
+            "description": "The post ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueuePostTitleExcerptRefinementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "`AiJobResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiJobResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
     "/admin/posts/{post}/rewrite": {
       "post": {
         "operationId": "v1.admin.posts.rewrite",
@@ -7710,6 +7831,18 @@
               "null"
             ],
             "maxLength": 190
+          },
+          "generation_mode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "tutorial",
+              "comparison",
+              "opinionated_analysis",
+              "checklist"
+            ]
           }
         },
         "required": [
@@ -9256,6 +9389,25 @@
         ],
         "title": "PublicTagSummaryResource"
       },
+      "QueuePostMetadataSuggestionRequest": {
+        "type": "object",
+        "properties": {
+          "instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "prompt_template_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 190
+          }
+        },
+        "title": "QueuePostMetadataSuggestionRequest"
+      },
       "QueuePostRewriteRequest": {
         "type": "object",
         "properties": {
@@ -9291,6 +9443,25 @@
           "scope"
         ],
         "title": "QueuePostRewriteRequest"
+      },
+      "QueuePostTitleExcerptRefinementRequest": {
+        "type": "object",
+        "properties": {
+          "instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "prompt_template_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 190
+          }
+        },
+        "title": "QueuePostTitleExcerptRefinementRequest"
       },
       "RssFeedEntryResource": {
         "type": "object",
@@ -9598,6 +9769,7 @@
               "blog_writer",
               "editor",
               "seo_optimizer",
+              "editorial_refiner",
               "publishing"
             ]
           },
@@ -10906,6 +11078,7 @@
               "blog_writer",
               "editor",
               "seo_optimizer",
+              "editorial_refiner",
               "publishing"
             ]
           },

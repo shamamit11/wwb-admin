@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Admin\Posts;
 
+use App\Data\Ai\QueuePostMetadataSuggestionRequestData;
+use App\Data\Ai\QueuePostTitleExcerptRefinementRequestData;
+use App\Data\Ai\QueuedAiJobData;
 use App\Data\Posts\PostBlockData;
 use App\Data\Posts\PostEditorData;
 use App\Services\WideWebBlogApi\Clients\CategoryClient;
@@ -25,6 +28,11 @@ use Livewire\Component;
 
 class Editor extends Component
 {
+    private const REVIEW_ONLY_ACTION_MODES = [
+        'suggest_metadata',
+        'refine_title_excerpt',
+    ];
+
     private const POST_STATUSES = [
         'draft',
         'scheduled',
@@ -174,6 +182,16 @@ class Editor extends Component
 
     public ?string $rewriteError = null;
 
+    public bool $reviewActionDialogOpen = false;
+
+    public string $reviewActionMode = 'suggest_metadata';
+
+    public string $reviewActionInstructions = '';
+
+    public string $reviewActionPromptTemplateKey = '';
+
+    public ?string $reviewActionError = null;
+
     public function mount(
         AdminSessionManager $session,
         CategoryClient $categories,
@@ -283,6 +301,12 @@ class Editor extends Component
             || str_starts_with($property, 'rewriteTargetBlockIds')
         ) {
             $this->validateOnly($property, $this->rewriteRules());
+
+            return;
+        }
+
+        if (in_array($property, ['reviewActionInstructions', 'reviewActionPromptTemplateKey'], true)) {
+            $this->validateOnly($property, $this->reviewActionRules());
         }
     }
 
@@ -562,6 +586,81 @@ class Editor extends Component
         }
     }
 
+    public function openReviewActionDialog(string $mode): void
+    {
+        if (! $this->editingPostId || ! $this->aiReviewMode || ! in_array($mode, self::REVIEW_ONLY_ACTION_MODES, true)) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->reviewActionDialogOpen = true;
+        $this->reviewActionMode = $mode;
+        $this->reviewActionInstructions = '';
+        $this->reviewActionPromptTemplateKey = '';
+        $this->reviewActionError = null;
+    }
+
+    public function closeReviewActionDialog(): void
+    {
+        $this->resetValidation();
+        $this->reviewActionDialogOpen = false;
+        $this->reviewActionMode = 'suggest_metadata';
+        $this->reviewActionInstructions = '';
+        $this->reviewActionPromptTemplateKey = '';
+        $this->reviewActionError = null;
+    }
+
+    public function queueReviewAction(PostClient $posts, AdminSessionManager $session): mixed
+    {
+        if (! $this->editingPostId || ! in_array($this->reviewActionMode, self::REVIEW_ONLY_ACTION_MODES, true)) {
+            return null;
+        }
+
+        $validated = $this->validate($this->reviewActionRules());
+        $this->reviewActionError = null;
+
+        try {
+            $payload = match ($this->reviewActionMode) {
+                'suggest_metadata' => (new QueuePostMetadataSuggestionRequestData(
+                    instructions: filled($validated['reviewActionInstructions']) ? trim($validated['reviewActionInstructions']) : null,
+                    promptTemplateKey: filled($validated['reviewActionPromptTemplateKey']) ? trim($validated['reviewActionPromptTemplateKey']) : null,
+                ))->toArray(),
+                'refine_title_excerpt' => (new QueuePostTitleExcerptRefinementRequestData(
+                    instructions: filled($validated['reviewActionInstructions']) ? trim($validated['reviewActionInstructions']) : null,
+                    promptTemplateKey: filled($validated['reviewActionPromptTemplateKey']) ? trim($validated['reviewActionPromptTemplateKey']) : null,
+                ))->toArray(),
+            };
+
+            $response = match ($this->reviewActionMode) {
+                'suggest_metadata' => $posts->suggestMetadata($this->token($session), $session->tokenType(), $this->editingPostId, $payload),
+                'refine_title_excerpt' => $posts->refineTitleExcerpt($this->token($session), $session->tokenType(), $this->editingPostId, $payload),
+            };
+
+            $job = QueuedAiJobData::fromApi(Arr::get($response, 'data', []));
+
+            $this->closeReviewActionDialog();
+            $this->flashJobAlert($this->reviewActionSuccessMessage(), $job->id);
+
+            if ($job->id !== null) {
+                return $this->redirectRoute('ai-jobs.show', ['aiJob' => $job->id], navigate: true);
+            }
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->reviewActionError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeReviewActionErrors($exception->errors()));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->reviewActionError = $exception->getMessage() ?: 'The review-only AI action could not be queued.';
+
+            return null;
+        }
+    }
+
     public function executeAction(PostClient $posts, AdminSessionManager $session): mixed
     {
         if (! $this->actionPostId) {
@@ -642,6 +741,9 @@ class Editor extends Component
             'hasRewriteableBlocks' => $this->rewriteableBlockOptions() !== [],
             'rewriteableBlocks' => $this->rewriteableBlockOptions(),
             'rewriteParagraphBlocks' => $this->rewriteableParagraphBlockOptions(),
+            'reviewActionHeading' => $this->reviewActionHeading(),
+            'reviewActionDescription' => $this->reviewActionDescription(),
+            'reviewActionButtonLabel' => $this->reviewActionButtonLabel(),
         ])->layout('layouts.admin', [
             'title' => $this->aiReviewMode ? 'Draft Review' : ($this->editingPostId ? 'Edit Post' : 'Create Post'),
         ]);
@@ -946,6 +1048,14 @@ class Editor extends Component
         ];
     }
 
+    protected function reviewActionRules(): array
+    {
+        return [
+            'reviewActionInstructions' => ['nullable', 'string'],
+            'reviewActionPromptTemplateKey' => ['nullable', 'string', 'max:190'],
+        ];
+    }
+
     protected function rewritePayload(array $validated): array
     {
         $targetBlockIds = collect($validated['rewriteTargetBlockIds'] ?? [])
@@ -991,6 +1101,38 @@ class Editor extends Component
                 'items' => $this->altTextSuggestions,
             ],
         ], fn (array $section): bool => $section['items'] !== []));
+    }
+
+    protected function reviewActionHeading(): string
+    {
+        return match ($this->reviewActionMode) {
+            'refine_title_excerpt' => 'Queue title and excerpt refinement',
+            default => 'Queue metadata suggestion',
+        };
+    }
+
+    protected function reviewActionDescription(): string
+    {
+        return match ($this->reviewActionMode) {
+            'refine_title_excerpt' => 'Queue a review-only AI job that suggests a recommended title, excerpt, variations, and rationale. Suggestions are tracked in AI jobs and never auto-applied.',
+            default => 'Queue a review-only AI job that suggests title, excerpt, metadata, focus keyword, and rationale. Suggestions are tracked in AI jobs and never auto-applied.',
+        };
+    }
+
+    protected function reviewActionButtonLabel(): string
+    {
+        return match ($this->reviewActionMode) {
+            'refine_title_excerpt' => 'Queue Refinement Job',
+            default => 'Queue Metadata Job',
+        };
+    }
+
+    protected function reviewActionSuccessMessage(): string
+    {
+        return match ($this->reviewActionMode) {
+            'refine_title_excerpt' => 'Title and excerpt refinement job queued.',
+            default => 'Metadata suggestion job queued.',
+        };
     }
 
     protected function suggestionItems(mixed $value): array
@@ -1192,6 +1334,27 @@ class Editor extends Component
                 'rewriteTargetBlockIds', 'target_block_ids' => 'rewriteTargetBlockIds',
                 'rewriteInstructions', 'instructions' => 'rewriteInstructions',
                 'rewritePromptTemplateKey', 'prompt_template_key' => 'rewritePromptTemplateKey',
+                'reviewActionInstructions' => 'reviewActionInstructions',
+                'reviewActionPromptTemplateKey' => 'reviewActionPromptTemplateKey',
+                default => $property,
+            };
+
+            $mapped[$property] = $messages;
+        }
+
+        return $mapped;
+    }
+
+    protected function normalizeReviewActionErrors(array $errors): array
+    {
+        $mapped = [];
+
+        foreach ($errors as $field => $messages) {
+            $property = preg_replace_callback('/_([a-z])/', fn (array $matches): string => strtoupper($matches[1]), $field) ?? $field;
+
+            $property = match ($property) {
+                'instructions' => 'reviewActionInstructions',
+                'promptTemplateKey' => 'reviewActionPromptTemplateKey',
                 default => $property,
             };
 
