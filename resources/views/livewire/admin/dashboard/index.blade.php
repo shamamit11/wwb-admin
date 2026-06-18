@@ -1,7 +1,3 @@
-@php
-    $totalVisiblePosts = count($recentDrafts) + count($recentPublishedPosts);
-@endphp
-
 <div class="space-y-8">
     @if ($dashboardError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_24%,white)] bg-[color-mix(in_srgb,var(--color-warning)_10%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
@@ -23,77 +19,27 @@
         </div>
     </section>
 
-    <section class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
-            <div class="flex items-start justify-between">
-                <span class="flex h-11 w-11 items-center justify-center rounded-[0.95rem] bg-[var(--color-accent-soft)] text-[var(--color-accent-strong)]">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <path d="M5 4.5h10A1.5 1.5 0 0 1 16.5 6v8A1.5 1.5 0 0 1 15 15.5H5A1.5 1.5 0 0 1 3.5 14V6A1.5 1.5 0 0 1 5 4.5Z" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M7 8h6M7 11h6M7 14h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                <span class="rounded-md bg-[color-mix(in_srgb,var(--color-success)_12%,white)] px-2 py-1 text-xs font-semibold text-[var(--color-success-strong)]">
-                    Live
-                </span>
-            </div>
-            <div class="mt-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Total Posts</p>
-                <h3 class="mt-1 text-3xl font-semibold tracking-[-0.04em] text-[var(--color-ink)]">{{ $totalVisiblePosts }}</h3>
+    <section class="space-y-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">AI Workflow</p>
+                <h3 class="mt-2 text-xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">Operational Snapshot</h3>
             </div>
         </div>
 
-        <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
-            <div class="flex items-start justify-between">
-                <span class="flex h-11 w-11 items-center justify-center rounded-[0.95rem] bg-[var(--color-info-soft)] text-[var(--color-info)]">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <path d="M4.5 10.25 8 13.75l7.5-7.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-                <span class="text-xs font-semibold text-[var(--color-muted)]">Steady</span>
-            </div>
-            <div class="mt-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Published</p>
-                <h3 class="mt-1 text-3xl font-semibold tracking-[-0.04em] text-[var(--color-ink)]">{{ count($recentPublishedPosts) }}</h3>
-            </div>
-        </div>
-
-        <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
-            <div class="flex items-start justify-between">
-                <span class="flex h-11 w-11 items-center justify-center rounded-[0.95rem] bg-[var(--color-panel-soft)] text-[var(--color-muted)]">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <path d="M5.25 6h9.5M5.25 10h9.5M5.25 14h5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                <span class="text-xs font-semibold text-[var(--color-accent-strong)]">Needs Action</span>
-            </div>
-            <div class="mt-4 flex gap-8">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Drafts</p>
-                    <h3 class="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">{{ count($recentDrafts) }}</h3>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Scheduled</p>
-                    <h3 class="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">TBC</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
-            <div class="flex items-start justify-between">
-                <span class="flex h-11 w-11 items-center justify-center rounded-[0.95rem] bg-[var(--color-accent-soft)] text-[var(--color-accent-strong)]">
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <path d="M4.5 6.25h11A1.25 1.25 0 0 1 16.75 7.5v5A1.25 1.25 0 0 1 15.5 13.75h-11A1.25 1.25 0 0 1 3.25 12.5v-5A1.25 1.25 0 0 1 4.5 6.25Z" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="m4.5 7 5.03 3.96a.75.75 0 0 0 .94 0L15.5 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-                <span class="rounded-md bg-[color-mix(in_srgb,var(--color-warning)_12%,white)] px-2 py-1 text-xs font-semibold text-[var(--color-warning-strong)]">
-                    Placeholder
-                </span>
-            </div>
-            <div class="mt-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Subscribers</p>
-                <h3 class="mt-1 text-3xl font-semibold tracking-[-0.04em] text-[var(--color-ink)]">TBC</h3>
-            </div>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            @foreach ($aiWorkflowCards as $card)
+                <a href="{{ $card['href'] }}" class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] transition-colors hover:bg-[var(--color-panel-soft)]">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">{{ $card['label'] }}</p>
+                            <h3 class="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[var(--color-ink)]">{{ $card['value'] }}</h3>
+                        </div>
+                        <x-ui.badge :tone="$card['tone']">{{ str($card['tone'])->headline() }}</x-ui.badge>
+                    </div>
+                    <p class="mt-4 text-sm leading-6 text-[var(--color-muted)]">{{ $card['description'] }}</p>
+                </a>
+            @endforeach
         </div>
     </section>
 
@@ -160,9 +106,9 @@
                 <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Quick Actions</p>
                 <h3 class="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Move directly into the next editorial task.</h3>
                 <div class="mt-5 flex flex-col gap-3">
-                    <x-ui.button as="a" :href="route('posts.index')" size="lg">Review Drafts</x-ui.button>
-                    <x-ui.button as="a" :href="route('posts.index')" variant="secondary">Create Post</x-ui.button>
-                    <x-ui.button as="a" :href="route('seo.index')" variant="secondary">Open SEO Area</x-ui.button>
+                    <x-ui.button as="a" :href="route('topic-queue.index', ['status' => 'suggested'])" size="lg">Review Topics</x-ui.button>
+                    <x-ui.button as="a" :href="route('content-briefs.index', ['status' => 'draft'])" variant="secondary">Review Briefs</x-ui.button>
+                    <x-ui.button as="a" :href="route('ai-jobs.index')" variant="secondary">Open AI Jobs</x-ui.button>
                 </div>
             </div>
 
@@ -199,25 +145,43 @@
             </div>
 
             <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Topic Queue</p>
-                <h3 class="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Placeholder only</h3>
-                <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">
-                    No topic queue endpoints exist in the current service phase, so this widget stays explicitly non-operational.
-                </p>
-                <div class="mt-4">
-                    <x-ui.badge tone="warning">TBC Until Service Support</x-ui.badge>
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Recent AI Jobs</p>
+                        <h3 class="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Watch workflow progress and failures.</h3>
+                    </div>
+                    <x-ui.badge tone="default">Live</x-ui.badge>
                 </div>
-            </div>
 
-            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">AI Jobs</p>
-                <h3 class="mt-3 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Placeholder only</h3>
-                <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">
-                    AI job monitoring is reserved in the shell, but the current API phase does not expose job endpoints or dashboard aggregates.
-                </p>
-                <div class="mt-4">
-                    <x-ui.badge tone="warning">TBC Until Service Support</x-ui.badge>
-                </div>
+                @if ($recentAiJobs === [])
+                    <div class="mt-5">
+                        <x-ui.empty-state
+                            title="No recent AI jobs returned"
+                            message="Run topic discovery, brief generation, or draft generation to populate recent workflow activity."
+                        >
+                            <x-ui.button as="a" :href="route('ai-jobs.index')" variant="outline">Open AI Jobs</x-ui.button>
+                        </x-ui.empty-state>
+                    </div>
+                @else
+                    <div class="mt-5 space-y-3">
+                        @foreach ($recentAiJobs as $job)
+                            <a href="{{ route('ai-jobs.show', ['aiJob' => $job['id']]) }}" class="block rounded-[0.95rem] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel-soft)_42%,white)] px-4 py-3 transition-colors hover:bg-[var(--color-panel-soft)]">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-semibold text-[var(--color-ink)]">Job #{{ $job['id'] }} · {{ str($job['type'])->headline() }}</p>
+                                        <p class="mt-1 text-xs text-[var(--color-muted)]">
+                                            {{ $job['provider'] ?: 'Provider TBC' }}{{ $job['model'] ? ' · '.$job['model'] : '' }}
+                                        </p>
+                                        <p class="mt-1 text-xs text-[var(--color-muted)]">
+                                            {{ $job['failed_at'] ?: $job['completed_at'] ?: $job['created_at'] ?: 'Unknown time' }}
+                                        </p>
+                                    </div>
+                                    <x-admin.status-badge :status="$job['status']" />
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
     </section>

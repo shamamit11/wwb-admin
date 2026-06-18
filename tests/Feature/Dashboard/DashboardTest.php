@@ -40,6 +40,52 @@ class DashboardTest extends TestCase
                     ]),
                 ],
             ], 200),
+            $this->apiBaseUrl.'/admin/content-topics?status=suggested&sort=-created_at' => Http::response([
+                'data' => [
+                    ['id' => 31, 'title' => 'Suggested topic'],
+                ],
+            ], 200),
+            $this->apiBaseUrl.'/admin/content-topics?status=approved&sort=-updated_at' => Http::response([
+                'data' => [
+                    ['id' => 32, 'title' => 'Approved topic'],
+                ],
+            ], 200),
+            $this->apiBaseUrl.'/admin/content-briefs?status=draft&sort=-created_at' => Http::response([
+                'data' => [
+                    ['id' => 41, 'title' => 'Draft brief'],
+                ],
+            ], 200),
+            $this->apiBaseUrl.'/admin/content-briefs?status=approved&sort=-approved_at' => Http::response([
+                'data' => [
+                    ['id' => 42, 'title' => 'Approved brief'],
+                ],
+            ], 200),
+            $this->apiBaseUrl.'/admin/ai-jobs?status=failed&sort=-failed_at' => Http::response([
+                'data' => [
+                    [
+                        'id' => 51,
+                        'type' => 'content_brief',
+                        'status' => 'failed',
+                        'provider' => 'openai',
+                        'model' => 'gpt-5',
+                        'created_at' => '2026-06-15T11:00:00Z',
+                        'failed_at' => '2026-06-15T11:05:00Z',
+                    ],
+                ],
+            ], 200),
+            $this->apiBaseUrl.'/admin/ai-jobs?sort=-created_at' => Http::response([
+                'data' => [
+                    [
+                        'id' => 52,
+                        'type' => 'topic_discovery',
+                        'status' => 'completed',
+                        'provider' => 'openai',
+                        'model' => 'gpt-5',
+                        'created_at' => '2026-06-15T10:00:00Z',
+                        'completed_at' => '2026-06-15T10:04:00Z',
+                    ],
+                ],
+            ], 200),
         ]);
 
         $response = $this
@@ -50,7 +96,10 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Draft editorial plan')
             ->assertSee('Published industry recap')
-            ->assertSee('Placeholder only');
+            ->assertSee('Operational Snapshot')
+            ->assertSee('Suggested Topics')
+            ->assertSee('Recent AI Jobs')
+            ->assertSee('Job #52');
     }
 
     public function test_dashboard_shows_safe_error_message_when_service_data_fails(): void
@@ -68,7 +117,8 @@ class DashboardTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Dashboard data could not be loaded from the service API.')
-            ->assertSee('TBC Until Service Support');
+            ->assertSee('Recent AI Jobs')
+            ->assertSee('No recent AI jobs returned');
     }
 
     protected function authenticatedSession(): array
