@@ -6,6 +6,7 @@ use App\Livewire\Admin\AiPrompts\Show as AiPromptShow;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
 use App\Livewire\Admin\AiJobs\Index as AiJobIndex;
 use App\Livewire\Admin\AiJobs\Show as AiJobShow;
+use App\Livewire\Admin\Password\Index as PasswordIndex;
 use App\Livewire\Admin\Categories\Index as CategoryIndex;
 use App\Livewire\Admin\ContentBriefs\Index as ContentBriefIndex;
 use App\Livewire\Admin\ContentBriefs\Show as ContentBriefShow;
@@ -67,6 +68,8 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/seo', SeoIndex::class)->name('seo.index');
 
     Route::get('/settings', SettingsIndex::class)->name('settings.index');
+
+    Route::get('/password', PasswordIndex::class)->name('password.index');
 
     Route::get('/topic-queue', TopicQueueIndex::class)->name('topic-queue.index');
 

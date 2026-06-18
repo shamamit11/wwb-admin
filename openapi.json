@@ -135,6 +135,61 @@
         }
       }
     },
+    "/admin/change-password": {
+      "post": {
+        "operationId": "v1.admin.change-password",
+        "tags": [
+          "AdminPassword"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeAdminPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "password_changed": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "password_changed"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
     "/admin/me": {
       "get": {
         "operationId": "v1.admin.me",
@@ -3106,6 +3161,1154 @@
         }
       }
     },
+    "/public/newsletter/subscribe": {
+      "post": {
+        "operationId": "v1.public.newsletter.subscribe",
+        "tags": [
+          "Newsletter"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscribeNewsletterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`NewsletterSubscriptionStatusResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterSubscriptionStatusResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/public/newsletter/unsubscribe": {
+      "get": {
+        "operationId": "v1.public.newsletter.unsubscribe",
+        "tags": [
+          "Newsletter"
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 255
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`NewsletterSubscriptionStatusResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterSubscriptionStatusResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/campaigns": {
+      "get": {
+        "operationId": "v1.admin.newsletter.campaigns.index",
+        "tags": [
+          "NewsletterCampaign"
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `NewsletterCampaignResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NewsletterCampaignResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "v1.admin.newsletter.campaigns.store",
+        "tags": [
+          "NewsletterCampaign"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreNewsletterCampaignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`NewsletterCampaignResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterCampaignResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/campaigns/{newsletterCampaign}": {
+      "get": {
+        "operationId": "v1.admin.newsletter.campaigns.show",
+        "tags": [
+          "NewsletterCampaign"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterCampaign",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter campaign ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`NewsletterCampaignResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterCampaignResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "v1.admin.newsletter.campaigns.update",
+        "tags": [
+          "NewsletterCampaign"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterCampaign",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter campaign ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNewsletterCampaignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`NewsletterCampaignResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterCampaignResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "v1.admin.newsletter.campaigns.destroy",
+        "tags": [
+          "NewsletterCampaign"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterCampaign",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter campaign ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/campaigns/{newsletterCampaign}/recipients": {
+      "get": {
+        "operationId": "v1.admin.newsletter.campaigns.recipients.index",
+        "tags": [
+          "NewsletterCampaign"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterCampaign",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter campaign ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `NewsletterCampaignRecipientResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NewsletterCampaignRecipientResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/campaigns/{newsletterCampaign}/stage-recipients": {
+      "post": {
+        "operationId": "v1.admin.newsletter.campaigns.recipients.stage",
+        "tags": [
+          "NewsletterCampaign"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterCampaign",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter campaign ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageNewsletterCampaignRecipientsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Array of `NewsletterCampaignRecipientResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NewsletterCampaignRecipientResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/campaigns/{newsletterCampaign}/send": {
+      "post": {
+        "operationId": "v1.admin.newsletter.campaigns.send",
+        "tags": [
+          "NewsletterCampaign"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterCampaign",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter campaign ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`NewsletterCampaignResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterCampaignResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/lists": {
+      "get": {
+        "operationId": "v1.admin.newsletter.lists.index",
+        "tags": [
+          "NewsletterList"
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `NewsletterListResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NewsletterListResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "v1.admin.newsletter.lists.store",
+        "tags": [
+          "NewsletterList"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreNewsletterListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`NewsletterListResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterListResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/lists/{newsletterList}": {
+      "get": {
+        "operationId": "v1.admin.newsletter.lists.show",
+        "tags": [
+          "NewsletterList"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterList",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter list ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`NewsletterListResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterListResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "v1.admin.newsletter.lists.update",
+        "tags": [
+          "NewsletterList"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterList",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter list ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNewsletterListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`NewsletterListResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterListResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "v1.admin.newsletter.lists.destroy",
+        "tags": [
+          "NewsletterList"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterList",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter list ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/subscribers": {
+      "get": {
+        "operationId": "v1.admin.newsletter.subscribers.index",
+        "tags": [
+          "NewsletterSubscriber"
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `NewsletterSubscriberResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NewsletterSubscriberResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "v1.admin.newsletter.subscribers.store",
+        "tags": [
+          "NewsletterSubscriber"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreNewsletterSubscriberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`NewsletterSubscriberResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterSubscriberResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/subscribers/{newsletterSubscriber}": {
+      "get": {
+        "operationId": "v1.admin.newsletter.subscribers.show",
+        "tags": [
+          "NewsletterSubscriber"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterSubscriber",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter subscriber ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`NewsletterSubscriberResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterSubscriberResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "v1.admin.newsletter.subscribers.update",
+        "tags": [
+          "NewsletterSubscriber"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterSubscriber",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter subscriber ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNewsletterSubscriberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`NewsletterSubscriberResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterSubscriberResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/subscribers/{newsletterSubscriber}/unsubscribe": {
+      "post": {
+        "operationId": "v1.admin.newsletter.subscribers.unsubscribe",
+        "tags": [
+          "NewsletterSubscriber"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterSubscriber",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter subscriber ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`NewsletterSubscriberResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterSubscriberResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/newsletter/subscribers/{newsletterSubscriber}/resubscribe": {
+      "post": {
+        "operationId": "v1.admin.newsletter.subscribers.resubscribe",
+        "tags": [
+          "NewsletterSubscriber"
+        ],
+        "parameters": [
+          {
+            "name": "newsletterSubscriber",
+            "in": "path",
+            "required": true,
+            "description": "The newsletter subscriber ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`NewsletterSubscriberResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/NewsletterSubscriberResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/public/newsletter/track/open/{recipient}": {
+      "get": {
+        "operationId": "v1.public.newsletter.track.open",
+        "tags": [
+          "NewsletterTracking"
+        ],
+        "parameters": [
+          {
+            "name": "recipient",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "image/gif": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-cache, no-store, must-revalidate"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "An error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Error overview.",
+                      "example": ""
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/newsletter/track/click/{recipient}/{target}": {
+      "get": {
+        "operationId": "v1.public.newsletter.track.click",
+        "tags": [
+          "NewsletterTracking"
+        ],
+        "parameters": [
+          {
+            "name": "recipient",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "target",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "An error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Error overview.",
+                      "example": ""
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/public/newsletter/webhooks/events": {
+      "post": {
+        "operationId": "v1.public.newsletter.webhooks.events",
+        "tags": [
+          "NewsletterWebhook"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessNewsletterWebhookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "processed": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "processed"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
     "/admin/pages": {
       "get": {
         "operationId": "v1.admin.pages.index",
@@ -3494,6 +4697,46 @@
           },
           {
             "name": "author_user_id",
+            "in": "query",
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "is_ai_generated",
+            "in": "query",
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "source_content_brief_id",
+            "in": "query",
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "source_content_topic_id",
+            "in": "query",
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "generated_by_ai_job_id",
             "in": "query",
             "schema": {
               "type": [
@@ -6038,6 +7281,26 @@
         ],
         "title": "CategoryResource"
       },
+      "ChangeAdminPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "current_password": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "password_confirmation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_password",
+          "password",
+          "password_confirmation"
+        ],
+        "title": "ChangeAdminPasswordRequest"
+      },
       "ContentBriefResource": {
         "type": "object",
         "properties": {
@@ -6746,6 +8009,382 @@
         ],
         "title": "MediaResource"
       },
+      "NewsletterCampaignRecipientResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "newsletter_campaign_id": {
+            "type": "integer"
+          },
+          "newsletter_subscriber_id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/NewsletterRecipientStatus"
+              }
+            ]
+          },
+          "error_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sent_at": {
+            "type": "string"
+          },
+          "failed_at": {
+            "type": "string"
+          },
+          "opened_at": {
+            "type": "string"
+          },
+          "clicked_at": {
+            "type": "string"
+          },
+          "unsubscribed_at": {
+            "type": "string"
+          },
+          "subscriber": {
+            "$ref": "#/components/schemas/NewsletterSubscriberResource"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "newsletter_campaign_id",
+          "newsletter_subscriber_id",
+          "email",
+          "status",
+          "error_message",
+          "sent_at",
+          "failed_at",
+          "opened_at",
+          "clicked_at",
+          "unsubscribed_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "NewsletterCampaignRecipientResource"
+      },
+      "NewsletterCampaignResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "preview_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_markdown": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_html": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/NewsletterCampaignStatus"
+              }
+            ]
+          },
+          "scheduled_at": {
+            "type": "string"
+          },
+          "sent_at": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "array",
+            "items": {}
+          },
+          "recipients_count": {
+            "type": "integer"
+          },
+          "creator": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsletterCampaignRecipientResource"
+            }
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "subject",
+          "preview_text",
+          "content_markdown",
+          "content_html",
+          "status",
+          "scheduled_at",
+          "sent_at",
+          "metadata",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "NewsletterCampaignResource"
+      },
+      "NewsletterCampaignStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "scheduled",
+          "sending",
+          "sent",
+          "cancelled",
+          "failed"
+        ],
+        "title": "NewsletterCampaignStatus"
+      },
+      "NewsletterListResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/NewsletterListStatus"
+              }
+            ]
+          },
+          "subscribers_count": {
+            "type": "integer"
+          },
+          "subscribers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsletterSubscriberResource"
+            }
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "NewsletterListResource"
+      },
+      "NewsletterListStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "inactive"
+        ],
+        "title": "NewsletterListStatus"
+      },
+      "NewsletterRecipientStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "sent",
+          "failed",
+          "skipped",
+          "unsubscribed"
+        ],
+        "title": "NewsletterRecipientStatus"
+      },
+      "NewsletterSubscriberResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/NewsletterSubscriberStatus"
+              }
+            ]
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subscribed_at": {
+            "type": "string"
+          },
+          "unsubscribed_at": {
+            "type": "string"
+          },
+          "unsubscribe_token": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "array",
+            "items": {}
+          },
+          "lists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsletterListResource"
+            }
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "status",
+          "source",
+          "subscribed_at",
+          "unsubscribed_at",
+          "unsubscribe_token",
+          "metadata",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "NewsletterSubscriberResource"
+      },
+      "NewsletterSubscriberStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "unsubscribed",
+          "bounced",
+          "complained"
+        ],
+        "title": "NewsletterSubscriberStatus"
+      },
+      "NewsletterSubscriptionStatusResource": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "subscribed_at": {
+            "type": "string"
+          },
+          "unsubscribed_at": {
+            "type": "string"
+          },
+          "lists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsletterListResource"
+            }
+          }
+        },
+        "required": [
+          "email",
+          "status",
+          "subscribed_at",
+          "unsubscribed_at",
+          "lists"
+        ],
+        "title": "NewsletterSubscriptionStatusResource"
+      },
       "PageResource": {
         "type": "object",
         "properties": {
@@ -6978,8 +8617,38 @@
           "is_featured": {
             "type": "boolean"
           },
+          "is_ai_generated": {
+            "type": "string"
+          },
+          "source_content_brief_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_content_topic_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "generated_by_ai_job_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "generated_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "meta": {
-            "type": "array",
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {}
           },
           "author": {
@@ -7140,11 +8809,65 @@
           "reading_time_minutes",
           "word_count",
           "is_featured",
+          "is_ai_generated",
+          "source_content_brief_id",
+          "source_content_topic_id",
+          "generated_by_ai_job_id",
+          "generated_by",
           "meta",
           "created_at",
           "updated_at"
         ],
         "title": "PostResource"
+      },
+      "ProcessNewsletterWebhookRequest": {
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "delivered",
+              "opened",
+              "clicked",
+              "bounced",
+              "complained",
+              "unsubscribed"
+            ]
+          },
+          "recipient_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email",
+            "maxLength": 255
+          },
+          "occurred_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "target_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "event_type"
+        ],
+        "title": "ProcessNewsletterWebhookRequest"
       },
       "PublicCategoryDetailResource": {
         "type": "object",
@@ -7738,6 +9461,27 @@
         ],
         "title": "SitemapEntryResource"
       },
+      "StageNewsletterCampaignRecipientsRequest": {
+        "type": "object",
+        "properties": {
+          "include_all_active_subscribers": {
+            "type": "boolean"
+          },
+          "subscriber_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "list_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "title": "StageNewsletterCampaignRecipientsRequest"
+      },
       "StoreAiPromptTemplateRequest": {
         "type": "object",
         "properties": {
@@ -8136,6 +9880,148 @@
         ],
         "title": "StoreMediaRequest"
       },
+      "StoreNewsletterCampaignRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "preview_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "content_markdown": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_html": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "sending",
+              "sent",
+              "cancelled",
+              "failed"
+            ]
+          },
+          "scheduled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "sent_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "metadata": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "subject"
+        ],
+        "title": "StoreNewsletterCampaignRequest"
+      },
+      "StoreNewsletterListRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 180
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "status"
+        ],
+        "title": "StoreNewsletterListRequest"
+      },
+      "StoreNewsletterSubscriberRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "metadata": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "StoreNewsletterSubscriberRequest"
+      },
       "StorePageRequest": {
         "type": "object",
         "properties": {
@@ -8528,6 +10414,52 @@
           "blocks"
         ],
         "title": "StoreTemplateRequest"
+      },
+      "SubscribeNewsletterRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "metadata": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "list_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "SubscribeNewsletterRequest"
       },
       "TagResource": {
         "type": "object",
@@ -9603,6 +11535,159 @@
           "source_type"
         ],
         "title": "UpdateMediaRequest"
+      },
+      "UpdateNewsletterCampaignRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "preview_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "content_markdown": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_html": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "sending",
+              "sent",
+              "cancelled",
+              "failed"
+            ]
+          },
+          "scheduled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "sent_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "metadata": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "subject",
+          "status"
+        ],
+        "title": "UpdateNewsletterCampaignRequest"
+      },
+      "UpdateNewsletterListRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 180
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "status"
+        ],
+        "title": "UpdateNewsletterListRequest"
+      },
+      "UpdateNewsletterSubscriberRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "unsubscribed",
+              "bounced",
+              "complained"
+            ]
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "metadata": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "email",
+          "status"
+        ],
+        "title": "UpdateNewsletterSubscriberRequest"
       },
       "UpdatePageRequest": {
         "type": "object",

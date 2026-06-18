@@ -35,6 +35,7 @@ class AdminNavigationTest extends TestCase
             'knowledge-base.index',
             'seo.index',
             'settings.index',
+            'password.index',
             'topic-queue.index',
             'content-briefs.index',
             'draft-review.index',
