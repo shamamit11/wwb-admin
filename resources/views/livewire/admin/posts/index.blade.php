@@ -20,43 +20,29 @@
 
     <div class="grid gap-4 md:grid-cols-3">
         @foreach ($stats as $stat)
-            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-4 shadow-[var(--shadow-card)]">
-                <div class="flex items-center gap-4">
-                    <div
-                        @class([
-                            'flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-button)]',
-                            'bg-[color-mix(in_srgb,var(--color-success)_12%,white)] text-[var(--color-success-strong)]' => $stat['tone'] === 'success',
-                            'bg-[color-mix(in_srgb,#3b82f6_12%,white)] text-[#2563eb]' => $stat['tone'] === 'info',
-                            'bg-[color-mix(in_srgb,var(--color-warning)_16%,white)] text-[var(--color-warning-strong)]' => $stat['tone'] === 'warning',
-                        ])
-                    >
-                        @if ($stat['tone'] === 'success')
-                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/>
-                                <path d="m7.6 10 1.55 1.55L12.4 8.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        @elseif ($stat['tone'] === 'info')
-                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/>
-                                <path d="M10 6.8v3.6l2.2 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        @else
-                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <path d="M5.5 12.75 8.15 10.1l1.95 1.95 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M13.25 7.65h1.95V9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        @endif
-                    </div>
-
-                    <div class="min-w-0">
-                        <p class="text-xs font-medium text-[var(--color-muted)]">{{ $stat['label'] }}</p>
-                        <p class="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">
-                            {{ $stat['value'] }}
-                            <span class="text-base font-semibold">{{ str($stat['suffix'])->headline() }}</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <x-admin.stat-card
+                :label="$stat['label']"
+                :value="$stat['value']"
+                :suffix="str($stat['suffix'])->headline()"
+                :tone="$stat['tone'] ?? 'default'"
+            >
+                @if ($stat['tone'] === 'success')
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="m7.6 10 1.55 1.55L12.4 8.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                @elseif ($stat['tone'] === 'info')
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M10 6.8v3.6l2.2 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                @else
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M5.5 12.75 8.15 10.1l1.95 1.95 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M13.25 7.65h1.95V9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                @endif
+            </x-admin.stat-card>
         @endforeach
     </div>
 

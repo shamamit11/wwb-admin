@@ -17,10 +17,7 @@
 
     <div class="grid gap-4 md:grid-cols-3">
         @foreach ($stats as $stat)
-            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-4 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">{{ $stat['label'] }}</p>
-                <p class="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--color-ink)]">{{ $stat['value'] }}</p>
-            </div>
+            <x-admin.stat-card :label="$stat['label']" :value="$stat['value']" :tone="$stat['tone'] ?? 'default'" />
         @endforeach
     </div>
 
