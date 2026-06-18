@@ -253,33 +253,33 @@
                         </x-ui.table-cell>
                     @endif
                     <x-ui.table-cell align="right">
-                        <div class="flex flex-wrap items-center justify-end gap-2">
-                            <x-ui.button as="a" :href="$aiReviewMode ? route('draft-review.show', ['post' => $post['id']]) : route('posts.edit', ['post' => $post['id']])" variant="outline" size="sm">
+                        <x-admin.row-actions>
+                            <x-admin.row-action as="a" :href="$aiReviewMode ? route('draft-review.show', ['post' => $post['id']]) : route('posts.edit', ['post' => $post['id']])">
                                 {{ $aiReviewMode ? 'Review' : 'Edit' }}
-                            </x-ui.button>
+                            </x-admin.row-action>
 
                             @if ($post['can_publish'])
-                                <x-ui.button type="button" variant="secondary" size="sm" wire:click="openActionDialog('publish', {{ $post['id'] }})">
+                                <x-admin.row-action type="button" wire:click="openActionDialog('publish', {{ $post['id'] }})">
                                     Publish
-                                </x-ui.button>
+                                </x-admin.row-action>
                             @endif
 
                             @if ($post['can_schedule'])
-                                <x-ui.button type="button" variant="secondary" size="sm" wire:click="openActionDialog('schedule', {{ $post['id'] }})">
+                                <x-admin.row-action type="button" wire:click="openActionDialog('schedule', {{ $post['id'] }})">
                                     Schedule
-                                </x-ui.button>
+                                </x-admin.row-action>
                             @endif
 
                             @if ($post['can_unpublish'])
-                                <x-ui.button type="button" variant="secondary" size="sm" wire:click="openActionDialog('unpublish', {{ $post['id'] }})">
+                                <x-admin.row-action type="button" wire:click="openActionDialog('unpublish', {{ $post['id'] }})">
                                     Unpublish
-                                </x-ui.button>
+                                </x-admin.row-action>
                             @endif
 
-                            <x-ui.button type="button" variant="ghost" size="sm" class="text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="openActionDialog('delete', {{ $post['id'] }})">
+                            <x-admin.row-action type="button" tone="danger" wire:click="openActionDialog('delete', {{ $post['id'] }})">
                                 Delete
-                            </x-ui.button>
-                        </div>
+                            </x-admin.row-action>
+                        </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty

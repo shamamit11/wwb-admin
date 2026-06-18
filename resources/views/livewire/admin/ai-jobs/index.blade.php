@@ -111,7 +111,9 @@
                     <x-ui.table-cell subdued>{{ $job['completed_at'] ?: 'Not completed' }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $job['failed_at'] ?: 'Not failed' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
-                        <x-ui.button as="a" :href="route('ai-jobs.show', ['aiJob' => $job['id']])" variant="outline" size="sm">Inspect</x-ui.button>
+                        <x-admin.row-actions>
+                            <x-admin.row-action as="a" :href="route('ai-jobs.show', ['aiJob' => $job['id']])">Inspect</x-admin.row-action>
+                        </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty

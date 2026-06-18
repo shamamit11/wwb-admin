@@ -121,7 +121,9 @@
                     <x-ui.table-cell subdued>{{ $topic['source'] === 'ai_suggested' ? 'AI Suggested' : 'Manual' }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $topic['created_at'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
-                        <x-ui.button as="a" :href="route('topic-queue.show', ['topic' => $topic['id']])" variant="outline" size="sm">Review</x-ui.button>
+                        <x-admin.row-actions>
+                            <x-admin.row-action as="a" :href="route('topic-queue.show', ['topic' => $topic['id']])">Review</x-admin.row-action>
+                        </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty

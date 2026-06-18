@@ -111,7 +111,9 @@
                     <x-ui.table-cell subdued>{{ $brief['created_at'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $brief['approved_at'] ?: 'Not approved' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
-                        <x-ui.button as="a" :href="route('content-briefs.show', ['contentBrief' => $brief['id']])" variant="outline" size="sm">Review</x-ui.button>
+                        <x-admin.row-actions>
+                            <x-admin.row-action as="a" :href="route('content-briefs.show', ['contentBrief' => $brief['id']])">Review</x-admin.row-action>
+                        </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty

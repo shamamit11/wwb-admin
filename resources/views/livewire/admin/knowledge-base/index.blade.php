@@ -102,12 +102,10 @@
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $entry['updated_at'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
-                        <div class="flex flex-wrap items-center justify-end gap-2">
-                            <x-ui.button as="a" :href="route('knowledge-base.edit', ['knowledgeBaseEntry' => $entry['id']])" variant="outline" size="sm">Edit</x-ui.button>
-                            <x-ui.button type="button" variant="ghost" size="sm" class="text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="confirmDelete({{ $entry['id'] }})">
-                                Delete
-                            </x-ui.button>
-                        </div>
+                        <x-admin.row-actions>
+                            <x-admin.row-action as="a" :href="route('knowledge-base.edit', ['knowledgeBaseEntry' => $entry['id']])">Edit</x-admin.row-action>
+                            <x-admin.row-action type="button" tone="danger" wire:click="confirmDelete({{ $entry['id'] }})">Delete</x-admin.row-action>
+                        </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty

@@ -111,48 +111,12 @@
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $template['updated_at'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
-                        <div class="flex flex-wrap items-center justify-end gap-2">
-                            <x-ui.button
-                                type="button"
-                                variant="secondary"
-                                class="h-10 px-3 text-sm"
-                                wire:click="openActionDrawer('preview', {{ $template['id'] }})"
-                            >
-                                Preview
-                            </x-ui.button>
-                            <x-ui.button
-                                type="button"
-                                variant="secondary"
-                                class="h-10 px-3 text-sm"
-                                wire:click="openActionDrawer('seed', {{ $template['id'] }})"
-                            >
-                                Seed Post
-                            </x-ui.button>
-                            <x-ui.button
-                                type="button"
-                                variant="ghost"
-                                class="h-12 w-12 px-0 bg-[color-mix(in_srgb,var(--color-warning)_12%,white)] text-[var(--color-warning-strong)] ring-1 ring-[color-mix(in_srgb,var(--color-warning)_18%,white)] hover:bg-[color-mix(in_srgb,var(--color-warning)_18%,white)] hover:text-[var(--color-warning-strong)]"
-                                wire:click="openEditDrawer({{ $template['id'] }})"
-                                aria-label="Edit template {{ $template['name'] }}"
-                                title="Edit"
-                            >
-                                <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="m13.75 4.75 1.5 1.5M5 15l2.75-.5L15.5 6.75a1.06 1.06 0 0 0 0-1.5l-.75-.75a1.06 1.06 0 0 0-1.5 0L5.5 12.25 5 15Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </x-ui.button>
-                            <x-ui.button
-                                type="button"
-                                variant="ghost"
-                                class="h-12 w-12 px-0 bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] text-[var(--color-danger-strong)] ring-1 ring-[color-mix(in_srgb,var(--color-danger)_18%,white)] hover:bg-[color-mix(in_srgb,var(--color-danger)_16%,white)] hover:text-[var(--color-danger-strong)]"
-                                wire:click="confirmDelete({{ $template['id'] }})"
-                                aria-label="Delete template {{ $template['name'] }}"
-                                title="Delete"
-                            >
-                                <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="M4.75 6.25h10.5M8 8.75v5.5M12 8.75v5.5M6.5 6.25l.5-1.5A1 1 0 0 1 7.95 4h4.1a1 1 0 0 1 .95.75l.5 1.5M6.25 6.25l.4 8.15A1.5 1.5 0 0 0 8.15 15.8h3.7a1.5 1.5 0 0 0 1.5-1.4l.4-8.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </x-ui.button>
-                        </div>
+                        <x-admin.row-actions>
+                            <x-admin.row-action type="button" wire:click="openActionDrawer('preview', {{ $template['id'] }})">Preview</x-admin.row-action>
+                            <x-admin.row-action type="button" wire:click="openActionDrawer('seed', {{ $template['id'] }})">Seed Post</x-admin.row-action>
+                            <x-admin.row-action type="button" wire:click="openEditDrawer({{ $template['id'] }})">Edit</x-admin.row-action>
+                            <x-admin.row-action type="button" tone="danger" wire:click="confirmDelete({{ $template['id'] }})">Delete</x-admin.row-action>
+                        </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty
