@@ -76,6 +76,10 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/content-briefs/{contentBrief}', ContentBriefShow::class)->name('content-briefs.show');
 
+    Route::get('/draft-review', PostIndex::class)->name('draft-review.index');
+
+    Route::get('/draft-review/{post}', PostEditor::class)->name('draft-review.show');
+
     Route::get('/ai-prompts', AiPromptIndex::class)->name('ai-prompts.index');
 
     Route::get('/ai-prompts/create', AiPromptShow::class)->name('ai-prompts.create');

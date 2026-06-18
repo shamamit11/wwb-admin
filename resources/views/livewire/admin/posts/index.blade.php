@@ -1,12 +1,18 @@
 <div class="space-y-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <x-admin.page-header
-            title="Posts"
-            description="Manage editorial inventory, publish state, category assignment, and entry points into the structured post editor."
+            :title="$aiReviewMode ? 'Draft Review' : 'Posts'"
+            :description="$aiReviewMode
+                ? 'Review AI-generated draft posts, inspect source provenance, and promote only after manual editorial approval.'
+                : 'Manage editorial inventory, publish state, category assignment, and entry points into the structured post editor.'"
         />
 
         <div class="shrink-0 lg:pt-1">
-            <x-ui.button as="a" :href="route('posts.create')">Create Post</x-ui.button>
+            @if ($aiReviewMode)
+                <x-ui.button as="a" :href="route('posts.index')" variant="secondary">Back to Posts</x-ui.button>
+            @else
+                <x-ui.button as="a" :href="route('posts.create')">Create Post</x-ui.button>
+            @endif
         </div>
     </div>
 
@@ -71,33 +77,35 @@
         </x-slot:search>
 
         <x-slot:filters>
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="w-[11rem] shrink-0">
-                    <x-ui.select wire:model.live="statusFilter">
-                        <option value="all">All statuses</option>
-                        @foreach ($statusOptions as $statusOption)
-                            <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
+            @if (! $aiReviewMode)
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="w-[11rem] shrink-0">
+                        <x-ui.select wire:model.live="statusFilter">
+                            <option value="all">All statuses</option>
+                            @foreach ($statusOptions as $statusOption)
+                                <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </div>
 
-                <div class="w-[11rem] shrink-0">
-                    <x-ui.select wire:model.live="visibilityFilter">
-                        <option value="all">All visibility</option>
-                        @foreach ($visibilityOptions as $visibilityOption)
-                            <option value="{{ $visibilityOption }}">{{ str($visibilityOption)->headline() }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
+                    <div class="w-[11rem] shrink-0">
+                        <x-ui.select wire:model.live="visibilityFilter">
+                            <option value="all">All visibility</option>
+                            @foreach ($visibilityOptions as $visibilityOption)
+                                <option value="{{ $visibilityOption }}">{{ str($visibilityOption)->headline() }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </div>
 
-                <div class="w-[11rem] shrink-0">
-                    <x-ui.select wire:model.live="featuredFilter">
-                        <option value="all">All posts</option>
-                        <option value="featured">Featured only</option>
-                        <option value="standard">Standard only</option>
-                    </x-ui.select>
+                    <div class="w-[11rem] shrink-0">
+                        <x-ui.select wire:model.live="featuredFilter">
+                            <option value="all">All posts</option>
+                            <option value="featured">Featured only</option>
+                            <option value="standard">Standard only</option>
+                        </x-ui.select>
+                    </div>
                 </div>
-            </div>
+            @endif
         </x-slot:filters>
 
         <x-slot:secondary>
@@ -116,21 +124,33 @@
                         <span class="text-[10px] leading-none">{{ $sortColumn === 'title' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
                     </button>
                 </x-ui.table-heading>
-                <x-ui.table-heading>Status</x-ui.table-heading>
-                <x-ui.table-heading>Category</x-ui.table-heading>
-                <x-ui.table-heading>Author</x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('published_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Published</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'published_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Updated</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'updated_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
+                @if ($aiReviewMode)
+                    <x-ui.table-heading>Source Brief</x-ui.table-heading>
+                    <x-ui.table-heading>Source Topic</x-ui.table-heading>
+                    <x-ui.table-heading>Generated By</x-ui.table-heading>
+                    <x-ui.table-heading>
+                        <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
+                            <span>Updated</span>
+                            <span class="text-[10px] leading-none">{{ $sortColumn === 'updated_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
+                        </button>
+                    </x-ui.table-heading>
+                @else
+                    <x-ui.table-heading>Status</x-ui.table-heading>
+                    <x-ui.table-heading>Category</x-ui.table-heading>
+                    <x-ui.table-heading>Author</x-ui.table-heading>
+                    <x-ui.table-heading>
+                        <button type="button" wire:click="sortBy('published_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
+                            <span>Published</span>
+                            <span class="text-[10px] leading-none">{{ $sortColumn === 'published_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
+                        </button>
+                    </x-ui.table-heading>
+                    <x-ui.table-heading>
+                        <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
+                            <span>Updated</span>
+                            <span class="text-[10px] leading-none">{{ $sortColumn === 'updated_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
+                        </button>
+                    </x-ui.table-heading>
+                @endif
                 <x-ui.table-heading align="right">Actions</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
@@ -145,6 +165,9 @@
                                 @if ($post['is_featured'])
                                     <x-ui.badge tone="warning">Featured</x-ui.badge>
                                 @endif
+                                @if ($post['is_ai_generated'])
+                                    <x-ui.badge tone="default">AI Draft</x-ui.badge>
+                                @endif
                             </div>
 
                             <p class="mt-1 text-sm text-[var(--color-muted)]">
@@ -156,42 +179,88 @@
                             @endif
                         </div>
                     </x-ui.table-cell>
-                    <x-ui.table-cell>
-                        <div class="space-y-2">
-                            <x-admin.status-badge :status="$post['status']" />
-                            <x-ui.badge tone="muted">{{ str($post['visibility'])->headline() }}</x-ui.badge>
-                        </div>
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        {{ $post['category_name'] ?: 'Unassigned' }}
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        {{ $post['author_name'] ?: 'Unknown' }}
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        <div class="space-y-1">
-                            <p>{{ $post['published_at'] ?: 'Not published' }}</p>
-                            @if ($post['scheduled_for'])
-                                <p class="text-xs text-[var(--color-muted)]">Scheduled: {{ $post['scheduled_for'] }}</p>
+                    @if ($aiReviewMode)
+                        <x-ui.table-cell subdued>
+                            @if ($post['source_content_brief_id'])
+                                <a href="{{ route('content-briefs.show', ['contentBrief' => $post['source_content_brief_id']]) }}" class="transition-colors hover:text-[var(--color-ink)]">
+                                    Brief #{{ $post['source_content_brief_id'] }}
+                                </a>
+                            @else
+                                Not linked
                             @endif
-                        </div>
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        <div class="space-y-1">
-                            <p>{{ $post['updated_at'] ?: 'Unknown' }}</p>
-                            @if ($post['reading_time_minutes'] || $post['word_count'])
-                                <p class="text-xs text-[var(--color-muted)]">
-                                    {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time TBC' }}
-                                    @if ($post['word_count'])
-                                        · {{ number_format($post['word_count']) }} words
-                                    @endif
-                                </p>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            @if ($post['source_content_topic_id'])
+                                <a href="{{ route('topic-queue.show', ['topic' => $post['source_content_topic_id']]) }}" class="transition-colors hover:text-[var(--color-ink)]">
+                                    Topic #{{ $post['source_content_topic_id'] }}
+                                </a>
+                            @else
+                                Not linked
                             @endif
-                        </div>
-                    </x-ui.table-cell>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            <div class="space-y-1">
+                                <p>{{ $post['generated_by'] ?: 'Unknown agent' }}</p>
+                                @if ($post['generated_by_ai_job_id'])
+                                    <a href="{{ route('ai-jobs.show', ['aiJob' => $post['generated_by_ai_job_id']]) }}" class="text-xs transition-colors hover:text-[var(--color-ink)]">
+                                        Job #{{ $post['generated_by_ai_job_id'] }}
+                                    </a>
+                                @endif
+                            </div>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            <div class="space-y-1">
+                                <p>{{ $post['updated_at'] ?: 'Unknown' }}</p>
+                                @if ($post['reading_time_minutes'] || $post['word_count'])
+                                    <p class="text-xs text-[var(--color-muted)]">
+                                        {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time TBC' }}
+                                        @if ($post['word_count'])
+                                            · {{ number_format($post['word_count']) }} words
+                                        @endif
+                                    </p>
+                                @endif
+                            </div>
+                        </x-ui.table-cell>
+                    @else
+                        <x-ui.table-cell>
+                            <div class="space-y-2">
+                                <x-admin.status-badge :status="$post['status']" />
+                                <x-ui.badge tone="muted">{{ str($post['visibility'])->headline() }}</x-ui.badge>
+                            </div>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            {{ $post['category_name'] ?: 'Unassigned' }}
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            {{ $post['author_name'] ?: 'Unknown' }}
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            <div class="space-y-1">
+                                <p>{{ $post['published_at'] ?: 'Not published' }}</p>
+                                @if ($post['scheduled_for'])
+                                    <p class="text-xs text-[var(--color-muted)]">Scheduled: {{ $post['scheduled_for'] }}</p>
+                                @endif
+                            </div>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            <div class="space-y-1">
+                                <p>{{ $post['updated_at'] ?: 'Unknown' }}</p>
+                                @if ($post['reading_time_minutes'] || $post['word_count'])
+                                    <p class="text-xs text-[var(--color-muted)]">
+                                        {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time TBC' }}
+                                        @if ($post['word_count'])
+                                            · {{ number_format($post['word_count']) }} words
+                                        @endif
+                                    </p>
+                                @endif
+                            </div>
+                        </x-ui.table-cell>
+                    @endif
                     <x-ui.table-cell align="right">
                         <div class="flex flex-wrap items-center justify-end gap-2">
-                            <x-ui.button as="a" :href="route('posts.edit', ['post' => $post['id']])" variant="outline" size="sm">Edit</x-ui.button>
+                            <x-ui.button as="a" :href="$aiReviewMode ? route('draft-review.show', ['post' => $post['id']]) : route('posts.edit', ['post' => $post['id']])" variant="outline" size="sm">
+                                {{ $aiReviewMode ? 'Review' : 'Edit' }}
+                            </x-ui.button>
 
                             @if ($post['can_publish'])
                                 <x-ui.button type="button" variant="secondary" size="sm" wire:click="openActionDialog('publish', {{ $post['id'] }})">
@@ -219,9 +288,11 @@
                 </x-ui.table-row>
             @empty
                 <x-ui.table-empty
-                    colspan="7"
-                    title="No posts match the current view"
-                    message="Adjust the search or filters, or create a new post to start the editorial workflow."
+                    :colspan="$aiReviewMode ? 6 : 7"
+                    :title="$aiReviewMode ? 'No AI drafts are waiting for review' : 'No posts match the current view'"
+                    :message="$aiReviewMode
+                        ? 'AI-generated draft posts will appear here once the Service creates them for manual editorial review.'
+                        : 'Adjust the search or filters, or create a new post to start the editorial workflow.'"
                 />
             @endforelse
         </x-ui.table-body>

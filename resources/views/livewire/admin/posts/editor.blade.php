@@ -1,14 +1,18 @@
 <div class="space-y-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <x-admin.page-header
-            :title="$editingPostId ? 'Edit Post' : 'Create Post'"
-            description="Build structured editorial content in the main canvas while keeping status, taxonomy, media, and publishing metadata visible in the side panel."
+            :title="$aiReviewMode ? 'Review AI Draft' : ($editingPostId ? 'Edit Post' : 'Create Post')"
+            :description="$aiReviewMode
+                ? 'Review AI-generated content, inspect source provenance and suggestions, then publish manually when the draft is ready.'
+                : 'Build structured editorial content in the main canvas while keeping status, taxonomy, media, and publishing metadata visible in the side panel.'"
         />
 
         <div class="flex flex-wrap items-center gap-3 lg:pt-1">
-            <x-ui.button as="a" :href="route('posts.index')" variant="secondary">Back to Posts</x-ui.button>
+            <x-ui.button as="a" :href="$aiReviewMode ? route('draft-review.index') : route('posts.index')" variant="secondary">
+                {{ $aiReviewMode ? 'Back to Draft Review' : 'Back to Posts' }}
+            </x-ui.button>
             <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
-                <span wire:loading.remove wire:target="save">{{ $editingPostId ? 'Save Post' : 'Create Post' }}</span>
+                <span wire:loading.remove wire:target="save">{{ $aiReviewMode ? 'Save Review Changes' : ($editingPostId ? 'Save Post' : 'Create Post') }}</span>
                 <span wire:loading wire:target="save">Saving…</span>
             </x-ui.button>
         </div>
@@ -26,8 +30,36 @@
         </div>
     @endif
 
+    @if ($aiReviewMode && $isAiGenerated)
+        <div class="rounded-[var(--radius-card)] border border-[color-mix(in_srgb,var(--color-warning)_20%,white)] bg-[color-mix(in_srgb,var(--color-warning)_10%,white)] px-5 py-4 text-sm text-[var(--color-warning-strong)]">
+            AI-generated drafts never bypass manual review. Validate the content, SEO, taxonomy, and suggested assets before publishing.
+        </div>
+    @endif
+
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_22rem]">
         <div class="space-y-6">
+            @if ($aiReviewMode && $isAiGenerated && $aiSuggestionSections !== [])
+                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+                    <div class="space-y-1">
+                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">AI Suggestions</h2>
+                        <p class="text-sm text-[var(--color-muted)]">These suggestions come from the Service-side draft generation workflow and remain advisory until a human editor accepts them.</p>
+                    </div>
+
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        @foreach ($aiSuggestionSections as $section)
+                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $section['title'] }}</p>
+                                <ul class="mt-3 space-y-2 text-sm text-[var(--color-ink)]">
+                                    @foreach ($section['items'] as $item)
+                                        <li>{{ $item }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Core Content</h2>
@@ -363,6 +395,52 @@
         </div>
 
         <aside class="space-y-6 xl:sticky xl:top-6 xl:self-start">
+            @if ($aiReviewMode && $isAiGenerated)
+                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                    <div class="space-y-1">
+                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">AI Draft Context</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Use the source links and job provenance to verify how this draft entered the editorial workflow.</p>
+                    </div>
+
+                    <div class="space-y-4 text-sm text-[var(--color-muted)]">
+                        <div class="flex items-center justify-between gap-3">
+                            <span>Generated By</span>
+                            <span class="text-right text-[var(--color-ink)]">{{ $generatedBy ?: 'Unknown agent' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span>Source Brief</span>
+                            @if ($sourceContentBriefLink)
+                                <a href="{{ $sourceContentBriefLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
+                                    Brief #{{ $sourceContentBriefId }}
+                                </a>
+                            @else
+                                <span class="text-right">Not linked</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span>Source Topic</span>
+                            @if ($sourceContentTopicLink)
+                                <a href="{{ $sourceContentTopicLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
+                                    Topic #{{ $sourceContentTopicId }}
+                                </a>
+                            @else
+                                <span class="text-right">Not linked</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span>AI Job</span>
+                            @if ($generatedByAiJobLink)
+                                <a href="{{ $generatedByAiJobLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
+                                    Job #{{ $generatedByAiJobId }}
+                                </a>
+                            @else
+                                <span class="text-right">Not linked</span>
+                            @endif
+                        </div>
+                    </div>
+                </section>
+            @endif
+
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Status</h2>

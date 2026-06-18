@@ -37,6 +37,7 @@ class AdminNavigationTest extends TestCase
             'settings.index',
             'topic-queue.index',
             'content-briefs.index',
+            'draft-review.index',
             'ai-prompts.index',
             'ai-jobs.index',
         ] as $route) {

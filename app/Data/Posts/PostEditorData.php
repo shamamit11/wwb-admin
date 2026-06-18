@@ -23,9 +23,15 @@ class PostEditorData
         public readonly ?int $wordCount,
         public readonly bool $isFeatured,
         public readonly string $metaJson,
+        public readonly array $meta,
         public readonly array $tagIds,
         public readonly array $blocks,
         public readonly ?string $canonicalUrl,
+        public readonly bool $isAiGenerated,
+        public readonly ?int $sourceContentBriefId,
+        public readonly ?int $sourceContentTopicId,
+        public readonly ?int $generatedByAiJobId,
+        public readonly ?string $generatedBy,
     ) {
     }
 
@@ -53,6 +59,7 @@ class PostEditorData
             wordCount: Arr::get($post, 'word_count'),
             isFeatured: (bool) Arr::get($post, 'is_featured', false),
             metaJson: self::jsonArray(Arr::get($post, 'meta')),
+            meta: is_array(Arr::get($post, 'meta')) ? Arr::get($post, 'meta') : [],
             tagIds: collect(Arr::get($post, 'tags', []))
                 ->pluck('id')
                 ->filter()
@@ -61,6 +68,11 @@ class PostEditorData
                 ->all(),
             blocks: $blocks !== [] ? $blocks : [PostBlockData::blank(1)->toEditorState()],
             canonicalUrl: Arr::get($post, 'canonical_url'),
+            isAiGenerated: (bool) Arr::get($post, 'is_ai_generated', false),
+            sourceContentBriefId: Arr::get($post, 'source_content_brief_id'),
+            sourceContentTopicId: Arr::get($post, 'source_content_topic_id'),
+            generatedByAiJobId: Arr::get($post, 'generated_by_ai_job_id'),
+            generatedBy: Arr::get($post, 'generated_by'),
         );
     }
 
@@ -83,9 +95,15 @@ class PostEditorData
             wordCount: null,
             isFeatured: false,
             metaJson: '',
+            meta: [],
             tagIds: [],
             blocks: [PostBlockData::blank(1)->toEditorState()],
             canonicalUrl: null,
+            isAiGenerated: false,
+            sourceContentBriefId: null,
+            sourceContentTopicId: null,
+            generatedByAiJobId: null,
+            generatedBy: null,
         );
     }
 

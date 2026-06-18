@@ -52,6 +52,26 @@ class Editor extends Component
 
     public ?int $editingPostId = null;
 
+    public bool $aiReviewMode = false;
+
+    public bool $isAiGenerated = false;
+
+    public ?int $sourceContentBriefId = null;
+
+    public ?int $sourceContentTopicId = null;
+
+    public ?int $generatedByAiJobId = null;
+
+    public ?string $generatedBy = null;
+
+    public array $faqSuggestions = [];
+
+    public array $suggestedTags = [];
+
+    public array $imagePlacementNotes = [];
+
+    public array $altTextSuggestions = [];
+
     public string $title = '';
 
     public string $slug = '';
@@ -152,6 +172,7 @@ class Editor extends Component
         SeoClient $seo,
         mixed $post = null,
     ): mixed {
+        $this->aiReviewMode = request()->routeIs('draft-review.*');
         $this->fillFromEditorData(PostEditorData::blank());
 
         $lookupResult = $this->loadLookups($session, $categories, $tags, $templates, $media);
@@ -470,7 +491,7 @@ class Editor extends Component
                 $posts->delete($this->token($session), $session->tokenType(), $this->actionPostId);
                 session()->flash('status', 'Post deleted.');
 
-                return $this->redirectRoute('posts.index', navigate: true);
+                return $this->redirectRoute($this->aiReviewMode ? 'draft-review.index' : 'posts.index', navigate: true);
             }
 
             if (is_array($response)) {
@@ -514,8 +535,13 @@ class Editor extends Component
             'seoRecommendations' => $this->seoPresenter()->recommendations($this->seoScore),
             'seoSchemaSummary' => $this->seoPresenter()->schemaSummary($this->seoSchema),
             'seoSchemaJson' => $this->seoPresenter()->prettySchema($this->seoSchema),
+            'aiReviewMode' => $this->aiReviewMode,
+            'sourceContentBriefLink' => $this->sourceContentBriefId ? route('content-briefs.show', ['contentBrief' => $this->sourceContentBriefId]) : null,
+            'sourceContentTopicLink' => $this->sourceContentTopicId ? route('topic-queue.show', ['topic' => $this->sourceContentTopicId]) : null,
+            'generatedByAiJobLink' => $this->generatedByAiJobId ? route('ai-jobs.show', ['aiJob' => $this->generatedByAiJobId]) : null,
+            'aiSuggestionSections' => $this->aiSuggestionSections(),
         ])->layout('layouts.admin', [
-            'title' => $this->editingPostId ? 'Edit Post' : 'Create Post',
+            'title' => $this->aiReviewMode ? 'Draft Review' : ($this->editingPostId ? 'Edit Post' : 'Create Post'),
         ]);
     }
 
@@ -679,6 +705,15 @@ class Editor extends Component
         $this->wordCount = $data->wordCount;
         $this->isFeatured = $data->isFeatured;
         $this->metaJson = $data->metaJson;
+        $this->isAiGenerated = $data->isAiGenerated;
+        $this->sourceContentBriefId = $data->sourceContentBriefId;
+        $this->sourceContentTopicId = $data->sourceContentTopicId;
+        $this->generatedByAiJobId = $data->generatedByAiJobId;
+        $this->generatedBy = $data->generatedBy;
+        $this->faqSuggestions = $this->suggestionItems($data->meta['faq_suggestions'] ?? []);
+        $this->suggestedTags = $this->suggestionItems($data->meta['suggested_tags'] ?? []);
+        $this->imagePlacementNotes = $this->suggestionItems($data->meta['image_placement_notes'] ?? []);
+        $this->altTextSuggestions = $this->suggestionItems($data->meta['alt_text_suggestions'] ?? []);
         $this->tagIds = $data->tagIds;
         $this->blocks = $data->blocks;
         $this->canonicalUrl = $data->canonicalUrl ?? '';
@@ -738,6 +773,70 @@ class Editor extends Component
         $decoded = json_decode($this->metaJson, true);
 
         return is_array($decoded) ? array_values($decoded) : null;
+    }
+
+    protected function aiSuggestionSections(): array
+    {
+        if (! $this->aiReviewMode || ! $this->isAiGenerated) {
+            return [];
+        }
+
+        return array_values(array_filter([
+            [
+                'title' => 'Suggested Tags',
+                'items' => $this->suggestedTags,
+            ],
+            [
+                'title' => 'FAQ Suggestions',
+                'items' => $this->faqSuggestions,
+            ],
+            [
+                'title' => 'Image Placement Notes',
+                'items' => $this->imagePlacementNotes,
+            ],
+            [
+                'title' => 'Alt Text Suggestions',
+                'items' => $this->altTextSuggestions,
+            ],
+        ], fn (array $section): bool => $section['items'] !== []));
+    }
+
+    protected function suggestionItems(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->map(function (mixed $item): ?string {
+                if (is_string($item)) {
+                    $trimmed = trim($item);
+
+                    return $trimmed !== '' ? $trimmed : null;
+                }
+
+                if (! is_array($item) || $item === []) {
+                    return null;
+                }
+
+                $parts = collect($item)
+                    ->filter(fn (mixed $part): bool => $part !== null && $part !== '')
+                    ->map(function (mixed $part, string|int $key): string {
+                        $value = is_scalar($part)
+                            ? (string) $part
+                            : (json_encode($part, JSON_UNESCAPED_SLASHES) ?: '');
+
+                        return (string) str((string) $key)->headline()->append(': ')->append($value);
+                    })
+                    ->filter(fn (string $part): bool => trim($part) !== '')
+                    ->values()
+                    ->all();
+
+                return $parts !== [] ? implode(' | ', $parts) : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 
     protected function seoRules(): array

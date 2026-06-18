@@ -92,6 +92,78 @@ class PostEditorTest extends TestCase
             ->assertRedirect(route('posts.edit', ['post' => 55]));
     }
 
+    public function test_ai_draft_review_route_renders_source_context_and_suggestions(): void
+    {
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/categories') {
+                return Http::response(['data' => [$this->categoryResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/tags') {
+                return Http::response(['data' => [$this->tagResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/templates') {
+                return Http::response(['data' => [$this->templateResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/media')) {
+                return Http::response(['data' => [$this->mediaResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/posts/1') {
+                return Http::response([
+                    'data' => $this->postResource([
+                        'id' => 1,
+                        'title' => 'AI Draft',
+                        'is_ai_generated' => true,
+                        'source_content_brief_id' => 14,
+                        'source_content_topic_id' => 8,
+                        'generated_by_ai_job_id' => 22,
+                        'generated_by' => 'BlogWriterAgent',
+                        'meta' => [
+                            'source_content_brief_id' => 14,
+                            'source_content_topic_id' => 8,
+                            'ai_job_id' => 22,
+                            'generated_by' => 'BlogWriterAgent',
+                            'suggested_tags' => ['Editorial Ops', 'AI Governance'],
+                            'faq_suggestions' => [
+                                ['question' => 'What should be reviewed first?', 'answer_focus' => 'Source accuracy'],
+                            ],
+                            'image_placement_notes' => ['Add a workflow diagram after the introduction.'],
+                            'alt_text_suggestions' => ['Workflow diagram showing AI editorial review stages'],
+                        ],
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && str_contains($request->url(), '/admin/seo/')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('draft-review.show', ['post' => 1]));
+
+        $response
+            ->assertOk()
+            ->assertSee('Review AI Draft')
+            ->assertSee('Back to Draft Review')
+            ->assertSee('Brief #14')
+            ->assertSee('Topic #8')
+            ->assertSee('Job #22')
+            ->assertSee('Suggested Tags')
+            ->assertSee('Editorial Ops')
+            ->assertSee('FAQ Suggestions')
+            ->assertSee('What should be reviewed first?')
+            ->assertSee('Image Placement Notes')
+            ->assertSee('Add a workflow diagram after the introduction.')
+            ->assertSee('Alt Text Suggestions')
+            ->assertSee('Workflow diagram showing AI editorial review stages');
+    }
+
     public function test_existing_post_can_be_loaded_and_updated_from_editor(): void
     {
         session($this->authenticatedSession());
@@ -561,6 +633,11 @@ class PostEditorTest extends TestCase
             'reading_time_minutes' => 6,
             'word_count' => 1100,
             'is_featured' => false,
+            'is_ai_generated' => false,
+            'source_content_brief_id' => null,
+            'source_content_topic_id' => null,
+            'generated_by_ai_job_id' => null,
+            'generated_by' => null,
             'meta' => [],
             'author' => [
                 'id' => 9,
