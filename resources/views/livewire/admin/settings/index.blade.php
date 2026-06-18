@@ -1,14 +1,12 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Settings"
-            description="Review safe operational configuration summaries without inventing unsupported service-backed settings flows."
-        />
-
+    <x-admin.page-header
+        title="Settings"
+        description="Review safe operational configuration summaries without inventing unsupported service-backed settings flows."
+    >
         <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm text-[var(--color-muted)]">
             This screen is read-only until broader settings endpoints exist in the service contract.
         </div>
-    </div>
+    </x-admin.page-header>
 
     <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-warning)_7%,white)] px-5 py-4 text-sm text-[var(--color-muted)] shadow-[var(--shadow-card)]">
         No service-backed settings endpoint exists yet for broad admin configuration. Tabs below only expose safe summaries that are already backed by local config or existing operational modules.

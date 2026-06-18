@@ -1,10 +1,8 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="AI Jobs"
-            description="Monitor workflow execution, inspect failed jobs quickly, and route editors to the detailed lifecycle view when AI work needs attention."
-        />
-    </div>
+    <x-admin.page-header
+        title="AI Jobs"
+        description="Monitor workflow execution, inspect failed jobs quickly, and route editors to the detailed lifecycle view when AI work needs attention."
+    />
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

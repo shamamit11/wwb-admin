@@ -1,20 +1,16 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            :title="$aiReviewMode ? 'Draft Review' : 'Posts'"
-            :description="$aiReviewMode
-                ? 'Review AI-generated draft posts, inspect source provenance, and promote only after manual editorial approval.'
-                : 'Manage editorial inventory, publish state, category assignment, and entry points into the structured post editor.'"
-        />
-
-        <div class="shrink-0 lg:pt-1">
-            @if ($aiReviewMode)
-                <x-ui.button as="a" :href="route('posts.index')" variant="secondary">Back to Posts</x-ui.button>
-            @else
-                <x-ui.button as="a" :href="route('posts.create')">Create Post</x-ui.button>
-            @endif
-        </div>
-    </div>
+    <x-admin.page-header
+        :title="$aiReviewMode ? 'Draft Review' : 'Posts'"
+        :description="$aiReviewMode
+            ? 'Review AI-generated draft posts, inspect source provenance, and promote only after manual editorial approval.'
+            : 'Manage editorial inventory, publish state, category assignment, and entry points into the structured post editor.'"
+    >
+        @if ($aiReviewMode)
+            <x-ui.button as="a" :href="route('posts.index')" variant="secondary">Back to Posts</x-ui.button>
+        @else
+            <x-ui.button as="a" :href="route('posts.create')">Create Post</x-ui.button>
+        @endif
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

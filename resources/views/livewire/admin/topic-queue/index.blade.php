@@ -1,15 +1,13 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Topic Queue"
-            description="Review service-generated topic suggestions, filter editorial opportunities, and move approved topics toward the briefing workflow."
-        >
-            <x-ui.button type="button" wire:click="openDiscoveryDialog" wire:loading.attr="disabled" wire:target="openDiscoveryDialog">
-                <span wire:loading.remove wire:target="openDiscoveryDialog">Run Topic Discovery</span>
-                <span wire:loading wire:target="openDiscoveryDialog">Opening…</span>
-            </x-ui.button>
-        </x-admin.page-header>
-    </div>
+    <x-admin.page-header
+        title="Topic Queue"
+        description="Review service-generated topic suggestions, filter editorial opportunities, and move approved topics toward the briefing workflow."
+    >
+        <x-ui.button type="button" wire:click="openDiscoveryDialog" wire:loading.attr="disabled" wire:target="openDiscoveryDialog">
+            <span wire:loading.remove wire:target="openDiscoveryDialog">Run Topic Discovery</span>
+            <span wire:loading wire:target="openDiscoveryDialog">Opening…</span>
+        </x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

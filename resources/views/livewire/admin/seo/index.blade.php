@@ -1,14 +1,12 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="SEO"
-            description="Review per-post score signals and inspect generated schema without inventing unsupported sitewide issue queues."
-        />
-
+    <x-admin.page-header
+        title="SEO"
+        description="Review per-post score signals and inspect generated schema without inventing unsupported sitewide issue queues."
+    >
         <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm text-[var(--color-muted)]">
             The current service supports per-entity reads. Broader review endpoints remain out of scope.
         </div>
-    </div>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

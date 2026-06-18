@@ -1,14 +1,10 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Pages"
-            description="Manage static and evergreen page content such as privacy policy, FAQ, support content, and marketing pages through the service-backed pages resource."
-        />
-
-        <div class="shrink-0 lg:pt-1">
-            <x-ui.button as="a" :href="route('pages.create')">Create Page</x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-header
+        title="Pages"
+        description="Manage static and evergreen page content such as privacy policy, FAQ, support content, and marketing pages through the service-backed pages resource."
+    >
+        <x-ui.button as="a" :href="route('pages.create')">Create Page</x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

@@ -1,22 +1,18 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            :title="$aiReviewMode ? 'Review AI Draft' : ($editingPostId ? 'Edit Post' : 'Create Post')"
-            :description="$aiReviewMode
-                ? 'Review AI-generated content, inspect source provenance and suggestions, then publish manually when the draft is ready.'
-                : 'Build structured editorial content in the main canvas while keeping status, taxonomy, media, and publishing metadata visible in the side panel.'"
-        />
-
-        <div class="flex flex-wrap items-center gap-3 lg:pt-1">
-            <x-ui.button as="a" :href="$aiReviewMode ? route('draft-review.index') : route('posts.index')" variant="secondary">
-                {{ $aiReviewMode ? 'Back to Draft Review' : 'Back to Posts' }}
-            </x-ui.button>
-            <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
-                <span wire:loading.remove wire:target="save">{{ $aiReviewMode ? 'Save Review Changes' : ($editingPostId ? 'Save Post' : 'Create Post') }}</span>
-                <span wire:loading wire:target="save">Saving…</span>
-            </x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-header
+        :title="$aiReviewMode ? 'Review AI Draft' : ($editingPostId ? 'Edit Post' : 'Create Post')"
+        :description="$aiReviewMode
+            ? 'Review AI-generated content, inspect source provenance and suggestions, then publish manually when the draft is ready.'
+            : 'Build structured editorial content in the main canvas while keeping status, taxonomy, media, and publishing metadata visible in the side panel.'"
+    >
+        <x-ui.button as="a" :href="$aiReviewMode ? route('draft-review.index') : route('posts.index')" variant="secondary">
+            {{ $aiReviewMode ? 'Back to Draft Review' : 'Back to Posts' }}
+        </x-ui.button>
+        <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+            <span wire:loading.remove wire:target="save">{{ $aiReviewMode ? 'Save Review Changes' : ($editingPostId ? 'Save Post' : 'Create Post') }}</span>
+            <span wire:loading wire:target="save">Saving…</span>
+        </x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

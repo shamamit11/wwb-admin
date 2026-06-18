@@ -1,10 +1,8 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Content Briefs"
-            description="Review AI-generated brief inventory, inspect source topics, and route approved briefs into draft generation without bypassing editorial review."
-        />
-    </div>
+    <x-admin.page-header
+        title="Content Briefs"
+        description="Review AI-generated brief inventory, inspect source topics, and route approved briefs into draft generation without bypassing editorial review."
+    />
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

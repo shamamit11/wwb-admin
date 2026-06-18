@@ -1,14 +1,10 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Prompt Templates"
-            description="Manage the service-side prompts that shape future topic discovery, brief generation, and drafting behavior."
-        />
-
-        <div class="shrink-0 lg:pt-1">
-            <x-ui.button as="a" :href="route('ai-prompts.create')">Create Prompt Template</x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-header
+        title="Prompt Templates"
+        description="Manage the service-side prompts that shape future topic discovery, brief generation, and drafting behavior."
+    >
+        <x-ui.button as="a" :href="route('ai-prompts.create')">Create Prompt Template</x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

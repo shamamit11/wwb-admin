@@ -1,18 +1,14 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            :title="$editingEntryId ? 'Edit Knowledge Entry' : 'Create Knowledge Entry'"
-            description="Capture practical editorial context in markdown, keep metadata lightweight, and avoid overbuilding the writing flow."
-        />
-
-        <div class="flex flex-wrap items-center gap-3 lg:pt-1">
-            <x-ui.button as="a" :href="route('knowledge-base.index')" variant="secondary">Back to Knowledge Base</x-ui.button>
-            <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
-                <span wire:loading.remove wire:target="save">{{ $editingEntryId ? 'Save Entry' : 'Create Entry' }}</span>
-                <span wire:loading wire:target="save">Saving…</span>
-            </x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-header
+        :title="$editingEntryId ? 'Edit Knowledge Entry' : 'Create Knowledge Entry'"
+        description="Capture practical editorial context in markdown, keep metadata lightweight, and avoid overbuilding the writing flow."
+    >
+        <x-ui.button as="a" :href="route('knowledge-base.index')" variant="secondary">Back to Knowledge Base</x-ui.button>
+        <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+            <span wire:loading.remove wire:target="save">{{ $editingEntryId ? 'Save Entry' : 'Create Entry' }}</span>
+            <span wire:loading wire:target="save">Saving…</span>
+        </x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
