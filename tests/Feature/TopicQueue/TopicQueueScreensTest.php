@@ -137,6 +137,37 @@ class TopicQueueScreensTest extends TestCase
             ->assertRedirect(route('ai-jobs.show', ['aiJob' => 22]));
     }
 
+    public function test_topic_review_screen_can_generate_content_brief(): void
+    {
+        session($this->authenticatedSession());
+
+        $topic = $this->topicResource([
+            'id' => 8,
+            'title' => 'Workflow Topic',
+            'status' => 'approved',
+            'can_generate_content_brief' => true,
+        ]);
+
+        Http::fake(function (Request $request) use ($topic) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/8') {
+                return Http::response(['data' => $topic], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/8/generate-brief') {
+                return Http::response([
+                    'data' => ['id' => 14, 'title' => 'Generated Brief'],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(\App\Livewire\Admin\TopicQueue\Show::class, ['topic' => 8])
+            ->call('openBriefDialog')
+            ->call('generateBrief')
+            ->assertRedirect(route('content-briefs.show', ['contentBrief' => 14]));
+    }
+
     protected function authenticatedSession(): array
     {
         return [

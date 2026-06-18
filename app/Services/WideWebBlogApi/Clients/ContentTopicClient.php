@@ -57,4 +57,11 @@ class ContentTopicClient
             $this->api->authenticated($token, $tokenType)->post("/admin/content-topics/{$topicId}/mark-used", $payload)
         );
     }
+
+    public function generateBrief(string $token, ?string $tokenType = 'Bearer', int $topicId = 0): array
+    {
+        return $this->api->handle(
+            $this->api->authenticated($token, $tokenType)->post("/admin/content-topics/{$topicId}/generate-brief")
+        );
+    }
 }

@@ -93,6 +93,13 @@
                         <path d="M5.25 5.75h9.5M5.25 10h9.5M5.25 14.25h6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                     @break
+                @case('document')
+                    <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M6 3.75h5.75L15.5 7.5V15A1.25 1.25 0 0 1 14.25 16.25H6A1.25 1.25 0 0 1 4.75 15V5A1.25 1.25 0 0 1 6 3.75Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M11.75 3.75V7.5H15.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M7.5 10h5M7.5 13h3.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    @break
                 @case('spark')
                     <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                         <path d="m10 3.5 1.6 3.9 3.9 1.6-3.9 1.6-1.6 3.9-1.6-3.9-3.9-1.6 3.9-1.6L10 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>

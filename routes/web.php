@@ -5,6 +5,8 @@ use App\Livewire\Admin\Auth\Login as LoginScreen;
 use App\Livewire\Admin\AiJobs\Index as AiJobIndex;
 use App\Livewire\Admin\AiJobs\Show as AiJobShow;
 use App\Livewire\Admin\Categories\Index as CategoryIndex;
+use App\Livewire\Admin\ContentBriefs\Index as ContentBriefIndex;
+use App\Livewire\Admin\ContentBriefs\Show as ContentBriefShow;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
 use App\Livewire\Admin\Homepage\Index as HomepageIndex;
 use App\Livewire\Admin\KnowledgeBase\Editor as KnowledgeBaseEditor;
@@ -67,6 +69,10 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/topic-queue', TopicQueueIndex::class)->name('topic-queue.index');
 
     Route::get('/topic-queue/{topic}', TopicQueueShow::class)->name('topic-queue.show');
+
+    Route::get('/content-briefs', ContentBriefIndex::class)->name('content-briefs.index');
+
+    Route::get('/content-briefs/{contentBrief}', ContentBriefShow::class)->name('content-briefs.show');
 
     Route::get('/ai-jobs', AiJobIndex::class)->name('ai-jobs.index');
 

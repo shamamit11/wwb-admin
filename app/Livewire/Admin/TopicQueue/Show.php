@@ -71,11 +71,15 @@ class Show extends Component
 
     public string $transitionNotes = '';
 
+    public bool $briefDialogOpen = false;
+
     public ?string $pageError = null;
 
     public ?string $formError = null;
 
     public ?string $actionError = null;
+
+    public ?string $briefError = null;
 
     public bool $notFound = false;
 
@@ -165,6 +169,18 @@ class Show extends Component
         $this->actionError = null;
     }
 
+    public function openBriefDialog(): void
+    {
+        $this->briefDialogOpen = true;
+        $this->briefError = null;
+    }
+
+    public function closeBriefDialog(): void
+    {
+        $this->briefDialogOpen = false;
+        $this->briefError = null;
+    }
+
     public function executeTransition(ContentTopicClient $topics, AdminSessionManager $session): mixed
     {
         $validated = $this->validateOnly('transitionNotes');
@@ -197,6 +213,32 @@ class Show extends Component
             return $this->forbidden($session);
         } catch (WideWebBlogApiException $exception) {
             $this->actionError = $exception->getMessage() ?: 'The topic status change failed.';
+
+            return null;
+        }
+    }
+
+    public function generateBrief(ContentTopicClient $topics, AdminSessionManager $session): mixed
+    {
+        $this->briefError = null;
+
+        try {
+            $response = $topics->generateBrief($this->token($session), $session->tokenType(), $this->topicId);
+            $briefId = Arr::get($response, 'data.id');
+            $this->closeBriefDialog();
+            session()->flash('status', 'Content brief generated.');
+
+            if (is_int($briefId) || ctype_digit((string) $briefId)) {
+                return $this->redirectRoute('content-briefs.show', ['contentBrief' => (int) $briefId], navigate: true);
+            }
+
+            return $this->redirectRoute('content-briefs.index', navigate: true);
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->briefError = $exception->getMessage() ?: 'Content brief generation failed.';
 
             return null;
         }

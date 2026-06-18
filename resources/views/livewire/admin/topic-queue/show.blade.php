@@ -102,6 +102,9 @@
                         @if ($canMarkUsed)
                             <x-ui.button type="button" variant="secondary" wire:click="openTransitionDialog('mark-used')">Mark as Used</x-ui.button>
                         @endif
+                        @if ($canGenerateContentBrief)
+                            <x-ui.button type="button" variant="secondary" wire:click="openBriefDialog">Generate Brief</x-ui.button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -180,6 +183,32 @@
             <x-ui.button :variant="$transitionAction === 'reject' ? 'destructive' : 'primary'" type="button" wire:click="executeTransition">
                 Confirm
             </x-ui.button>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
+
+    <x-admin.confirm-dialog
+        :open="$briefDialogOpen"
+        title="Generate Content Brief"
+        description="Generate a content brief from this approved topic through the Service API. The resulting brief will still require human review before draft generation."
+    >
+        <div class="space-y-4">
+            @if ($briefError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $briefError }}
+                </div>
+            @endif
+
+            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3 text-sm text-[var(--color-muted)]">
+                Brief generation stays service-owned. Admin only triggers the workflow and routes the editor into the resulting review screen.
+            </div>
+        </div>
+
+        <x-slot:cancel>
+            <x-ui.button variant="secondary" type="button" wire:click="closeBriefDialog">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
+            <x-ui.button type="button" wire:click="generateBrief">Generate Brief</x-ui.button>
         </x-slot:confirm>
     </x-admin.confirm-dialog>
 </div>

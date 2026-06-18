@@ -37,6 +37,7 @@ class AdminNavigation
                 'title' => 'AI Content',
                 'items' => [
                     $this->item('Topic Queue', 'topic-queue.index', 'Review suggested topics, approve editorial directions, and manage topic status.', false, 'queue'),
+                    $this->item('Content Briefs', 'content-briefs.index', 'Review, edit, approve, and promote generated briefs toward draft creation.', false, 'document'),
                     $this->item('AI Jobs', 'ai-jobs.index', 'Monitor AI workflow execution, failures, and retryable jobs.', false, 'spark'),
                 ],
             ],
