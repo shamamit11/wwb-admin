@@ -126,19 +126,5 @@
         </x-ui.table-body>
     </x-ui.table>
 
-    @if ($pagination['has_pages'])
-        <div class="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="text-sm text-[var(--color-muted)]">
-                Showing {{ $pagination['first_item'] }}-{{ $pagination['last_item'] }} of {{ $pagination['total'] }} results
-            </div>
-
-            <div class="flex items-center gap-2">
-                <x-ui.button type="button" variant="secondary" size="sm" wire:click="previousPage" :disabled="$pagination['page'] <= 1">Previous</x-ui.button>
-                <span class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm text-[var(--color-muted)]">
-                    Page {{ $pagination['page'] }} of {{ $pagination['last_page'] }}
-                </span>
-                <x-ui.button type="button" variant="secondary" size="sm" wire:click="nextPage" :disabled="$pagination['page'] >= $pagination['last_page']">Next</x-ui.button>
-            </div>
-        </div>
-    @endif
+    <x-ui.pagination :pagination="$pagination" item-label="brief" />
 </div>

@@ -133,17 +133,5 @@
         </x-ui.table-body>
     </x-ui.table>
 
-    @if ($pagination['has_pages'])
-        <div class="flex flex-col gap-3 border-t border-[var(--color-line)] pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-sm text-[var(--color-muted)]">
-                Showing {{ $pagination['first_item'] }}-{{ $pagination['last_item'] }} of {{ $pagination['total'] }} prompt templates
-            </p>
-
-            <div class="flex items-center gap-2">
-                <x-ui.button type="button" variant="secondary" wire:click="previousPage" :disabled="$pagination['page'] === 1">Previous</x-ui.button>
-                <span class="min-w-20 text-center text-sm text-[var(--color-muted)]">Page {{ $pagination['page'] }} of {{ $pagination['last_page'] }}</span>
-                <x-ui.button type="button" variant="secondary" wire:click="nextPage" :disabled="$pagination['page'] === $pagination['last_page']">Next</x-ui.button>
-            </div>
-        </div>
-    @endif
+    <x-ui.pagination :pagination="$pagination" item-label="prompt template" />
 </div>
