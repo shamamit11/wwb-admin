@@ -1,14 +1,14 @@
-# Task: Task 9.2 - Implement knowledge base linking actions
+# Task: Task 12.2 - UI/UX inconsistency audit and task extraction
 
 Status: Completed
 
 ## Goal
 
-Add Admin-side linking actions for knowledge base entries to posts and topics using the documented service API endpoints.
+Review the current admin UI from a senior product and UI/UX perspective, identify concrete inconsistency and usability issues, and capture them as actionable follow-up tasks in `UI-TASKS.md`.
 
 ## Background
 
-Knowledge base CRUD is already implemented, and the editor currently shows linked posts and topics as read-only counts. The current OpenAPI contract now documents explicit linking endpoints, so the editor should support those flows without inventing broader relationship management behavior.
+Most MVP modules are implemented, but the interface has accumulated inconsistencies across page headers, button alignment, table headers, row actions, spacing, and labeling. The next step is to document those issues clearly before starting a dedicated polish pass.
 
 ## Required Context
 
@@ -18,58 +18,46 @@ Knowledge base CRUD is already implemented, and the editor currently shows linke
 - `.agent/tasks/current-task.md`
 - `.agent/agents/SHARED-INSTRUCTIONS.md`
 - `.agent/TASK-WORKFLOW.md`
-- `.agent/API-CONTRACT.md`
-- `.agent/skills/api-client-integration.md`
-- `.agent/skills/forms-validation.md`
-- `.agent/skills/laravel-livewire.md`
-- `openapi.json`
+- `.agent/UI-UX-RULES.md`
+- `.agent/COMPONENT-SYSTEM.md`
+- `.agent/skills/blade-components.md`
+- `.agent/skills/shadcn-inspired-ui.md`
 
 ## Files To Inspect
 
-- `openapi.json`
-- `app/Services/WideWebBlogApi/Clients/KnowledgeBaseClient.php`
-- `app/Livewire/Admin/KnowledgeBase/Editor.php`
-- `resources/views/livewire/admin/knowledge-base/editor.blade.php`
-- `tests/Feature/KnowledgeBase/KnowledgeBaseEditorTest.php`
-- `tests/Unit/WideWebBlogApi/Clients/KnowledgeBaseClientTest.php`
+- `resources/views/livewire/admin/*`
+- `resources/views/components/admin/*`
+- `resources/views/components/ui/*`
+- `app/Livewire/Admin/*`
 
 ## Files To Change
 
-- `app/Services/WideWebBlogApi/Clients/KnowledgeBaseClient.php`
-- `app/Livewire/Admin/KnowledgeBase/Editor.php`
-- `resources/views/livewire/admin/knowledge-base/editor.blade.php`
-- `tests/Feature/KnowledgeBase/KnowledgeBaseEditorTest.php`
-- `tests/Unit/WideWebBlogApi/Clients/KnowledgeBaseClientTest.php`
+- `UI-TASKS.md`
+- `.agent/tasks/current-task.md`
 
 ## Implementation Steps
 
-1. Add `linkPost` and `linkTopic` client methods for the documented `/admin/knowledge-base/{id}/link-post` and `/admin/knowledge-base/{id}/link-topic` endpoints.
-2. Add focused linking form state and submit handlers to the knowledge base editor.
-3. Refresh linked post/topic state from the returned resource after a successful link.
-4. Map `422` errors into the correct linking fields without affecting the main editor save flow.
-5. Add focused client and Livewire feature coverage for both linking actions.
+1. Inspect the main admin management screens and their shared UI components.
+2. Identify concrete inconsistencies in layout, button usage, tables, headers, spacing, copy, and affordance patterns.
+3. Group issues into actionable UI enhancement tasks.
+4. Write `UI-TASKS.md` with a prioritized, implementation-ready list.
 
 ## Acceptance Criteria
 
-- [ ] Knowledge base entries can be linked to posts from the editor using the documented endpoint
-- [ ] Knowledge base entries can be linked to topics from the editor using the documented endpoint
-- [ ] Linking validation errors map to the correct linking inputs
-- [ ] Existing entry save behavior remains unchanged
+- [ ] `UI-TASKS.md` exists
+- [ ] issues are concrete and page/component specific
+- [ ] tasks are grouped in a way that can drive later implementation work
 
 ## Validation Commands
 
-- `php artisan test tests/Unit/WideWebBlogApi/Clients/KnowledgeBaseClientTest.php`
-- `php artisan test tests/Feature/KnowledgeBase/KnowledgeBaseEditorTest.php`
+- visual/code review only
 
 ## Risks
 
-- The current contract only documents add-link actions, not unlink actions, so the UI must stay explicit about the limited scope.
+- This pass is source-review-driven, so some responsiveness and runtime-state issues may require a later browser QA pass.
 
 ## Completion Notes
 
-- Added `linkPost` and `linkTopic` client methods aligned to the OpenAPI contract.
-- Added editor-side post/topic link actions with isolated validation and API error mapping.
-- The linked context sidebar now supports adding links by ID and shows linked item titles when returned by the service.
-- Validation run:
-  - `php artisan test tests/Unit/WideWebBlogApi/Clients/KnowledgeBaseClientTest.php`
-  - `php artisan test tests/Feature/KnowledgeBase/KnowledgeBaseEditorTest.php`
+- Reviewed the main admin list/detail screens and shared UI primitives with a UI consistency focus.
+- Created `UI-TASKS.md` as the implementation backlog for Task 12.2 follow-up work.
+- The audit is source-review-driven and should be followed by a browser-based QA pass for responsive and interaction validation.
