@@ -1,0 +1,203 @@
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <x-admin.page-header
+            title="Topic Queue"
+            description="Review service-generated topic suggestions, filter editorial opportunities, and move approved topics toward the briefing workflow."
+        >
+            <x-ui.button type="button" wire:click="openDiscoveryDialog">Run Topic Discovery</x-ui.button>
+        </x-admin.page-header>
+    </div>
+
+    @if ($pageError)
+        <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+            {{ $pageError }}
+        </div>
+    @endif
+
+    <div class="grid gap-4 md:grid-cols-3">
+        @foreach ($stats as $stat)
+            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-4 shadow-[var(--shadow-card)]">
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">{{ $stat['label'] }}</p>
+                <p class="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[var(--color-ink)]">{{ $stat['value'] }}</p>
+            </div>
+        @endforeach
+    </div>
+
+    <x-admin.filter-bar>
+        <x-slot:search>
+            <label class="block">
+                <span class="sr-only">Search topics</span>
+                <x-ui.input
+                    type="search"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search topics by title or primary keyword"
+                />
+            </label>
+        </x-slot:search>
+
+        <x-slot:filters>
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="w-[11rem] shrink-0">
+                    <x-ui.select wire:model.live="statusFilter">
+                        <option value="all">All statuses</option>
+                        @foreach ($statusOptions as $statusOption)
+                            <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
+                        @endforeach
+                    </x-ui.select>
+                </div>
+
+                <div class="w-[13rem] shrink-0">
+                    <x-ui.select wire:model.live="clusterFilter">
+                        <option value="all">All clusters</option>
+                        @foreach ($clusterOptions as $clusterOption)
+                            <option value="{{ $clusterOption }}">{{ str($clusterOption)->headline() }}</option>
+                        @endforeach
+                    </x-ui.select>
+                </div>
+
+                <div class="w-[11rem] shrink-0">
+                    <x-ui.select wire:model.live="sourceFilter">
+                        <option value="all">All sources</option>
+                        @foreach ($sourceOptions as $sourceOption)
+                            <option value="{{ $sourceOption }}">{{ $sourceOption === 'ai_suggested' ? 'AI Suggested' : 'Manual' }}</option>
+                        @endforeach
+                    </x-ui.select>
+                </div>
+            </div>
+        </x-slot:filters>
+
+        <x-slot:secondary>
+            <div class="text-sm text-[var(--color-muted)]">
+                {{ $pagination['total'] }} {{ str('topic')->plural($pagination['total']) }}
+            </div>
+        </x-slot:secondary>
+    </x-admin.filter-bar>
+
+    <x-ui.table caption="Topic queue">
+        <x-ui.table-head>
+            <tr>
+                <x-ui.table-heading class="w-[24%]">
+                    <button type="button" wire:click="sortBy('{{ $sort === 'title' ? '-title' : 'title' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
+                        <span>Title</span>
+                        <span class="text-[10px] leading-none">{{ str($sort)->contains('title') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
+                    </button>
+                </x-ui.table-heading>
+                <x-ui.table-heading>Cluster</x-ui.table-heading>
+                <x-ui.table-heading>Primary Keyword</x-ui.table-heading>
+                <x-ui.table-heading>Search Intent</x-ui.table-heading>
+                <x-ui.table-heading>
+                    <button type="button" wire:click="sortBy('{{ $sort === 'priority_score' ? '-priority_score' : 'priority_score' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
+                        <span>Priority</span>
+                        <span class="text-[10px] leading-none">{{ str($sort)->contains('priority_score') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
+                    </button>
+                </x-ui.table-heading>
+                <x-ui.table-heading>Status</x-ui.table-heading>
+                <x-ui.table-heading>Source</x-ui.table-heading>
+                <x-ui.table-heading>
+                    <button type="button" wire:click="sortBy('{{ $sort === 'created_at' ? '-created_at' : 'created_at' }}')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
+                        <span>Created</span>
+                        <span class="text-[10px] leading-none">{{ str($sort)->contains('created_at') ? (str($sort)->startsWith('-') ? '↓' : '↑') : '↕' }}</span>
+                    </button>
+                </x-ui.table-heading>
+                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+            </tr>
+        </x-ui.table-head>
+
+        <x-ui.table-body>
+            @forelse ($topics as $topic)
+                <x-ui.table-row interactive wire:key="topic-{{ $topic['id'] }}">
+                    <x-ui.table-cell class="w-[24%]">
+                        <div class="min-w-0">
+                            <p class="truncate font-semibold text-[var(--color-ink)]">{{ $topic['title'] }}</p>
+                            <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $topic['slug'] ?: 'Slug pending' }}</p>
+                        </div>
+                    </x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ str($topic['cluster'])->headline() }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $topic['primary_keyword'] ?: 'TBC' }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $topic['search_intent'] ?: 'TBC' }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $topic['priority_score_label'] }}</x-ui.table-cell>
+                    <x-ui.table-cell><x-admin.status-badge :status="$topic['status']" /></x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $topic['source'] === 'ai_suggested' ? 'AI Suggested' : 'Manual' }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $topic['created_at'] ?: 'Unknown' }}</x-ui.table-cell>
+                    <x-ui.table-cell align="right">
+                        <x-ui.button as="a" :href="route('topic-queue.show', ['topic' => $topic['id']])" variant="outline" size="sm">Review</x-ui.button>
+                    </x-ui.table-cell>
+                </x-ui.table-row>
+            @empty
+                <x-ui.table-empty
+                    colspan="9"
+                    title="No topics match the current view"
+                    message="Adjust the filters or search terms to broaden the editorial queue."
+                />
+            @endforelse
+        </x-ui.table-body>
+    </x-ui.table>
+
+    @if ($pagination['has_pages'])
+        <div class="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="text-sm text-[var(--color-muted)]">
+                Showing {{ $pagination['first_item'] }}-{{ $pagination['last_item'] }} of {{ $pagination['total'] }} results
+            </div>
+
+            <div class="flex items-center gap-2">
+                <x-ui.button type="button" variant="secondary" size="sm" wire:click="previousPage" :disabled="$pagination['page'] <= 1">Previous</x-ui.button>
+                <span class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm text-[var(--color-muted)]">
+                    Page {{ $pagination['page'] }} of {{ $pagination['last_page'] }}
+                </span>
+                <x-ui.button type="button" variant="secondary" size="sm" wire:click="nextPage" :disabled="$pagination['page'] >= $pagination['last_page']">Next</x-ui.button>
+            </div>
+        </div>
+    @endif
+
+    <x-admin.confirm-dialog
+        :open="$discoveryDialogOpen"
+        title="Run Topic Discovery"
+        description="Create a service-side AI job that generates suggested topics only. Review and approval still stay in the Admin workflow."
+    >
+        <div class="space-y-4">
+            @if ($discoveryError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $discoveryError }}
+                </div>
+            @endif
+
+            <div class="grid gap-4 md:grid-cols-2">
+                <x-ui.field label="Cluster" for="discovery-cluster" :error="$errors->first('discoveryCluster')">
+                    <x-ui.select id="discovery-cluster" wire:model.live="discoveryCluster">
+                        @foreach ($clusterOptions as $clusterOption)
+                            <option value="{{ $clusterOption }}">{{ str($clusterOption)->headline() }}</option>
+                        @endforeach
+                    </x-ui.select>
+                </x-ui.field>
+
+                <x-ui.field label="Target Count" for="discovery-count" :error="$errors->first('discoveryCount')">
+                    <x-ui.input id="discovery-count" wire:model.blur="discoveryCount" :invalid="$errors->has('discoveryCount')" />
+                </x-ui.field>
+            </div>
+
+            <x-ui.field label="Audience" for="discovery-audience" :error="$errors->first('discoveryAudience')">
+                <x-ui.input id="discovery-audience" wire:model.blur="discoveryAudience" :invalid="$errors->has('discoveryAudience')" placeholder="Founders, editors, technical marketers..." />
+            </x-ui.field>
+
+            <x-ui.field label="Prompt Template Key" for="discovery-template-key" :error="$errors->first('discoveryPromptTemplateKey')" hint="Optional override when the Service should use a non-default prompt template.">
+                <x-ui.input id="discovery-template-key" wire:model.blur="discoveryPromptTemplateKey" :invalid="$errors->has('discoveryPromptTemplateKey')" placeholder="topic-discovery-editorial" />
+            </x-ui.field>
+
+            <x-ui.field label="Metadata" for="discovery-metadata" :error="$errors->first('discoveryMetadata')" hint="Optional comma-separated tags passed to the Service job payload.">
+                <x-ui.textarea id="discovery-metadata" rows="4" wire:model.blur="discoveryMetadata" :invalid="$errors->has('discoveryMetadata')" placeholder="newsletter, q3-campaign, editorial-focus" />
+            </x-ui.field>
+
+            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3 text-sm text-[var(--color-muted)]">
+                Topic discovery creates suggested topics only. Approval and downstream workflow decisions still require human review in Admin.
+            </div>
+        </div>
+
+        <x-slot:cancel>
+            <x-ui.button variant="secondary" type="button" wire:click="closeDiscoveryDialog">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
+            <x-ui.button type="button" wire:click="runTopicDiscovery">Create AI Job</x-ui.button>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
+</div>

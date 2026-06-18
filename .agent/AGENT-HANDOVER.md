@@ -2,36 +2,35 @@
 
 ## Current Status
 
-No active handover yet.
+Active handover for the AI workflow integration slice.
 
 ## Last Completed Task
 
-Implement the dashboard MVP using the documented posts list API plus explicit placeholder widgets for unsupported modules.
+Replace the Topic Queue and AI Jobs roadmap placeholders with contract-backed Admin screens and clients.
 
 ## Incomplete Work
 
-- frontend asset build is still blocked on the local Node runtime version
-- feature modules beyond auth, shell scaffolding, component primitives, route/navigation skeletons, and the initial dashboard are not implemented yet
+- Content Briefs, Prompt Templates, Draft Review, notifications, dashboard cards, and AI workflow docs are still pending later tasks.
 
 ## Risks
 
-- current local Node is `21.7.3`, while the Laravel 13 Vite 8 toolchain expects Node `20.19+` or `22.12+`
-- `npm install` completed, but `npm run build` did not succeed under the current Node runtime
+- Topic Queue and AI Jobs list endpoints currently expose filtering and sorting but no pagination params; Admin is using local UI pagination over returned collections.
+- Older docs and placeholder-era copy still exist outside the changed files and should be aligned during the documentation task.
 
 ## Blockers
 
-- asset build validation requires a supported Node version
+- No blocking contract issue remains for Topic Queue, Topic Discovery, or AI Jobs.
 
 ## Validation Performed
 
-- verified the `.agent` file tree exists
-- spot-checked root and key agent files
-- bootstrapped Laravel 13 and installed Livewire 4
-- verified Artisan boots and routes load
-- verified the MVP route map with `php artisan route:list`
-- ran PHPUnit successfully after auth, layout, component, navigation, and dashboard fixes
-- attempted `npm run build`, which failed due to Node version incompatibility
+- Ran focused client and feature tests for Topic Queue, AI Jobs, and navigation updates.
+- Ran focused topic discovery client and Topic Queue tests after the OpenAPI update.
+- Ran `php artisan test` successfully.
+- Ran `npm run build` successfully, with a Vite warning that the current Node `22.1.0` is below the preferred `22.12+` range.
 
 ## Recommended Next Step
 
-Use a supported Node version, rerun `npm install` if needed, then rerun `npm run build` before continuing into the next admin feature tasks.
+Continue with the next AI workflow slice only where the contract is present:
+- Content Briefs pages and actions
+- Prompt Templates pages
+- AI workflow documentation

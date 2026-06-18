@@ -34,10 +34,10 @@ class AdminNavigation
                 ],
             ],
             [
-                'title' => 'Roadmap',
+                'title' => 'AI Content',
                 'items' => [
-                    $this->item('Topic Queue', 'topic-queue.index', 'Planned review queue once APIs exist.', true, 'queue'),
-                    $this->item('AI Jobs', 'ai-jobs.index', 'Planned AI job monitoring once APIs exist.', true, 'spark'),
+                    $this->item('Topic Queue', 'topic-queue.index', 'Review suggested topics, approve editorial directions, and manage topic status.', false, 'queue'),
+                    $this->item('AI Jobs', 'ai-jobs.index', 'Monitor AI workflow execution, failures, and retryable jobs.', false, 'spark'),
                 ],
             ],
         ];

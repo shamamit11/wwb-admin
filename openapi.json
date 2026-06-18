@@ -169,6 +169,672 @@
         }
       }
     },
+    "/admin/ai-jobs": {
+      "get": {
+        "operationId": "v1.admin.ai-jobs.index",
+        "tags": [
+          "AiJob"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "pending",
+                "queued",
+                "processing",
+                "completed",
+                "failed",
+                "cancelled",
+                "reviewed"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 120
+            }
+          },
+          {
+            "name": "entity_type",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 120
+            }
+          },
+          {
+            "name": "entity_id",
+            "in": "query",
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            }
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 120
+            }
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 160
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "attempts",
+                "-attempts",
+                "created_at",
+                "-created_at",
+                "updated_at",
+                "-updated_at",
+                "started_at",
+                "-started_at",
+                "completed_at",
+                "-completed_at",
+                "failed_at",
+                "-failed_at"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `AiJobResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiJobResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/ai-jobs/topic-discovery": {
+      "post": {
+        "operationId": "v1.admin.ai-jobs.topic-discovery",
+        "tags": [
+          "AiJob"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscoverContentTopicsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "`AiJobResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiJobResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/ai-jobs/{aiJob}": {
+      "get": {
+        "operationId": "v1.admin.ai-jobs.show",
+        "tags": [
+          "AiJob"
+        ],
+        "parameters": [
+          {
+            "name": "aiJob",
+            "in": "path",
+            "required": true,
+            "description": "The ai job ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`AiJobResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiJobResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/ai-jobs/{aiJob}/retry": {
+      "post": {
+        "operationId": "v1.admin.ai-jobs.retry",
+        "tags": [
+          "AiJob"
+        ],
+        "parameters": [
+          {
+            "name": "aiJob",
+            "in": "path",
+            "required": true,
+            "description": "The ai job ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "`AiJobResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiJobResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/ai-prompts": {
+      "get": {
+        "operationId": "v1.admin.ai-prompts.index",
+        "tags": [
+          "AiPromptTemplate"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "topic_discovery",
+                "content_brief",
+                "blog_writer",
+                "editor",
+                "seo_optimizer",
+                "publishing"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "draft",
+                "active",
+                "archived"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "name",
+                "-name",
+                "key",
+                "-key",
+                "type",
+                "-type",
+                "created_at",
+                "-created_at",
+                "updated_at",
+                "-updated_at"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `AiPromptTemplateResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiPromptTemplateResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "v1.admin.ai-prompts.store",
+        "tags": [
+          "AiPromptTemplate"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreAiPromptTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`AiPromptTemplateResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiPromptTemplateResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/ai-prompts/{aiPrompt}": {
+      "get": {
+        "operationId": "v1.admin.ai-prompts.show",
+        "tags": [
+          "AiPromptTemplate"
+        ],
+        "parameters": [
+          {
+            "name": "aiPrompt",
+            "in": "path",
+            "required": true,
+            "description": "The ai prompt ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`AiPromptTemplateResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiPromptTemplateResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "v1.admin.ai-prompts.update",
+        "tags": [
+          "AiPromptTemplate"
+        ],
+        "parameters": [
+          {
+            "name": "aiPrompt",
+            "in": "path",
+            "required": true,
+            "description": "The ai prompt ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiPromptTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`AiPromptTemplateResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiPromptTemplateResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/ai-prompts/{aiPrompt}/versions": {
+      "post": {
+        "operationId": "v1.admin.ai-prompts.versions.store",
+        "tags": [
+          "AiPromptTemplate"
+        ],
+        "parameters": [
+          {
+            "name": "aiPrompt",
+            "in": "path",
+            "required": true,
+            "description": "The ai prompt ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreAiPromptTemplateVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`AiPromptTemplateVersionResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiPromptTemplateVersionResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/ai-prompts/{aiPrompt}/activate-version/{versionId}": {
+      "post": {
+        "operationId": "v1.admin.ai-prompts.versions.activate",
+        "tags": [
+          "AiPromptTemplate"
+        ],
+        "parameters": [
+          {
+            "name": "aiPrompt",
+            "in": "path",
+            "required": true,
+            "description": "The ai prompt ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`AiPromptTemplateResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiPromptTemplateResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
     "/auth/me": {
       "get": {
         "operationId": "v1.auth.me",
@@ -554,6 +1220,848 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/admin/content-briefs": {
+      "get": {
+        "operationId": "v1.admin.content-briefs.index",
+        "tags": [
+          "ContentBrief"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "draft",
+                "approved",
+                "rejected",
+                "used"
+              ]
+            }
+          },
+          {
+            "name": "content_topic_id",
+            "in": "query",
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "created_at",
+                "-created_at",
+                "updated_at",
+                "-updated_at",
+                "approved_at",
+                "-approved_at",
+                "title",
+                "-title"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `ContentBriefResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ContentBriefResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/content-briefs/{contentBrief}": {
+      "get": {
+        "operationId": "v1.admin.content-briefs.show",
+        "tags": [
+          "ContentBrief"
+        ],
+        "parameters": [
+          {
+            "name": "contentBrief",
+            "in": "path",
+            "required": true,
+            "description": "The content brief ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`ContentBriefResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentBriefResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "v1.admin.content-briefs.update",
+        "tags": [
+          "ContentBrief"
+        ],
+        "parameters": [
+          {
+            "name": "contentBrief",
+            "in": "path",
+            "required": true,
+            "description": "The content brief ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContentBriefRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`ContentBriefResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentBriefResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/content-briefs/{contentBrief}/approve": {
+      "post": {
+        "operationId": "v1.admin.content-briefs.approve",
+        "tags": [
+          "ContentBrief"
+        ],
+        "parameters": [
+          {
+            "name": "contentBrief",
+            "in": "path",
+            "required": true,
+            "description": "The content brief ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`ContentBriefResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentBriefResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/content-briefs/{contentBrief}/generate-draft": {
+      "post": {
+        "operationId": "v1.admin.content-briefs.generate-draft",
+        "tags": [
+          "ContentBrief"
+        ],
+        "parameters": [
+          {
+            "name": "contentBrief",
+            "in": "path",
+            "required": true,
+            "description": "The content brief ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateBlogDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "`AiJobResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AiJobResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/content-topics": {
+      "get": {
+        "operationId": "v1.admin.content-topics.index",
+        "tags": [
+          "ContentTopic"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "suggested",
+                "approved",
+                "rejected",
+                "used"
+              ]
+            }
+          },
+          {
+            "name": "cluster",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "ai_tools",
+                "ai_for_blogging",
+                "seo",
+                "content_marketing",
+                "productivity_automation",
+                "developer_ai"
+              ]
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "manual",
+                "ai_suggested"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "created_at",
+                "-created_at",
+                "updated_at",
+                "-updated_at",
+                "approved_at",
+                "-approved_at",
+                "used_at",
+                "-used_at",
+                "priority_score",
+                "-priority_score",
+                "title",
+                "-title"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `ContentTopicResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ContentTopicResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "v1.admin.content-topics.store",
+        "tags": [
+          "ContentTopic"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreContentTopicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`ContentTopicResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentTopicResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/content-topics/{contentTopic}": {
+      "get": {
+        "operationId": "v1.admin.content-topics.show",
+        "tags": [
+          "ContentTopic"
+        ],
+        "parameters": [
+          {
+            "name": "contentTopic",
+            "in": "path",
+            "required": true,
+            "description": "The content topic ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`ContentTopicResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentTopicResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "v1.admin.content-topics.update",
+        "tags": [
+          "ContentTopic"
+        ],
+        "parameters": [
+          {
+            "name": "contentTopic",
+            "in": "path",
+            "required": true,
+            "description": "The content topic ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContentTopicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`ContentTopicResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentTopicResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "v1.admin.content-topics.destroy",
+        "tags": [
+          "ContentTopic"
+        ],
+        "parameters": [
+          {
+            "name": "contentTopic",
+            "in": "path",
+            "required": true,
+            "description": "The content topic ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/content-topics/{contentTopic}/generate-brief": {
+      "post": {
+        "operationId": "v1.admin.content-topics.generate-brief",
+        "tags": [
+          "ContentTopic"
+        ],
+        "parameters": [
+          {
+            "name": "contentTopic",
+            "in": "path",
+            "required": true,
+            "description": "The content topic ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/admin/content-topics/{contentTopic}/approve": {
+      "post": {
+        "operationId": "v1.admin.content-topics.approve",
+        "tags": [
+          "ContentTopic"
+        ],
+        "parameters": [
+          {
+            "name": "contentTopic",
+            "in": "path",
+            "required": true,
+            "description": "The content topic ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionContentTopicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`ContentTopicResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentTopicResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/content-topics/{contentTopic}/reject": {
+      "post": {
+        "operationId": "v1.admin.content-topics.reject",
+        "tags": [
+          "ContentTopic"
+        ],
+        "parameters": [
+          {
+            "name": "contentTopic",
+            "in": "path",
+            "required": true,
+            "description": "The content topic ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionContentTopicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`ContentTopicResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentTopicResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/content-topics/{contentTopic}/mark-used": {
+      "post": {
+        "operationId": "v1.admin.content-topics.mark-used",
+        "tags": [
+          "ContentTopic"
+        ],
+        "parameters": [
+          {
+            "name": "contentTopic",
+            "in": "path",
+            "required": true,
+            "description": "The content topic ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionContentTopicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`ContentTopicResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentTopicResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
           }
         }
       }
@@ -3899,6 +5407,496 @@
         ],
         "title": "AdminLoginRequest"
       },
+      "AiGenerationStepResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "ai_job_id": {
+            "type": "integer"
+          },
+          "agent_name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "input_payload": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "output_payload": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "usage_payload": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "error_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "costs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiJobCostResource"
+            }
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "completed_at": {
+            "type": "string"
+          },
+          "failed_at": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ai_job_id",
+          "agent_name",
+          "status",
+          "input_payload",
+          "output_payload",
+          "usage_payload",
+          "error_message",
+          "started_at",
+          "completed_at",
+          "failed_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AiGenerationStepResource"
+      },
+      "AiJobCostResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "ai_job_id": {
+            "type": "integer"
+          },
+          "ai_generation_step_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "input_tokens": {
+            "type": "integer"
+          },
+          "output_tokens": {
+            "type": "integer"
+          },
+          "total_tokens": {
+            "type": "integer"
+          },
+          "estimated_cost": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "actual_cost": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ai_job_id",
+          "ai_generation_step_id",
+          "provider",
+          "model",
+          "input_tokens",
+          "output_tokens",
+          "total_tokens",
+          "estimated_cost",
+          "actual_cost",
+          "currency",
+          "metadata",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AiJobCostResource"
+      },
+      "AiJobResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "entity_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entity_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "input_payload": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "output_payload": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "usage_payload": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "error_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "retry_of_ai_job_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "can_retry": {
+            "type": "boolean"
+          },
+          "steps_count": {
+            "type": "integer"
+          },
+          "cost_summary": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "input_tokens": {
+                "type": "integer"
+              },
+              "output_tokens": {
+                "type": "integer"
+              },
+              "total_tokens": {
+                "type": "integer"
+              },
+              "estimated_cost": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "actual_cost": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "currency": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "input_tokens",
+              "output_tokens",
+              "total_tokens",
+              "estimated_cost",
+              "actual_cost",
+              "currency"
+            ]
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "completed_at": {
+            "type": "string"
+          },
+          "failed_at": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "retry_of": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "type"
+            ]
+          },
+          "retries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiJobResource"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiGenerationStepResource"
+            }
+          },
+          "costs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiJobCostResource"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "entity_type",
+          "entity_id",
+          "provider",
+          "model",
+          "input_payload",
+          "output_payload",
+          "usage_payload",
+          "error_message",
+          "attempts",
+          "retry_of_ai_job_id",
+          "can_retry",
+          "cost_summary",
+          "started_at",
+          "completed_at",
+          "failed_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AiJobResource"
+      },
+      "AiPromptTemplateResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "active_version_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "versions_count": {
+            "type": "integer"
+          },
+          "active_version": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiPromptTemplateVersionResource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiPromptTemplateVersionResource"
+            }
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "key",
+          "type",
+          "description",
+          "status",
+          "active_version_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AiPromptTemplateResource"
+      },
+      "AiPromptTemplateVersionResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "prompt_template_id": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "system_prompt": {
+            "type": "string"
+          },
+          "user_prompt": {
+            "type": "string"
+          },
+          "output_schema": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "variables": {
+            "type": "array",
+            "items": {}
+          },
+          "status": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "prompt_template_id",
+          "version",
+          "system_prompt",
+          "user_prompt",
+          "output_schema",
+          "variables",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AiPromptTemplateVersionResource"
+      },
       "BatchStoreMediaRequest": {
         "type": "object",
         "properties": {
@@ -4040,6 +6038,231 @@
         ],
         "title": "CategoryResource"
       },
+      "ContentBriefResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "content_topic_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "primary_keyword": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secondary_keywords": {
+            "type": "array",
+            "items": {}
+          },
+          "search_intent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outline": {
+            "type": "array",
+            "items": {}
+          },
+          "headings": {
+            "type": "array",
+            "items": {}
+          },
+          "faq_suggestions": {
+            "type": "array",
+            "items": {}
+          },
+          "internal_link_suggestions": {
+            "type": "array",
+            "items": {}
+          },
+          "image_suggestions": {
+            "type": "array",
+            "items": {}
+          },
+          "status": {
+            "type": "string"
+          },
+          "can_generate_draft": {
+            "type": "boolean"
+          },
+          "approved_at": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "title": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "cluster": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "slug",
+              "cluster",
+              "status"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "content_topic_id",
+          "title",
+          "slug",
+          "meta_title",
+          "meta_description",
+          "primary_keyword",
+          "secondary_keywords",
+          "search_intent",
+          "outline",
+          "headings",
+          "faq_suggestions",
+          "internal_link_suggestions",
+          "image_suggestions",
+          "status",
+          "can_generate_draft",
+          "approved_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ContentBriefResource"
+      },
+      "ContentTopicResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "cluster": {
+            "type": "string"
+          },
+          "primary_keyword": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secondary_keywords": {
+            "type": "array",
+            "items": {}
+          },
+          "search_intent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "priority_score": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "difficulty_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "can_generate_content_brief": {
+            "type": "boolean"
+          },
+          "approved_at": {
+            "type": "string"
+          },
+          "rejected_at": {
+            "type": "string"
+          },
+          "used_at": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "cluster",
+          "primary_keyword",
+          "secondary_keywords",
+          "search_intent",
+          "priority_score",
+          "difficulty_note",
+          "source",
+          "status",
+          "notes",
+          "can_generate_content_brief",
+          "approved_at",
+          "rejected_at",
+          "used_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ContentTopicResource"
+      },
       "CreateUserRequest": {
         "type": "object",
         "properties": {
@@ -4067,6 +6290,51 @@
         ],
         "title": "CreateUserRequest"
       },
+      "DiscoverContentTopicsRequest": {
+        "type": "object",
+        "properties": {
+          "cluster": {
+            "type": "string",
+            "enum": [
+              "ai_tools",
+              "ai_for_blogging",
+              "seo",
+              "content_marketing",
+              "productivity_automation",
+              "developer_ai"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 25
+          },
+          "audience": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "prompt_template_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 190
+          },
+          "metadata": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "cluster"
+        ],
+        "title": "DiscoverContentTopicsRequest"
+      },
       "EchoMessageRequest": {
         "type": "object",
         "properties": {
@@ -4079,6 +6347,51 @@
           "message"
         ],
         "title": "EchoMessageRequest"
+      },
+      "GenerateBlogDraftRequest": {
+        "type": "object",
+        "properties": {
+          "author_user_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "category_id": {
+            "type": "integer"
+          },
+          "template_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private",
+              "internal"
+            ]
+          },
+          "prompt_template_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 190
+          }
+        },
+        "required": [
+          "category_id"
+        ],
+        "title": "GenerateBlogDraftRequest"
       },
       "HealthCheckResource": {
         "type": "object",
@@ -5425,6 +7738,137 @@
         ],
         "title": "SitemapEntryResource"
       },
+      "StoreAiPromptTemplateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "topic_discovery",
+              "content_brief",
+              "blog_writer",
+              "editor",
+              "seo_optimizer",
+              "publishing"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "archived"
+            ]
+          },
+          "initial_version": {
+            "type": "object",
+            "properties": {
+              "system_prompt": {
+                "type": "string"
+              },
+              "user_prompt": {
+                "type": "string"
+              },
+              "output_schema": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              },
+              "variables": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "active",
+                  "archived"
+                ]
+              }
+            },
+            "required": [
+              "system_prompt",
+              "user_prompt"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "key",
+          "type",
+          "status",
+          "initial_version"
+        ],
+        "title": "StoreAiPromptTemplateRequest"
+      },
+      "StoreAiPromptTemplateVersionRequest": {
+        "type": "object",
+        "properties": {
+          "system_prompt": {
+            "type": "string"
+          },
+          "user_prompt": {
+            "type": "string"
+          },
+          "output_schema": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "archived"
+            ]
+          },
+          "variables": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        },
+        "required": [
+          "system_prompt",
+          "user_prompt"
+        ],
+        "title": "StoreAiPromptTemplateVersionRequest"
+      },
       "StoreCategoryRequest": {
         "type": "object",
         "properties": {
@@ -5466,6 +7910,104 @@
           "name"
         ],
         "title": "StoreCategoryRequest"
+      },
+      "StoreContentTopicRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "cluster": {
+            "type": "string",
+            "enum": [
+              "ai_tools",
+              "ai_for_blogging",
+              "seo",
+              "content_marketing",
+              "productivity_automation",
+              "developer_ai"
+            ]
+          },
+          "primary_keyword": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "search_intent": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "priority_score": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 999.99
+          },
+          "difficulty_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "manual",
+              "ai_suggested"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "suggested",
+              "approved",
+              "rejected",
+              "used"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secondary_keywords": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "maxLength": 255
+            }
+          }
+        },
+        "required": [
+          "title",
+          "cluster"
+        ],
+        "title": "StoreContentTopicRequest"
       },
       "StoreKnowledgeBaseEntryRequest": {
         "type": "object",
@@ -6304,6 +8846,63 @@
         ],
         "title": "TemplateSeedPostPayloadResource"
       },
+      "TransitionContentTopicRequest": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "title": "TransitionContentTopicRequest"
+      },
+      "UpdateAiPromptTemplateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "topic_discovery",
+              "content_brief",
+              "blog_writer",
+              "editor",
+              "seo_optimizer",
+              "publishing"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "archived"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "key",
+          "type",
+          "status"
+        ],
+        "title": "UpdateAiPromptTemplateRequest"
+      },
       "UpdateCategoryRequest": {
         "type": "object",
         "properties": {
@@ -6345,6 +8944,192 @@
           "name"
         ],
         "title": "UpdateCategoryRequest"
+      },
+      "UpdateContentBriefRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 190
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "primary_keyword": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "search_intent": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "rejected",
+              "used"
+            ]
+          },
+          "secondary_keywords": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 255
+            }
+          },
+          "outline": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "headings": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 255
+            }
+          },
+          "faq_suggestions": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "internal_link_suggestions": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "image_suggestions": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "title": "UpdateContentBriefRequest"
+      },
+      "UpdateContentTopicRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "cluster": {
+            "type": "string",
+            "enum": [
+              "ai_tools",
+              "ai_for_blogging",
+              "seo",
+              "content_marketing",
+              "productivity_automation",
+              "developer_ai"
+            ]
+          },
+          "primary_keyword": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "search_intent": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "priority_score": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 999.99
+          },
+          "difficulty_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "ai_suggested"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secondary_keywords": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "maxLength": 255
+            }
+          }
+        },
+        "required": [
+          "title",
+          "cluster",
+          "source"
+        ],
+        "title": "UpdateContentTopicRequest"
       },
       "UpdateHomepageRequest": {
         "type": "object",
