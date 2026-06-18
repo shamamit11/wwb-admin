@@ -65,32 +65,12 @@
     <x-ui.table caption="AI prompt templates">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'name' ? '-name' : 'name' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
-                        <span>NAME</span>
-                        <span class="text-[10px] leading-none">{{ str($sort)->after('-') === 'name' ? ($sort === 'name' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'key' ? '-key' : 'key' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
-                        <span>KEY</span>
-                        <span class="text-[10px] leading-none">{{ str($sort)->after('-') === 'key' ? ($sort === 'key' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'type' ? '-type' : 'type' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
-                        <span>TYPE</span>
-                        <span class="text-[10px] leading-none">{{ str($sort)->after('-') === 'type' ? ($sort === 'type' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="name" :sort-state="$sort">NAME</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="key" :sort-state="$sort">KEY</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="type" :sort-state="$sort">TYPE</x-ui.table-heading>
                 <x-ui.table-heading>STATUS</x-ui.table-heading>
                 <x-ui.table-heading align="center">ACTIVE VERSION</x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('{{ $sort === 'updated_at' ? '-updated_at' : 'updated_at' }}')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
-                        <span>UPDATED</span>
-                        <span class="text-[10px] leading-none">{{ str($sort)->after('-') === 'updated_at' ? ($sort === 'updated_at' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="updated_at" :sort-state="$sort">UPDATED</x-ui.table-heading>
                 <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>

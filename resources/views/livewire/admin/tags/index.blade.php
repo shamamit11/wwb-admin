@@ -42,24 +42,9 @@
     <x-ui.table caption="Tags">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[44%]">
-                    <button type="button" wire:click="sortBy('name')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
-                        <span>NAME</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'name' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('slug')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
-                        <span>SLUG</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'slug' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('is_active')" class="inline-flex items-center gap-2 uppercase tracking-[0.18em] transition-colors hover:text-[var(--color-ink)]">
-                        <span>STATUS</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'is_active' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
+                <x-ui.table-heading class="w-[44%]" sortable sort-key="name" :sort-column="$sortColumn" :sort-direction="$sortDirection">NAME</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="slug" :sort-column="$sortColumn" :sort-direction="$sortDirection">SLUG</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="is_active" :sort-column="$sortColumn" :sort-direction="$sortDirection">STATUS</x-ui.table-heading>
                 <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
