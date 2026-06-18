@@ -158,6 +158,111 @@ class KnowledgeBaseEditorTest extends TestCase
             ->assertSet('contentMarkdown', "Existing note\n> Key excerpt");
     }
 
+    public function test_existing_knowledge_base_entry_can_be_linked_to_a_post_and_topic(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/knowledge-base/1') {
+                return Http::response([
+                    'data' => $this->entryResource([
+                        'id' => 1,
+                        'title' => 'Existing Entry',
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/knowledge-base/1/link-post') {
+                $this->assertSame(10, $request['post_id']);
+
+                return Http::response([
+                    'data' => $this->entryResource([
+                        'id' => 1,
+                        'linked_posts' => [
+                            ['id' => 10, 'title' => 'Related Post'],
+                        ],
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/knowledge-base/1/link-topic') {
+                $this->assertSame(11, $request['topic_id']);
+
+                return Http::response([
+                    'data' => $this->entryResource([
+                        'id' => 1,
+                        'linked_posts' => [
+                            ['id' => 10, 'title' => 'Related Post'],
+                        ],
+                        'linked_topics' => [
+                            ['id' => 11, 'title' => 'Related Topic'],
+                        ],
+                    ]),
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Editor::class, ['knowledgeBaseEntry' => 1])
+            ->set('linkPostId', '10')
+            ->call('linkPost')
+            ->assertHasNoErrors()
+            ->assertSet('linkPostId', '')
+            ->assertSet('linkedPosts', [['id' => 10, 'title' => 'Related Post']])
+            ->set('linkTopicId', '11')
+            ->call('linkTopic')
+            ->assertHasNoErrors()
+            ->assertSet('linkTopicId', '')
+            ->assertSet('linkedTopics', [['id' => 11, 'title' => 'Related Topic']]);
+    }
+
+    public function test_knowledge_base_link_actions_map_api_validation_errors(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/knowledge-base/1') {
+                return Http::response([
+                    'data' => $this->entryResource([
+                        'id' => 1,
+                        'title' => 'Existing Entry',
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/knowledge-base/1/link-post') {
+                return Http::response([
+                    'message' => 'The given data was invalid.',
+                    'errors' => [
+                        'post_id' => ['The selected post id is invalid.'],
+                    ],
+                ], 422);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/knowledge-base/1/link-topic') {
+                return Http::response([
+                    'message' => 'The given data was invalid.',
+                    'errors' => [
+                        'topic_id' => ['The selected topic id is invalid.'],
+                    ],
+                ], 422);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Editor::class, ['knowledgeBaseEntry' => 1])
+            ->set('linkPostId', '999')
+            ->call('linkPost')
+            ->assertHasErrors(['linkPostId'])
+            ->assertSee('The selected post id is invalid.')
+            ->set('linkTopicId', '888')
+            ->call('linkTopic')
+            ->assertHasErrors(['linkTopicId'])
+            ->assertSee('The selected topic id is invalid.');
+    }
+
     protected function authenticatedSession(): array
     {
         return [
