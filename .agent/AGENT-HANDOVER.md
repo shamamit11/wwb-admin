@@ -6,31 +6,33 @@ Active handover for the AI workflow integration slice.
 
 ## Last Completed Task
 
-Replace the Topic Queue and AI Jobs roadmap placeholders with contract-backed Admin screens and clients.
+Add Admin AI workflow documentation and align older placeholder-era AI docs.
 
 ## Incomplete Work
 
-- Content Briefs, Prompt Templates, Draft Review, notifications, dashboard cards, and AI workflow docs are still pending later tasks.
+- `WB-ADMIN-AI-009` draft review remains contract-limited because the current Admin post contract does not expose clean AI-draft provenance or a dedicated AI-only review filter.
 
 ## Risks
 
 - Topic Queue and AI Jobs list endpoints currently expose filtering and sorting but no pagination params; Admin is using local UI pagination over returned collections.
-- Older docs and placeholder-era copy still exist outside the changed files and should be aligned during the documentation task.
+- Some broader product docs may still describe future AI work at a roadmap level, but the main Admin docs now point to the implemented AI workflow modules.
 
 ## Blockers
 
-- No blocking contract issue remains for Topic Queue, Topic Discovery, or AI Jobs.
+- No blocking contract issue remains for Topic Queue, Topic Discovery, Content Briefs, Prompt Templates, or AI Jobs.
+- Draft Review remains partially blocked by contract scope.
 
 ## Validation Performed
 
-- Ran focused client and feature tests for Topic Queue, AI Jobs, and navigation updates.
-- Ran focused topic discovery client and Topic Queue tests after the OpenAPI update.
-- Ran `php artisan test` successfully.
-- Ran `npm run build` successfully, with a Vite warning that the current Node `22.1.0` is below the preferred `22.12+` range.
+- Added AI workflow docs:
+  - `docs/AI_WORKFLOW_ADMIN.md`
+  - `docs/TOPIC_QUEUE_ADMIN.md`
+  - `docs/AI_JOBS_ADMIN.md`
+  - `docs/PROMPT_TEMPLATES_ADMIN.md`
+- Updated core docs to remove stale placeholder-era AI guidance where the modules are now implemented.
 
 ## Recommended Next Step
 
-Continue with the next AI workflow slice only where the contract is present:
-- Content Briefs pages and actions
-- Prompt Templates pages
-- AI workflow documentation
+Continue only where the contract is present:
+- revisit Draft Review if the Admin contract gains AI provenance or AI-only draft filtering
+- otherwise continue unrelated Admin work outside the blocked draft-review slice

@@ -25,7 +25,7 @@ This document converts the product UX specification in `/Users/amitsharma/Herd/w
 - highlight the current section clearly
 - group content modules separately from operational modules
 - dashboard, posts, categories, media, templates, knowledge base, SEO, tags, and settings should be first-class nav items
-- Topic Queue and AI Jobs may appear disabled or placeholder-only until backed by service APIs
+- Topic Queue, Content Briefs, Prompt Templates, and AI Jobs are now service-backed Admin modules
 
 ## Table Behavior
 
@@ -102,7 +102,7 @@ Use confirmation dialogs or sheets for:
 
 - summary cards at the top
 - recent drafts and recent published posts lists
-- widgets for topic queue, AI jobs, and SEO completeness may be placeholders until APIs exist
+- dashboard AI widgets should reflect service-backed workflow state and link into Topic Queue, Content Briefs, Prompt Templates, and AI Jobs
 - prioritize actionable items over vanity metrics
 - primary actions should include create post and review drafts
 
@@ -160,19 +160,18 @@ Note: the current API supports metadata arrays and post/topic linking, but not a
 
 ### Topic Queue
 
-- plan as a placeholder management screen
+- list and detail review surfaces for service-backed topic suggestions
 - list/detail/action layout
 - approval flow should be quick and lightweight
-
-Note: no topic queue admin endpoints exist in the current API phase, so this is roadmap-only.
+- topic discovery should create a Service AI job and route the user to the related job detail where possible
+- brief generation should remain available only from approved topics
 
 ### AI Jobs
 
-- plan as a placeholder monitoring screen
-- table plus detail drawer pattern
+- service-backed monitoring screen
+- table plus detail page pattern
 - clear distinction between completed, failed, and review-needed work
-
-Note: no AI jobs endpoints exist in the current API phase, so this is roadmap-only.
+- job detail should expose payload visibility, generation-step inspection, retry affordances, and refresh behavior
 
 ### Settings
 
