@@ -79,8 +79,8 @@
                             None
                         @endif
                     </x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $job['provider'] ?: 'TBC' }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $job['model'] ?: 'TBC' }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $job['provider'] ?: 'Unknown' }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $job['model'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $job['started_at'] ?: 'Not started' }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $job['completed_at'] ?: 'Not completed' }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $job['failed_at'] ?: 'Not failed' }}</x-ui.table-cell>

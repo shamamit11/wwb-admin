@@ -67,7 +67,7 @@
                     <x-ui.table-cell width="content-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $entry['title'] }}</p>
-                            <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $entry['slug'] ?: 'Auto-generated slug' }}</p>
+                            <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $entry['slug'] ?: 'Slug pending' }}</p>
                             @if ($entry['summary'])
                                 <p class="mt-2 text-sm text-[var(--color-muted)]">{{ $entry['summary'] }}</p>
                             @endif
@@ -83,7 +83,7 @@
                                 Source link
                             </a>
                         @else
-                            No source URL
+                            None
                         @endif
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $entry['updated_at'] ?: 'Unknown' }}</x-ui.table-cell>

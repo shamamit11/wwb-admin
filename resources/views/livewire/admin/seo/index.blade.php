@@ -131,7 +131,7 @@
                                     <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $subscore['label'] }}</p>
                                         <p class="mt-2 text-lg font-semibold text-[var(--color-ink)]">
-                                            {{ $subscore['score'] ?? 'TBC' }}
+                                            {{ $subscore['score'] ?? 'Unknown' }}
                                             @if ($subscore['max_score'] !== null)
                                                 <span class="text-sm font-medium text-[var(--color-muted)]">/ {{ $subscore['max_score'] }}</span>
                                             @endif
@@ -178,7 +178,7 @@
                             <div class="grid gap-4 md:grid-cols-3">
                                 <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Context</p>
-                                    <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $schemaSummary['context'] ?: 'TBC' }}</p>
+                                    <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $schemaSummary['context'] ?: 'Unknown' }}</p>
                                 </div>
                                 <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Graph Items</p>
@@ -186,7 +186,7 @@
                                 </div>
                                 <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Types</p>
-                                    <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $schemaSummary['graph_types'] !== [] ? implode(', ', $schemaSummary['graph_types']) : 'TBC' }}</p>
+                                    <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $schemaSummary['graph_types'] !== [] ? implode(', ', $schemaSummary['graph_types']) : 'Unknown' }}</p>
                                 </div>
                             </div>
                         @endif

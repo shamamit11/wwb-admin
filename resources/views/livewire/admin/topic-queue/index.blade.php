@@ -92,8 +92,8 @@
                         </div>
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ str($topic['cluster'])->headline() }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $topic['primary_keyword'] ?: 'TBC' }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $topic['search_intent'] ?: 'TBC' }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $topic['primary_keyword'] ?: 'Not set' }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued>{{ $topic['search_intent'] ?: 'Not set' }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $topic['priority_score_label'] }}</x-ui.table-cell>
                     <x-ui.table-cell><x-admin.status-badge :status="$topic['status']" /></x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $topic['source'] === 'ai_suggested' ? 'AI Suggested' : 'Manual' }}</x-ui.table-cell>

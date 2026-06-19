@@ -144,7 +144,7 @@
                                     Brief #{{ $post['source_content_brief_id'] }}
                                 </a>
                             @else
-                                Not linked
+                                None
                             @endif
                         </x-ui.table-cell>
                         <x-ui.table-cell subdued>
@@ -153,12 +153,12 @@
                                     Topic #{{ $post['source_content_topic_id'] }}
                                 </a>
                             @else
-                                Not linked
+                                None
                             @endif
                         </x-ui.table-cell>
                         <x-ui.table-cell subdued>
                             <div class="space-y-1">
-                                <p>{{ $post['generated_by'] ?: 'Unknown agent' }}</p>
+                                <p>{{ $post['generated_by'] ?: 'Unknown' }}</p>
                                 @if ($post['generated_by_ai_job_id'])
                                     <a href="{{ route('ai-jobs.show', ['aiJob' => $post['generated_by_ai_job_id']]) }}" class="text-xs transition-colors hover:text-[var(--color-ink)]">
                                         Job #{{ $post['generated_by_ai_job_id'] }}
@@ -171,7 +171,7 @@
                                 <p>{{ $post['updated_at'] ?: 'Unknown' }}</p>
                                 @if ($post['reading_time_minutes'] || $post['word_count'])
                                     <p class="text-xs text-[var(--color-muted)]">
-                                        {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time TBC' }}
+                                        {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time pending' }}
                                         @if ($post['word_count'])
                                             · {{ number_format($post['word_count']) }} words
                                         @endif
@@ -205,7 +205,7 @@
                                 <p>{{ $post['updated_at'] ?: 'Unknown' }}</p>
                                 @if ($post['reading_time_minutes'] || $post['word_count'])
                                     <p class="text-xs text-[var(--color-muted)]">
-                                        {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time TBC' }}
+                                        {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time pending' }}
                                         @if ($post['word_count'])
                                             · {{ number_format($post['word_count']) }} words
                                         @endif

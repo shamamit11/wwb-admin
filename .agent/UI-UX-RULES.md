@@ -22,6 +22,15 @@
 - use `Back to {resource name}` for secondary return navigation
 - use user-facing workflow verbs like `Run Topic Discovery`, `Generate Brief`, and `Generate Draft` instead of implementation labels like `Create AI Job`
 
+## Fallback Copy
+
+- use `Unknown` when the API omits a value that would normally be expected
+- use `Not set` for optional editable metadata that has not been filled in yet
+- use `{field} pending` or `Pending` for generated or derived values expected later
+- use `None` for intentionally empty relationships, links, or optional resources
+- use explicit lifecycle phrases like `Not published`, `Not approved`, and `Not started` when the state itself is the message
+- use `Unavailable` only when a value exists conceptually but is not exposed in the current surface
+
 ## Validation Behavior
 
 - inline field validation for obvious errors where appropriate

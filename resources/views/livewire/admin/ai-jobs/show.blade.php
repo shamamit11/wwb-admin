@@ -50,11 +50,11 @@
                     <div class="mt-6 grid gap-5 md:grid-cols-2">
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Provider</p>
-                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $job['provider'] ?? 'TBC' }}</p>
+                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $job['provider'] ?? 'Unknown' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Model</p>
-                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $job['model'] ?? 'TBC' }}</p>
+                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $job['model'] ?? 'Unknown' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-muted)]">Attempts</p>
@@ -110,7 +110,7 @@
                                     <div>
                                         <p class="font-semibold text-[var(--color-ink)]">{{ $step['agent_name'] }}</p>
                                         <p class="mt-1 text-sm text-[var(--color-muted)]">
-                                            Started {{ $step['started_at'] ?? 'TBC' }} · Completed {{ $step['completed_at'] ?? 'TBC' }}
+                                            Started {{ $step['started_at'] ?? 'Unknown' }} · Completed {{ $step['completed_at'] ?? 'Unknown' }}
                                         </p>
                                     </div>
 
@@ -148,27 +148,27 @@
                     <div class="mt-5 space-y-4 text-sm text-[var(--color-muted)]">
                         <div class="flex items-center justify-between gap-3">
                             <span>Input Tokens</span>
-                            <span>{{ data_get($job, 'cost_summary.input_tokens', 'TBC') }}</span>
+                            <span>{{ data_get($job, 'cost_summary.input_tokens', 'Unavailable') }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span>Output Tokens</span>
-                            <span>{{ data_get($job, 'cost_summary.output_tokens', 'TBC') }}</span>
+                            <span>{{ data_get($job, 'cost_summary.output_tokens', 'Unavailable') }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span>Total Tokens</span>
-                            <span>{{ data_get($job, 'cost_summary.total_tokens', 'TBC') }}</span>
+                            <span>{{ data_get($job, 'cost_summary.total_tokens', 'Unavailable') }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span>Estimated Cost</span>
-                            <span>{{ data_get($job, 'cost_summary.estimated_cost', 'TBC') }}</span>
+                            <span>{{ data_get($job, 'cost_summary.estimated_cost', 'Unavailable') }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span>Actual Cost</span>
-                            <span>{{ data_get($job, 'cost_summary.actual_cost', 'TBC') }}</span>
+                            <span>{{ data_get($job, 'cost_summary.actual_cost', 'Unavailable') }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span>Currency</span>
-                            <span>{{ data_get($job, 'cost_summary.currency', 'TBC') }}</span>
+                            <span>{{ data_get($job, 'cost_summary.currency', 'Unavailable') }}</span>
                         </div>
                     </div>
                 </div>

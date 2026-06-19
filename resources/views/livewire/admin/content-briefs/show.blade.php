@@ -136,7 +136,7 @@
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span>Cluster</span>
-                            <span class="text-right text-[var(--color-ink)]">{{ filled($topic['cluster'] ?? null) ? str($topic['cluster'])->headline() : 'TBC' }}</span>
+                            <span class="text-right text-[var(--color-ink)]">{{ filled($topic['cluster'] ?? null) ? str($topic['cluster'])->headline() : 'Not set' }}</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span>Status</span>
