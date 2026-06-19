@@ -103,8 +103,11 @@
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Metadata</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Use a simple JSON array of strings for lightweight reference tags or notes.</p>
                 </div>
+
+                <x-admin.callout title="Metadata Format">
+                    Use a simple JSON array of strings for lightweight reference tags or notes.
+                </x-admin.callout>
 
                 <x-ui.field label="Metadata JSON Array" for="knowledge-metadata-json" :error="$errors->first('metadataJson')" hint='Example: ["agent-memory","source:research"]'>
                     <x-ui.textarea id="knowledge-metadata-json" wire:model.blur="metadataJson" rows="6" placeholder='["editorial-note","research"]' :invalid="$errors->has('metadataJson')" />
@@ -115,8 +118,11 @@
                 <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                     <div class="space-y-1">
                         <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Linked Context</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Add post and topic links by ID using the documented service-backed actions. Unlinking is not available in the current contract.</p>
                     </div>
+
+                    <x-admin.callout title="Current Contract" tone="warning">
+                        Add post and topic links by ID using the documented service-backed actions. Unlinking is not available in the current contract.
+                    </x-admin.callout>
 
                     @if ($linkError)
                         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">

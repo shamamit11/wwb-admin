@@ -3,9 +3,9 @@
         title="SEO"
         description="Review per-post score signals and inspect generated schema without inventing unsupported sitewide issue queues."
     >
-        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm text-[var(--color-muted)]">
+        <x-admin.callout title="Scope" class="max-w-md">
             The current service supports per-entity reads. Broader review endpoints remain out of scope.
-        </div>
+        </x-admin.callout>
     </x-admin.page-header>
 
     @if ($pageError)
@@ -199,9 +199,9 @@
                                 <pre class="max-h-[32rem] overflow-auto px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ $schemaJson }}</pre>
                             </div>
                         @else
-                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3 text-sm text-[var(--color-muted)]">
+                            <x-admin.callout title="Schema Unavailable">
                                 No schema payload is available for the selected entity.
-                            </div>
+                            </x-admin.callout>
                         @endif
                     </section>
                 @else

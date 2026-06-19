@@ -154,9 +154,9 @@
                 <x-ui.textarea id="discovery-metadata" rows="4" wire:model.blur="discoveryMetadata" :invalid="$errors->has('discoveryMetadata')" placeholder="newsletter, q3-campaign, editorial-focus" />
             </x-ui.field>
 
-            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3 text-sm text-[var(--color-muted)]">
+            <x-admin.callout title="Workflow Note">
                 Topic discovery creates suggested topics only. Approval and downstream workflow decisions still require human review in Admin.
-            </div>
+            </x-admin.callout>
         </div>
 
         <x-slot:cancel>
