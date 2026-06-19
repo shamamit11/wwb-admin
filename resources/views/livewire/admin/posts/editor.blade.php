@@ -1,18 +1,18 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            :title="$editingPostId ? 'Edit Post' : 'Create Post'"
-            description="Build structured editorial content in the main canvas while keeping status, taxonomy, media, and publishing metadata visible in the side panel."
-        />
-
-        <div class="flex flex-wrap items-center gap-3 lg:pt-1">
-            <x-ui.button as="a" :href="route('posts.index')" variant="secondary">Back to Posts</x-ui.button>
-            <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
-                <span wire:loading.remove wire:target="save">{{ $editingPostId ? 'Save Post' : 'Create Post' }}</span>
-                <span wire:loading wire:target="save">Saving…</span>
-            </x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-header
+        :title="$aiReviewMode ? 'Review AI Draft' : ($editingPostId ? 'Edit Post' : 'Create Post')"
+        :description="$aiReviewMode
+            ? 'Review AI-generated content, inspect source provenance and suggestions, then publish manually when the draft is ready.'
+            : 'Build structured editorial content in the main canvas while keeping status, taxonomy, media, and publishing metadata visible in the side panel.'"
+    >
+        <x-ui.button as="a" :href="$aiReviewMode ? route('draft-review.index') : route('posts.index')" variant="secondary">
+            {{ $aiReviewMode ? 'Back to Draft Review' : 'Back to Posts' }}
+        </x-ui.button>
+        <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+            <span wire:loading.remove wire:target="save">{{ $aiReviewMode ? 'Save Review Changes' : ($editingPostId ? 'Save Post' : 'Create Post') }}</span>
+            <span wire:loading wire:target="save">Saving…</span>
+        </x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
@@ -26,8 +26,36 @@
         </div>
     @endif
 
+    @if ($aiReviewMode && $isAiGenerated)
+        <div class="rounded-[var(--radius-card)] border border-[color-mix(in_srgb,var(--color-warning)_20%,white)] bg-[color-mix(in_srgb,var(--color-warning)_10%,white)] px-5 py-4 text-sm text-[var(--color-warning-strong)]">
+            AI-generated drafts never bypass manual review. Validate the content, SEO, taxonomy, and suggested assets before publishing.
+        </div>
+    @endif
+
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_22rem]">
         <div class="space-y-6">
+            @if ($aiReviewMode && $isAiGenerated && $aiSuggestionSections !== [])
+                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+                    <div class="space-y-1">
+                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">AI Suggestions</h2>
+                        <p class="text-sm text-[var(--color-muted)]">These suggestions come from the Service-side draft generation workflow and remain advisory until a human editor accepts them.</p>
+                    </div>
+
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        @foreach ($aiSuggestionSections as $section)
+                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $section['title'] }}</p>
+                                <ul class="mt-3 space-y-2 text-sm text-[var(--color-ink)]">
+                                    @foreach ($section['items'] as $item)
+                                        <li>{{ $item }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Core Content</h2>
@@ -363,6 +391,104 @@
         </div>
 
         <aside class="space-y-6 xl:sticky xl:top-6 xl:self-start">
+            @if ($aiReviewMode && $isAiGenerated)
+                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                    <div class="space-y-1">
+                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">AI Draft Context</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Use the source links and job provenance to verify how this draft entered the editorial workflow.</p>
+                    </div>
+
+                    <div class="space-y-4 text-sm text-[var(--color-muted)]">
+                        <div class="flex items-center justify-between gap-3">
+                            <span>Generated By</span>
+                            <span class="text-right text-[var(--color-ink)]">{{ $generatedBy ?: 'Unknown agent' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span>Source Brief</span>
+                            @if ($sourceContentBriefLink)
+                                <a href="{{ $sourceContentBriefLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
+                                    Brief #{{ $sourceContentBriefId }}
+                                </a>
+                            @else
+                                <span class="text-right">Not linked</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span>Source Topic</span>
+                            @if ($sourceContentTopicLink)
+                                <a href="{{ $sourceContentTopicLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
+                                    Topic #{{ $sourceContentTopicId }}
+                                </a>
+                            @else
+                                <span class="text-right">Not linked</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span>AI Job</span>
+                            @if ($generatedByAiJobLink)
+                                <a href="{{ $generatedByAiJobLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
+                                    Job #{{ $generatedByAiJobId }}
+                                </a>
+                            @else
+                                <span class="text-right">Not linked</span>
+                            @endif
+                        </div>
+                    </div>
+                </section>
+            @endif
+
+            @if ($aiReviewMode)
+                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                    <div class="space-y-1">
+                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">AI Review Actions</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Queue review-only jobs for metadata or title/excerpt suggestions. Results are tracked in AI jobs and never auto-applied or published from this screen.</p>
+                    </div>
+
+                    <div class="grid gap-3">
+                        <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openReviewActionDialog('suggest_metadata')">
+                            Suggest Metadata
+                        </x-ui.button>
+                        <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openReviewActionDialog('refine_title_excerpt')">
+                            Refine Title & Excerpt
+                        </x-ui.button>
+                    </div>
+                </section>
+
+                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                    <div class="space-y-1">
+                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Draft Rewrite</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Queue a review-only AI rewrite job against the current draft. This never publishes the post automatically.</p>
+                    </div>
+
+                    @if ($canQueueRewrite)
+                        <div class="space-y-4">
+                            <div class="grid gap-3">
+                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('full_draft')">
+                                    Rewrite Full Draft
+                                </x-ui.button>
+                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('section')" :disabled="! $hasRewriteableBlocks">
+                                    Regenerate Section
+                                </x-ui.button>
+                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('paragraph')" :disabled="$rewriteParagraphBlocks === []">
+                                    Regenerate Paragraph
+                                </x-ui.button>
+                            </div>
+
+                            @if (! $hasRewriteableBlocks)
+                                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_20%,white)] bg-[color-mix(in_srgb,var(--color-warning)_10%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
+                                    Targeted regeneration needs persisted post block IDs. Save the draft first if new blocks were added locally and have not been reloaded from the service yet.
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-sm font-semibold text-[var(--color-ink)]">Rewrite is unavailable for this post.</p>
+                            <p class="mt-1 text-sm text-[var(--color-muted)]">The current service rule only allows rewrite jobs for AI-generated draft posts that still retain source brief or topic provenance.</p>
+                        </div>
+                    @endif
+                </section>
+            @endif
+
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Status</h2>
@@ -603,11 +729,11 @@
         </x-slot:actions>
     </x-ui.dialog>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$actionDialogOpen"
         :title="$actionConfig['title']"
         :description="$actionConfig['description']"
-        :tone="$actionConfig['tone']"
+        :destructive="$actionConfig['tone'] === 'destructive'"
         maxWidth="lg"
     >
         <div class="space-y-5">
@@ -641,8 +767,11 @@
             @endif
         </div>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="closeActionDialog">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
             <x-ui.button
                 type="button"
                 :variant="$actionConfig['tone'] === 'destructive' ? 'destructive' : 'primary'"
@@ -652,6 +781,177 @@
             >
                 <span wire:loading.remove wire:target="executeAction">{{ $actionConfig['confirm'] }}</span>
                 <span wire:loading wire:target="executeAction">Saving…</span>
+            </x-ui.button>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
+
+    <x-ui.dialog
+        :open="$reviewActionDialogOpen"
+        :title="$reviewActionHeading"
+        :description="$reviewActionDescription"
+        maxWidth="lg"
+    >
+        <div class="space-y-5">
+            @if ($reviewActionError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $reviewActionError }}
+                </div>
+            @endif
+
+            <x-ui.field label="Instructions" for="review-action-instructions" :error="$errors->first('reviewActionInstructions')" hint="Optional editor guidance for this review-only AI workflow.">
+                <x-ui.textarea
+                    id="review-action-instructions"
+                    rows="5"
+                    wire:model.blur="reviewActionInstructions"
+                    placeholder="Emphasize search clarity and keep the recommendations aligned with the current draft."
+                    :invalid="$errors->has('reviewActionInstructions')"
+                />
+            </x-ui.field>
+
+            <x-ui.field label="Prompt Template Key" for="review-action-prompt-template-key" :error="$errors->first('reviewActionPromptTemplateKey')" hint="Optional override when the default service prompt template should be replaced.">
+                <x-ui.input
+                    id="review-action-prompt-template-key"
+                    wire:model.blur="reviewActionPromptTemplateKey"
+                    placeholder="post_metadata_review_default"
+                    :invalid="$errors->has('reviewActionPromptTemplateKey')"
+                />
+            </x-ui.field>
+        </div>
+
+        <x-slot:actions>
+            <x-ui.button type="button" variant="secondary" wire:click="closeReviewActionDialog">Cancel</x-ui.button>
+            <x-ui.button
+                type="button"
+                wire:click="queueReviewAction"
+                wire:loading.attr="disabled"
+                wire:target="queueReviewAction"
+            >
+                <span wire:loading.remove wire:target="queueReviewAction">{{ $reviewActionButtonLabel }}</span>
+                <span wire:loading wire:target="queueReviewAction">Queueing…</span>
+            </x-ui.button>
+        </x-slot:actions>
+    </x-ui.dialog>
+
+    <x-ui.dialog
+        :open="$rewriteDialogOpen"
+        title="Queue draft rewrite"
+        description="Choose whether to rewrite the full draft or regenerate a targeted section or paragraph. The service will queue an AI job and update draft content only when that job runs."
+        maxWidth="lg"
+    >
+        <div class="space-y-5">
+            @if ($rewriteError)
+                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    {{ $rewriteError }}
+                </div>
+            @endif
+
+            <div class="space-y-3">
+                <p class="text-sm font-semibold text-[var(--color-ink)]">Rewrite scope</p>
+
+                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                    <input wire:model.live="rewriteScope" type="radio" value="full_draft" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
+                    <span>
+                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Full Draft</span>
+                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Queue a full review rewrite for the entire draft.</span>
+                    </span>
+                </label>
+
+                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                    <input wire:model.live="rewriteScope" type="radio" value="section" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" @disabled(! $hasRewriteableBlocks)>
+                    <span>
+                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Section</span>
+                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Select a contiguous run of persisted blocks to regenerate together.</span>
+                    </span>
+                </label>
+
+                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                    <input wire:model.live="rewriteScope" type="radio" value="paragraph" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" @disabled($rewriteParagraphBlocks === [])>
+                    <span>
+                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Paragraph</span>
+                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Select exactly one persisted paragraph block to regenerate.</span>
+                    </span>
+                </label>
+
+                @error('rewriteScope')
+                    <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
+                @enderror
+            </div>
+
+            @if (in_array($rewriteScope, ['section', 'paragraph'], true))
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-sm font-semibold text-[var(--color-ink)]">Target blocks</p>
+                        <p class="text-xs uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                            {{ $rewriteScope === 'paragraph' ? 'Pick one paragraph block' : 'Pick contiguous blocks' }}
+                        </p>
+                    </div>
+
+                    @php
+                        $targetOptions = $rewriteScope === 'paragraph' ? $rewriteParagraphBlocks : $rewriteableBlocks;
+                    @endphp
+
+                    @if ($targetOptions !== [])
+                        <div class="max-h-[18rem] space-y-3 overflow-y-auto pr-1">
+                            @foreach ($targetOptions as $block)
+                                <label wire:key="rewrite-block-{{ $block['id'] }}" class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                                    <input
+                                        type="checkbox"
+                                        value="{{ $block['id'] }}"
+                                        wire:model.live="rewriteTargetBlockIds"
+                                        class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]"
+                                    >
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-[var(--color-ink)]">{{ $block['label'] }} <span class="text-[var(--color-muted)]">#{{ $block['id'] }}</span></span>
+                                        <span class="mt-1 block text-sm text-[var(--color-muted)]">{{ $block['preview'] }}</span>
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-sm text-[var(--color-muted)]">No persisted blocks are available for this rewrite scope yet.</p>
+                        </div>
+                    @endif
+
+                    @error('rewriteTargetBlockIds')
+                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
+                    @enderror
+                    @error('rewriteTargetBlockIds.*')
+                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endif
+
+            <x-ui.field label="Instructions" for="rewrite-instructions" :error="$errors->first('rewriteInstructions')" hint="Optional editor guidance for the rewrite job.">
+                <x-ui.textarea
+                    id="rewrite-instructions"
+                    rows="5"
+                    wire:model.blur="rewriteInstructions"
+                    placeholder="Tighten the intro and make the guidance more actionable."
+                    :invalid="$errors->has('rewriteInstructions')"
+                />
+            </x-ui.field>
+
+            <x-ui.field label="Prompt Template Key" for="rewrite-prompt-template-key" :error="$errors->first('rewritePromptTemplateKey')" hint="Optional override when the default draft-rewrite prompt should be replaced.">
+                <x-ui.input
+                    id="rewrite-prompt-template-key"
+                    wire:model.blur="rewritePromptTemplateKey"
+                    placeholder="post_rewrite_default"
+                    :invalid="$errors->has('rewritePromptTemplateKey')"
+                />
+            </x-ui.field>
+        </div>
+
+        <x-slot:actions>
+            <x-ui.button type="button" variant="secondary" wire:click="closeRewriteDialog">Cancel</x-ui.button>
+            <x-ui.button
+                type="button"
+                wire:click="queueRewrite"
+                wire:loading.attr="disabled"
+                wire:target="queueRewrite"
+            >
+                <span wire:loading.remove wire:target="queueRewrite">Queue Rewrite Job</span>
+                <span wire:loading wire:target="queueRewrite">Queueing…</span>
             </x-ui.button>
         </x-slot:actions>
     </x-ui.dialog>

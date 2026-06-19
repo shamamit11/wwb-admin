@@ -1,14 +1,12 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="SEO"
-            description="Review per-post score signals and inspect generated schema without inventing unsupported sitewide issue queues."
-        />
-
-        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm text-[var(--color-muted)]">
+    <x-admin.page-header
+        title="SEO"
+        description="Review per-post score signals and inspect generated schema without inventing unsupported sitewide issue queues."
+    >
+        <x-admin.callout title="Scope" class="max-w-md">
             The current service supports per-entity reads. Broader review endpoints remain out of scope.
-        </div>
-    </div>
+        </x-admin.callout>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
@@ -101,7 +99,7 @@
                                 </p>
                             </div>
 
-                            <x-ui.button as="a" :href="route('posts.edit', ['post' => $selectedPost['id']])" variant="secondary">Open Post Editor</x-ui.button>
+                            <x-ui.button as="a" :href="route('posts.edit', ['post' => $selectedPost['id']])" variant="secondary">Edit Post</x-ui.button>
                         </div>
 
                         <div class="grid gap-4 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
@@ -133,7 +131,7 @@
                                     <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $subscore['label'] }}</p>
                                         <p class="mt-2 text-lg font-semibold text-[var(--color-ink)]">
-                                            {{ $subscore['score'] ?? 'TBC' }}
+                                            {{ $subscore['score'] ?? 'Unknown' }}
                                             @if ($subscore['max_score'] !== null)
                                                 <span class="text-sm font-medium text-[var(--color-muted)]">/ {{ $subscore['max_score'] }}</span>
                                             @endif
@@ -180,7 +178,7 @@
                             <div class="grid gap-4 md:grid-cols-3">
                                 <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Context</p>
-                                    <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $schemaSummary['context'] ?: 'TBC' }}</p>
+                                    <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $schemaSummary['context'] ?: 'Unknown' }}</p>
                                 </div>
                                 <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Graph Items</p>
@@ -188,7 +186,7 @@
                                 </div>
                                 <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Types</p>
-                                    <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $schemaSummary['graph_types'] !== [] ? implode(', ', $schemaSummary['graph_types']) : 'TBC' }}</p>
+                                    <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $schemaSummary['graph_types'] !== [] ? implode(', ', $schemaSummary['graph_types']) : 'Unknown' }}</p>
                                 </div>
                             </div>
                         @endif
@@ -201,9 +199,9 @@
                                 <pre class="max-h-[32rem] overflow-auto px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ $schemaJson }}</pre>
                             </div>
                         @else
-                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3 text-sm text-[var(--color-muted)]">
+                            <x-admin.callout title="Schema Unavailable">
                                 No schema payload is available for the selected entity.
-                            </div>
+                            </x-admin.callout>
                         @endif
                     </section>
                 @else
@@ -235,21 +233,21 @@
                     </div>
                 @endif
 
-                <x-ui.table caption="RSS feed entries">
+                <x-ui.table caption="RSS feed entries" density="compact">
                     <x-ui.table-head>
                         <tr>
-                            <x-ui.table-heading class="w-[28%]">Title</x-ui.table-heading>
-                            <x-ui.table-heading>Author</x-ui.table-heading>
-                            <x-ui.table-heading>Category</x-ui.table-heading>
-                            <x-ui.table-heading>Published</x-ui.table-heading>
-                            <x-ui.table-heading>Updated</x-ui.table-heading>
-                            <x-ui.table-heading>Link</x-ui.table-heading>
+                            <x-ui.table-heading width="feed-primary">TITLE</x-ui.table-heading>
+                            <x-ui.table-heading>AUTHOR</x-ui.table-heading>
+                            <x-ui.table-heading>CATEGORY</x-ui.table-heading>
+                            <x-ui.table-heading>PUBLISHED</x-ui.table-heading>
+                            <x-ui.table-heading>UPDATED</x-ui.table-heading>
+                            <x-ui.table-heading>LINK</x-ui.table-heading>
                         </tr>
                     </x-ui.table-head>
                     <x-ui.table-body>
                         @forelse ($rssEntries as $entry)
                             <x-ui.table-row wire:key="rss-entry-{{ $entry['id'] }}">
-                                <x-ui.table-cell class="w-[28%]">
+                                <x-ui.table-cell width="feed-primary">
                                     <div class="min-w-0">
                                         <p class="truncate font-semibold text-[var(--color-ink)]">{{ $entry['title'] }}</p>
                                         <p class="mt-1 text-sm text-[var(--color-muted)]">/{{ $entry['slug'] }}</p>
@@ -289,13 +287,13 @@
                     </div>
                 @endif
 
-                <x-ui.table caption="Sitemap entries">
+                <x-ui.table caption="Sitemap entries" density="compact">
                     <x-ui.table-head>
                         <tr>
-                            <x-ui.table-heading>Slug</x-ui.table-heading>
-                            <x-ui.table-heading>Canonical URL</x-ui.table-heading>
-                            <x-ui.table-heading>Published</x-ui.table-heading>
-                            <x-ui.table-heading>Last Modified</x-ui.table-heading>
+                            <x-ui.table-heading>SLUG</x-ui.table-heading>
+                            <x-ui.table-heading>CANONICAL URL</x-ui.table-heading>
+                            <x-ui.table-heading>PUBLISHED</x-ui.table-heading>
+                            <x-ui.table-heading>LAST MODIFIED</x-ui.table-heading>
                         </tr>
                     </x-ui.table-head>
                     <x-ui.table-body>

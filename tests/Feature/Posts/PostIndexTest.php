@@ -65,6 +65,52 @@ class PostIndexTest extends TestCase
             ->assertSee('Posts');
     }
 
+    public function test_draft_review_index_filters_to_ai_generated_drafts(): void
+    {
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/posts')) {
+                parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+
+                $this->assertSame('draft', $query['status'] ?? null);
+                $this->assertSame('1', $query['is_ai_generated'] ?? null);
+
+                return Http::response([
+                    'data' => [
+                        $this->postResource([
+                            'id' => 41,
+                            'title' => 'AI Editorial Review Checklist',
+                            'is_ai_generated' => true,
+                            'source_content_brief_id' => 14,
+                            'source_content_topic_id' => 8,
+                            'generated_by_ai_job_id' => 22,
+                            'generated_by' => 'BlogWriterAgent',
+                            'meta' => [
+                                'source_content_brief_id' => 14,
+                                'source_content_topic_id' => 8,
+                                'ai_job_id' => 22,
+                                'generated_by' => 'BlogWriterAgent',
+                            ],
+                        ]),
+                    ],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('draft-review.index'));
+
+        $response
+            ->assertOk()
+            ->assertSee('Draft Review')
+            ->assertSee('AI Editorial Review Checklist')
+            ->assertSee('Brief #14')
+            ->assertSee('Topic #8')
+            ->assertSee('Job #22')
+            ->assertSee('Review');
+    }
+
     public function test_post_schedule_action_maps_api_validation_errors(): void
     {
         session($this->authenticatedSession());
@@ -229,6 +275,11 @@ class PostIndexTest extends TestCase
             'reading_time_minutes' => 6,
             'word_count' => 1100,
             'is_featured' => false,
+            'is_ai_generated' => false,
+            'source_content_brief_id' => null,
+            'source_content_topic_id' => null,
+            'generated_by_ai_job_id' => null,
+            'generated_by' => null,
             'meta' => [],
             'author' => [
                 'id' => 9,

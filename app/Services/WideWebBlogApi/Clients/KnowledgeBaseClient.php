@@ -44,6 +44,20 @@ class KnowledgeBaseClient
         );
     }
 
+    public function linkPost(string $token, ?string $tokenType = 'Bearer', int $entryId = 0, array $payload = []): array
+    {
+        return $this->api->handle(
+            $this->api->authenticated($token, $tokenType)->post("/admin/knowledge-base/{$entryId}/link-post", $payload)
+        );
+    }
+
+    public function linkTopic(string $token, ?string $tokenType = 'Bearer', int $entryId = 0, array $payload = []): array
+    {
+        return $this->api->handle(
+            $this->api->authenticated($token, $tokenType)->post("/admin/knowledge-base/{$entryId}/link-topic", $payload)
+        );
+    }
+
     public function delete(string $token, ?string $tokenType = 'Bearer', int $entryId = 0): void
     {
         $this->api->handle(

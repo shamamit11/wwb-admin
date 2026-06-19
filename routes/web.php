@@ -1,14 +1,20 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\LogoutController;
+use App\Livewire\Admin\AiPrompts\Index as AiPromptIndex;
+use App\Livewire\Admin\AiPrompts\Show as AiPromptShow;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
+use App\Livewire\Admin\AiJobs\Index as AiJobIndex;
+use App\Livewire\Admin\AiJobs\Show as AiJobShow;
+use App\Livewire\Admin\Password\Index as PasswordIndex;
 use App\Livewire\Admin\Categories\Index as CategoryIndex;
+use App\Livewire\Admin\ContentBriefs\Index as ContentBriefIndex;
+use App\Livewire\Admin\ContentBriefs\Show as ContentBriefShow;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
 use App\Livewire\Admin\Homepage\Index as HomepageIndex;
 use App\Livewire\Admin\KnowledgeBase\Editor as KnowledgeBaseEditor;
 use App\Livewire\Admin\KnowledgeBase\Index as KnowledgeBaseIndex;
 use App\Livewire\Admin\Media\Index as MediaIndex;
-use App\Livewire\Admin\Placeholder\Index as PlaceholderIndex;
 use App\Livewire\Admin\Pages\Editor as PageEditor;
 use App\Livewire\Admin\Pages\Index as PageIndex;
 use App\Livewire\Admin\Posts\Editor as PostEditor;
@@ -17,6 +23,8 @@ use App\Livewire\Admin\Seo\Index as SeoIndex;
 use App\Livewire\Admin\Settings\Index as SettingsIndex;
 use App\Livewire\Admin\Tags\Index as TagIndex;
 use App\Livewire\Admin\Templates\Index as TemplateIndex;
+use App\Livewire\Admin\TopicQueue\Index as TopicQueueIndex;
+use App\Livewire\Admin\TopicQueue\Show as TopicQueueShow;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('admin.guest')->group(function (): void {
@@ -61,35 +69,27 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/settings', SettingsIndex::class)->name('settings.index');
 
-    Route::get('/topic-queue', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Roadmap')
-        ->defaults('pageTitle', 'Topic queue is visible as a roadmap placeholder.')
-        ->defaults('pageDescription', 'This navigation target is intentionally explicit so future editorial workflow work has a reserved place in the admin shell.')
-        ->defaults('moduleLabel', 'Topic Queue')
-        ->defaults('moduleDescription', 'No service API endpoints exist for topic queue management in the current phase, so this module remains planning-only.')
-        ->defaults('primaryActionLabel', 'Workflow Placeholder')
-        ->defaults('primaryActionHint', 'Do not imply approval flows or list data until the service contract exists.')
-        ->defaults('nextSteps', [
-            'Confirm future topic queue API coverage in the service contract.',
-            'Choose a list/detail/action pattern consistent with lightweight editorial review.',
-            'Add real routes and interactions only once backend support is available.',
-        ])
-        ->defaults('roadmap', true)
-        ->name('topic-queue.index');
+    Route::get('/password', PasswordIndex::class)->name('password.index');
 
-    Route::get('/ai-jobs', PlaceholderIndex::class)
-        ->defaults('eyebrow', 'Roadmap')
-        ->defaults('pageTitle', 'AI jobs are visible as a roadmap placeholder.')
-        ->defaults('pageDescription', 'The route exists now only to reserve navigation structure for later monitoring and review workflows.')
-        ->defaults('moduleLabel', 'AI Jobs')
-        ->defaults('moduleDescription', 'No AI job endpoints exist in the current service API phase, so this area remains intentionally non-operational.')
-        ->defaults('primaryActionLabel', 'Monitoring Placeholder')
-        ->defaults('primaryActionHint', 'Keep the distinction between completed, failed, and review-needed work for later implementation.')
-        ->defaults('nextSteps', [
-            'Confirm future AI job endpoints and list/detail requirements.',
-            'Revisit whether a table plus detail drawer pattern still fits once APIs exist.',
-            'Only surface job actions after contract-backed behavior is available.',
-        ])
-        ->defaults('roadmap', true)
-        ->name('ai-jobs.index');
+    Route::get('/topic-queue', TopicQueueIndex::class)->name('topic-queue.index');
+
+    Route::get('/topic-queue/{topic}', TopicQueueShow::class)->name('topic-queue.show');
+
+    Route::get('/content-briefs', ContentBriefIndex::class)->name('content-briefs.index');
+
+    Route::get('/content-briefs/{contentBrief}', ContentBriefShow::class)->name('content-briefs.show');
+
+    Route::get('/draft-review', PostIndex::class)->name('draft-review.index');
+
+    Route::get('/draft-review/{post}', PostEditor::class)->name('draft-review.show');
+
+    Route::get('/ai-prompts', AiPromptIndex::class)->name('ai-prompts.index');
+
+    Route::get('/ai-prompts/create', AiPromptShow::class)->name('ai-prompts.create');
+
+    Route::get('/ai-prompts/{aiPrompt}', AiPromptShow::class)->name('ai-prompts.show');
+
+    Route::get('/ai-jobs', AiJobIndex::class)->name('ai-jobs.index');
+
+    Route::get('/ai-jobs/{aiJob}', AiJobShow::class)->name('ai-jobs.show');
 });

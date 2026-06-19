@@ -53,9 +53,15 @@ class Editor extends Component
 
     public array $linkedTopics = [];
 
+    public string $linkPostId = '';
+
+    public string $linkTopicId = '';
+
     public ?string $pageError = null;
 
     public ?string $formError = null;
+
+    public ?string $linkError = null;
 
     public function mount(KnowledgeBaseClient $knowledgeBase, AdminSessionManager $session, mixed $knowledgeBaseEntry = null): mixed
     {
@@ -94,6 +100,18 @@ class Editor extends Component
     {
         if (in_array($property, ['title', 'slug', 'entryType', 'status', 'summary', 'contentMarkdown', 'sourceUrl', 'metadataJson'], true)) {
             $this->validateOnly($property);
+
+            return;
+        }
+
+        if ($property === 'linkPostId') {
+            $this->validateOnly('linkPostId', $this->linkPostRules());
+
+            return;
+        }
+
+        if ($property === 'linkTopicId') {
+            $this->validateOnly('linkTopicId', $this->linkTopicRules());
         }
     }
 
@@ -153,6 +171,74 @@ class Editor extends Component
             return $this->forbidden($session);
         } catch (WideWebBlogApiException $exception) {
             $this->formError = $exception->getMessage() ?: 'Knowledge entry changes could not be saved.';
+
+            return null;
+        }
+    }
+
+    public function linkPost(KnowledgeBaseClient $knowledgeBase, AdminSessionManager $session): mixed
+    {
+        if (! $this->editingEntryId) {
+            return null;
+        }
+
+        $validated = $this->validate($this->linkPostRules());
+        $this->linkError = null;
+
+        try {
+            $response = $knowledgeBase->linkPost($this->token($session), $session->tokenType(), $this->editingEntryId, [
+                'post_id' => (int) $validated['linkPostId'],
+            ]);
+
+            $this->fillForm(Arr::get($response, 'data', []));
+            $this->linkPostId = '';
+            session()->flash('status', 'Knowledge entry linked to post.');
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->linkError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeLinkApiErrors($exception->errors(), 'post'));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->linkError = $exception->getMessage() ?: 'The post could not be linked.';
+
+            return null;
+        }
+    }
+
+    public function linkTopic(KnowledgeBaseClient $knowledgeBase, AdminSessionManager $session): mixed
+    {
+        if (! $this->editingEntryId) {
+            return null;
+        }
+
+        $validated = $this->validate($this->linkTopicRules());
+        $this->linkError = null;
+
+        try {
+            $response = $knowledgeBase->linkTopic($this->token($session), $session->tokenType(), $this->editingEntryId, [
+                'topic_id' => (int) $validated['linkTopicId'],
+            ]);
+
+            $this->fillForm(Arr::get($response, 'data', []));
+            $this->linkTopicId = '';
+            session()->flash('status', 'Knowledge entry linked to topic.');
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->linkError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeLinkApiErrors($exception->errors(), 'topic'));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->linkError = $exception->getMessage() ?: 'The topic could not be linked.';
 
             return null;
         }
@@ -243,6 +329,20 @@ class Editor extends Component
         return is_string($json) ? $json : '';
     }
 
+    protected function linkPostRules(): array
+    {
+        return [
+            'linkPostId' => ['required', 'integer', 'min:1'],
+        ];
+    }
+
+    protected function linkTopicRules(): array
+    {
+        return [
+            'linkTopicId' => ['required', 'integer', 'min:1'],
+        ];
+    }
+
     protected function validateJsonStringArrayPayload(mixed $value, \Closure $fail): void
     {
         if (! is_string($value) || trim($value) === '') {
@@ -291,6 +391,18 @@ class Editor extends Component
         }
 
         return $mapped;
+    }
+
+    protected function normalizeLinkApiErrors(array $errors, string $mode): array
+    {
+        $field = $mode === 'topic' ? 'topic_id' : 'post_id';
+        $property = $mode === 'topic' ? 'linkTopicId' : 'linkPostId';
+
+        if (array_key_exists($field, $errors)) {
+            return [$property => $errors[$field]];
+        }
+
+        return [$property => ['The link request could not be completed.']];
     }
 
     protected function token(AdminSessionManager $session): string

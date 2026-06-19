@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Admin\Posts;
 
+use App\Data\Ai\QueuePostMetadataSuggestionRequestData;
+use App\Data\Ai\QueuePostTitleExcerptRefinementRequestData;
+use App\Data\Ai\QueuedAiJobData;
 use App\Data\Posts\PostBlockData;
 use App\Data\Posts\PostEditorData;
 use App\Services\WideWebBlogApi\Clients\CategoryClient;
@@ -25,6 +28,11 @@ use Livewire\Component;
 
 class Editor extends Component
 {
+    private const REVIEW_ONLY_ACTION_MODES = [
+        'suggest_metadata',
+        'refine_title_excerpt',
+    ];
+
     private const POST_STATUSES = [
         'draft',
         'scheduled',
@@ -51,6 +59,26 @@ class Editor extends Component
     ];
 
     public ?int $editingPostId = null;
+
+    public bool $aiReviewMode = false;
+
+    public bool $isAiGenerated = false;
+
+    public ?int $sourceContentBriefId = null;
+
+    public ?int $sourceContentTopicId = null;
+
+    public ?int $generatedByAiJobId = null;
+
+    public ?string $generatedBy = null;
+
+    public array $faqSuggestions = [];
+
+    public array $suggestedTags = [];
+
+    public array $imagePlacementNotes = [];
+
+    public array $altTextSuggestions = [];
 
     public string $title = '';
 
@@ -142,6 +170,28 @@ class Editor extends Component
 
     public ?string $actionError = null;
 
+    public bool $rewriteDialogOpen = false;
+
+    public string $rewriteScope = 'full_draft';
+
+    public array $rewriteTargetBlockIds = [];
+
+    public string $rewriteInstructions = '';
+
+    public string $rewritePromptTemplateKey = '';
+
+    public ?string $rewriteError = null;
+
+    public bool $reviewActionDialogOpen = false;
+
+    public string $reviewActionMode = 'suggest_metadata';
+
+    public string $reviewActionInstructions = '';
+
+    public string $reviewActionPromptTemplateKey = '';
+
+    public ?string $reviewActionError = null;
+
     public function mount(
         AdminSessionManager $session,
         CategoryClient $categories,
@@ -152,6 +202,7 @@ class Editor extends Component
         SeoClient $seo,
         mixed $post = null,
     ): mixed {
+        $this->aiReviewMode = request()->routeIs('draft-review.*');
         $this->fillFromEditorData(PostEditorData::blank());
 
         $lookupResult = $this->loadLookups($session, $categories, $tags, $templates, $media);
@@ -241,6 +292,21 @@ class Editor extends Component
             || str_starts_with($property, 'blocks.')
         ) {
             $this->validateOnly($property);
+
+            return;
+        }
+
+        if (
+            in_array($property, ['rewriteScope', 'rewriteInstructions', 'rewritePromptTemplateKey'], true)
+            || str_starts_with($property, 'rewriteTargetBlockIds')
+        ) {
+            $this->validateOnly($property, $this->rewriteRules());
+
+            return;
+        }
+
+        if (in_array($property, ['reviewActionInstructions', 'reviewActionPromptTemplateKey'], true)) {
+            $this->validateOnly($property, $this->reviewActionRules());
         }
     }
 
@@ -443,6 +509,158 @@ class Editor extends Component
         $this->actionError = null;
     }
 
+    public function openRewriteDialog(string $scope = 'full_draft'): void
+    {
+        if (! $this->canQueueRewrite()) {
+            return;
+        }
+
+        $allowedScopes = ['full_draft', 'section', 'paragraph'];
+
+        $this->resetValidation();
+        $this->rewriteDialogOpen = true;
+        $this->rewriteError = null;
+        $this->rewriteScope = in_array($scope, $allowedScopes, true) ? $scope : 'full_draft';
+        $this->rewriteTargetBlockIds = [];
+
+        if ($this->rewriteScope === 'paragraph') {
+            $firstParagraphId = collect($this->rewriteableBlockOptions())
+                ->first(fn (array $block): bool => $block['block_type'] === 'paragraph')['id'] ?? null;
+
+            if (is_int($firstParagraphId)) {
+                $this->rewriteTargetBlockIds = [$firstParagraphId];
+            }
+        }
+    }
+
+    public function closeRewriteDialog(): void
+    {
+        $this->resetValidation();
+        $this->rewriteDialogOpen = false;
+        $this->rewriteScope = 'full_draft';
+        $this->rewriteTargetBlockIds = [];
+        $this->rewriteInstructions = '';
+        $this->rewritePromptTemplateKey = '';
+        $this->rewriteError = null;
+    }
+
+    public function queueRewrite(PostClient $posts, AdminSessionManager $session): mixed
+    {
+        if (! $this->editingPostId) {
+            return null;
+        }
+
+        $validated = $this->validate($this->rewriteRules());
+        $this->rewriteError = null;
+
+        try {
+            $response = $posts->rewrite(
+                $this->token($session),
+                $session->tokenType(),
+                $this->editingPostId,
+                $this->rewritePayload($validated),
+            );
+
+            $jobId = Arr::get($response, 'data.id');
+
+            $this->closeRewriteDialog();
+            $this->flashJobAlert('Draft rewrite job queued.', $jobId);
+
+            if (is_int($jobId) || ctype_digit((string) $jobId)) {
+                return $this->redirectRoute('ai-jobs.show', ['aiJob' => (int) $jobId], navigate: true);
+            }
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->rewriteError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeApiErrors($exception->errors()));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->rewriteError = $exception->getMessage() ?: 'Draft rewrite could not be queued.';
+
+            return null;
+        }
+    }
+
+    public function openReviewActionDialog(string $mode): void
+    {
+        if (! $this->editingPostId || ! $this->aiReviewMode || ! in_array($mode, self::REVIEW_ONLY_ACTION_MODES, true)) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->reviewActionDialogOpen = true;
+        $this->reviewActionMode = $mode;
+        $this->reviewActionInstructions = '';
+        $this->reviewActionPromptTemplateKey = '';
+        $this->reviewActionError = null;
+    }
+
+    public function closeReviewActionDialog(): void
+    {
+        $this->resetValidation();
+        $this->reviewActionDialogOpen = false;
+        $this->reviewActionMode = 'suggest_metadata';
+        $this->reviewActionInstructions = '';
+        $this->reviewActionPromptTemplateKey = '';
+        $this->reviewActionError = null;
+    }
+
+    public function queueReviewAction(PostClient $posts, AdminSessionManager $session): mixed
+    {
+        if (! $this->editingPostId || ! in_array($this->reviewActionMode, self::REVIEW_ONLY_ACTION_MODES, true)) {
+            return null;
+        }
+
+        $validated = $this->validate($this->reviewActionRules());
+        $this->reviewActionError = null;
+
+        try {
+            $payload = match ($this->reviewActionMode) {
+                'suggest_metadata' => (new QueuePostMetadataSuggestionRequestData(
+                    instructions: filled($validated['reviewActionInstructions']) ? trim($validated['reviewActionInstructions']) : null,
+                    promptTemplateKey: filled($validated['reviewActionPromptTemplateKey']) ? trim($validated['reviewActionPromptTemplateKey']) : null,
+                ))->toArray(),
+                'refine_title_excerpt' => (new QueuePostTitleExcerptRefinementRequestData(
+                    instructions: filled($validated['reviewActionInstructions']) ? trim($validated['reviewActionInstructions']) : null,
+                    promptTemplateKey: filled($validated['reviewActionPromptTemplateKey']) ? trim($validated['reviewActionPromptTemplateKey']) : null,
+                ))->toArray(),
+            };
+
+            $response = match ($this->reviewActionMode) {
+                'suggest_metadata' => $posts->suggestMetadata($this->token($session), $session->tokenType(), $this->editingPostId, $payload),
+                'refine_title_excerpt' => $posts->refineTitleExcerpt($this->token($session), $session->tokenType(), $this->editingPostId, $payload),
+            };
+
+            $job = QueuedAiJobData::fromApi(Arr::get($response, 'data', []));
+
+            $this->closeReviewActionDialog();
+            $this->flashJobAlert($this->reviewActionSuccessMessage(), $job->id);
+
+            if ($job->id !== null) {
+                return $this->redirectRoute('ai-jobs.show', ['aiJob' => $job->id], navigate: true);
+            }
+
+            return null;
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->reviewActionError = $exception->getMessage();
+
+            throw ValidationException::withMessages($this->normalizeReviewActionErrors($exception->errors()));
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->reviewActionError = $exception->getMessage() ?: 'The review-only AI action could not be queued.';
+
+            return null;
+        }
+    }
+
     public function executeAction(PostClient $posts, AdminSessionManager $session): mixed
     {
         if (! $this->actionPostId) {
@@ -470,7 +688,7 @@ class Editor extends Component
                 $posts->delete($this->token($session), $session->tokenType(), $this->actionPostId);
                 session()->flash('status', 'Post deleted.');
 
-                return $this->redirectRoute('posts.index', navigate: true);
+                return $this->redirectRoute($this->aiReviewMode ? 'draft-review.index' : 'posts.index', navigate: true);
             }
 
             if (is_array($response)) {
@@ -514,8 +732,20 @@ class Editor extends Component
             'seoRecommendations' => $this->seoPresenter()->recommendations($this->seoScore),
             'seoSchemaSummary' => $this->seoPresenter()->schemaSummary($this->seoSchema),
             'seoSchemaJson' => $this->seoPresenter()->prettySchema($this->seoSchema),
+            'aiReviewMode' => $this->aiReviewMode,
+            'sourceContentBriefLink' => $this->sourceContentBriefId ? route('content-briefs.show', ['contentBrief' => $this->sourceContentBriefId]) : null,
+            'sourceContentTopicLink' => $this->sourceContentTopicId ? route('topic-queue.show', ['topic' => $this->sourceContentTopicId]) : null,
+            'generatedByAiJobLink' => $this->generatedByAiJobId ? route('ai-jobs.show', ['aiJob' => $this->generatedByAiJobId]) : null,
+            'aiSuggestionSections' => $this->aiSuggestionSections(),
+            'canQueueRewrite' => $this->canQueueRewrite(),
+            'hasRewriteableBlocks' => $this->rewriteableBlockOptions() !== [],
+            'rewriteableBlocks' => $this->rewriteableBlockOptions(),
+            'rewriteParagraphBlocks' => $this->rewriteableParagraphBlockOptions(),
+            'reviewActionHeading' => $this->reviewActionHeading(),
+            'reviewActionDescription' => $this->reviewActionDescription(),
+            'reviewActionButtonLabel' => $this->reviewActionButtonLabel(),
         ])->layout('layouts.admin', [
-            'title' => $this->editingPostId ? 'Edit Post' : 'Create Post',
+            'title' => $this->aiReviewMode ? 'Draft Review' : ($this->editingPostId ? 'Edit Post' : 'Create Post'),
         ]);
     }
 
@@ -679,6 +909,15 @@ class Editor extends Component
         $this->wordCount = $data->wordCount;
         $this->isFeatured = $data->isFeatured;
         $this->metaJson = $data->metaJson;
+        $this->isAiGenerated = $data->isAiGenerated;
+        $this->sourceContentBriefId = $data->sourceContentBriefId;
+        $this->sourceContentTopicId = $data->sourceContentTopicId;
+        $this->generatedByAiJobId = $data->generatedByAiJobId;
+        $this->generatedBy = $data->generatedBy;
+        $this->faqSuggestions = $this->suggestionItems($data->meta['faq_suggestions'] ?? []);
+        $this->suggestedTags = $this->suggestionItems($data->meta['suggested_tags'] ?? []);
+        $this->imagePlacementNotes = $this->suggestionItems($data->meta['image_placement_notes'] ?? []);
+        $this->altTextSuggestions = $this->suggestionItems($data->meta['alt_text_suggestions'] ?? []);
         $this->tagIds = $data->tagIds;
         $this->blocks = $data->blocks;
         $this->canonicalUrl = $data->canonicalUrl ?? '';
@@ -738,6 +977,261 @@ class Editor extends Component
         $decoded = json_decode($this->metaJson, true);
 
         return is_array($decoded) ? array_values($decoded) : null;
+    }
+
+    protected function rewriteRules(): array
+    {
+        return [
+            'rewriteScope' => ['required', Rule::in(['full_draft', 'section', 'paragraph'])],
+            'rewriteTargetBlockIds' => ['array', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! in_array($this->rewriteScope, ['section', 'paragraph'], true)) {
+                    return;
+                }
+
+                if (! is_array($value) || $value === []) {
+                    $fail('Select at least one block to regenerate.');
+
+                    return;
+                }
+
+                $selectedIds = collect($value)
+                    ->filter(fn (mixed $id): bool => $id !== null && $id !== '')
+                    ->map(fn (mixed $id): int => (int) $id)
+                    ->values();
+
+                $availableBlocks = collect($this->rewriteableBlockOptions());
+                $availableIds = $availableBlocks->pluck('id')->values()->all();
+
+                if ($selectedIds->contains(fn (int $id): bool => ! in_array($id, $availableIds, true))) {
+                    $fail('Selected blocks are no longer available for rewrite.');
+
+                    return;
+                }
+
+                if ($this->rewriteScope === 'paragraph') {
+                    if ($selectedIds->count() !== 1) {
+                        $fail('Select exactly one paragraph block for paragraph regeneration.');
+
+                        return;
+                    }
+
+                    $selectedBlock = $availableBlocks->first(fn (array $block): bool => $block['id'] === $selectedIds->first());
+
+                    if (($selectedBlock['block_type'] ?? null) !== 'paragraph') {
+                        $fail('Paragraph regeneration requires a paragraph block.');
+                    }
+
+                    return;
+                }
+
+                $positions = $selectedIds
+                    ->map(fn (int $id): ?int => array_search($id, $availableIds, true))
+                    ->filter(fn (mixed $position): bool => is_int($position))
+                    ->sort()
+                    ->values();
+
+                if ($positions->count() !== $selectedIds->count()) {
+                    $fail('Selected blocks are no longer available for rewrite.');
+
+                    return;
+                }
+
+                $expected = range($positions->first(), $positions->last());
+
+                if ($positions->all() !== $expected) {
+                    $fail('Section regeneration requires a contiguous block selection.');
+                }
+            }],
+            'rewriteTargetBlockIds.*' => ['integer'],
+            'rewriteInstructions' => ['nullable', 'string'],
+            'rewritePromptTemplateKey' => ['nullable', 'string', 'max:190'],
+        ];
+    }
+
+    protected function reviewActionRules(): array
+    {
+        return [
+            'reviewActionInstructions' => ['nullable', 'string'],
+            'reviewActionPromptTemplateKey' => ['nullable', 'string', 'max:190'],
+        ];
+    }
+
+    protected function rewritePayload(array $validated): array
+    {
+        $targetBlockIds = collect($validated['rewriteTargetBlockIds'] ?? [])
+            ->filter(fn (mixed $id): bool => $id !== null && $id !== '')
+            ->map(fn (mixed $id): int => (int) $id)
+            ->values()
+            ->all();
+
+        $payload = [
+            'scope' => $validated['rewriteScope'],
+            'instructions' => filled($validated['rewriteInstructions']) ? trim($validated['rewriteInstructions']) : null,
+            'prompt_template_key' => filled($validated['rewritePromptTemplateKey']) ? trim($validated['rewritePromptTemplateKey']) : null,
+        ];
+
+        if (in_array($validated['rewriteScope'], ['section', 'paragraph'], true)) {
+            $payload['target_block_ids'] = $targetBlockIds;
+        }
+
+        return $payload;
+    }
+
+    protected function aiSuggestionSections(): array
+    {
+        if (! $this->aiReviewMode || ! $this->isAiGenerated) {
+            return [];
+        }
+
+        return array_values(array_filter([
+            [
+                'title' => 'Suggested Tags',
+                'items' => $this->suggestedTags,
+            ],
+            [
+                'title' => 'FAQ Suggestions',
+                'items' => $this->faqSuggestions,
+            ],
+            [
+                'title' => 'Image Placement Notes',
+                'items' => $this->imagePlacementNotes,
+            ],
+            [
+                'title' => 'Alt Text Suggestions',
+                'items' => $this->altTextSuggestions,
+            ],
+        ], fn (array $section): bool => $section['items'] !== []));
+    }
+
+    protected function reviewActionHeading(): string
+    {
+        return match ($this->reviewActionMode) {
+            'refine_title_excerpt' => 'Queue title and excerpt refinement',
+            default => 'Queue metadata suggestion',
+        };
+    }
+
+    protected function reviewActionDescription(): string
+    {
+        return match ($this->reviewActionMode) {
+            'refine_title_excerpt' => 'Queue a review-only AI job that suggests a recommended title, excerpt, variations, and rationale. Suggestions are tracked in AI jobs and never auto-applied.',
+            default => 'Queue a review-only AI job that suggests title, excerpt, metadata, focus keyword, and rationale. Suggestions are tracked in AI jobs and never auto-applied.',
+        };
+    }
+
+    protected function reviewActionButtonLabel(): string
+    {
+        return match ($this->reviewActionMode) {
+            'refine_title_excerpt' => 'Queue Refinement Job',
+            default => 'Queue Metadata Job',
+        };
+    }
+
+    protected function reviewActionSuccessMessage(): string
+    {
+        return match ($this->reviewActionMode) {
+            'refine_title_excerpt' => 'Title and excerpt refinement job queued.',
+            default => 'Metadata suggestion job queued.',
+        };
+    }
+
+    protected function suggestionItems(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->map(function (mixed $item): ?string {
+                if (is_string($item)) {
+                    $trimmed = trim($item);
+
+                    return $trimmed !== '' ? $trimmed : null;
+                }
+
+                if (! is_array($item) || $item === []) {
+                    return null;
+                }
+
+                $parts = collect($item)
+                    ->filter(fn (mixed $part): bool => $part !== null && $part !== '')
+                    ->map(function (mixed $part, string|int $key): string {
+                        $value = is_scalar($part)
+                            ? (string) $part
+                            : (json_encode($part, JSON_UNESCAPED_SLASHES) ?: '');
+
+                        return (string) str((string) $key)->headline()->append(': ')->append($value);
+                    })
+                    ->filter(fn (string $part): bool => trim($part) !== '')
+                    ->values()
+                    ->all();
+
+                return $parts !== [] ? implode(' | ', $parts) : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    protected function canQueueRewrite(): bool
+    {
+        return $this->aiReviewMode
+            && $this->editingPostId !== null
+            && $this->status === 'draft'
+            && $this->isAiGenerated
+            && ($this->sourceContentBriefId !== null || $this->sourceContentTopicId !== null);
+    }
+
+    protected function rewriteableBlockOptions(): array
+    {
+        return collect($this->blocks)
+            ->values()
+            ->map(function (array $block, int $index): ?array {
+                $id = $block['id'] ?? null;
+
+                if (! is_int($id) && ! ctype_digit((string) $id)) {
+                    return null;
+                }
+
+                $blockType = (string) ($block['blockType'] ?? 'paragraph');
+                $sortOrder = (int) ($block['sortOrder'] ?? $index + 1);
+                $content = trim((string) ($block['contentText'] ?? ''));
+                $preview = str($content)->squish()->limit(96)->value();
+
+                return [
+                    'id' => (int) $id,
+                    'block_type' => $blockType,
+                    'sort_order' => $sortOrder,
+                    'label' => 'Block '.$sortOrder.' • '.str($blockType)->headline(),
+                    'preview' => $preview !== '' ? $preview : 'No content preview available.',
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    protected function rewriteableParagraphBlockOptions(): array
+    {
+        return array_values(array_filter(
+            $this->rewriteableBlockOptions(),
+            fn (array $block): bool => $block['block_type'] === 'paragraph',
+        ));
+    }
+
+    protected function flashJobAlert(string $message, mixed $jobId): void
+    {
+        if (is_int($jobId) || ctype_digit((string) $jobId)) {
+            session()->flash('status', [
+                'message' => $message,
+                'link_href' => route('ai-jobs.show', ['aiJob' => (int) $jobId]),
+                'link_label' => 'Open AI Job',
+            ]);
+
+            return;
+        }
+
+        session()->flash('status', $message);
     }
 
     protected function seoRules(): array
@@ -836,6 +1330,31 @@ class Editor extends Component
                 'wordCount' => 'wordCount',
                 'isFeatured' => 'isFeatured',
                 'tagIds' => 'tagIds',
+                'rewriteScope', 'scope' => 'rewriteScope',
+                'rewriteTargetBlockIds', 'target_block_ids' => 'rewriteTargetBlockIds',
+                'rewriteInstructions', 'instructions' => 'rewriteInstructions',
+                'rewritePromptTemplateKey', 'prompt_template_key' => 'rewritePromptTemplateKey',
+                'reviewActionInstructions' => 'reviewActionInstructions',
+                'reviewActionPromptTemplateKey' => 'reviewActionPromptTemplateKey',
+                default => $property,
+            };
+
+            $mapped[$property] = $messages;
+        }
+
+        return $mapped;
+    }
+
+    protected function normalizeReviewActionErrors(array $errors): array
+    {
+        $mapped = [];
+
+        foreach ($errors as $field => $messages) {
+            $property = preg_replace_callback('/_([a-z])/', fn (array $matches): string => strtoupper($matches[1]), $field) ?? $field;
+
+            $property = match ($property) {
+                'instructions' => 'reviewActionInstructions',
+                'promptTemplateKey' => 'reviewActionPromptTemplateKey',
                 default => $property,
             };
 

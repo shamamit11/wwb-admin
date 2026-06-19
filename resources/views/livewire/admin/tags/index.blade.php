@@ -1,14 +1,10 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Tags"
-            description="Manage reusable editorial labels and activation state for post tagging workflows."
-        />
-
-        <div class="shrink-0 lg:pt-1">
-            <x-ui.button type="button" wire:click="openCreateDrawer">Create Tag</x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-header
+        title="Tags"
+        description="Manage reusable editorial labels and activation state for post tagging workflows."
+    >
+        <x-ui.button type="button" wire:click="openCreateDrawer">Create Tag</x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
@@ -36,42 +32,23 @@
             </x-ui.select>
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ count($tags) }} {{ str('tag')->plural(count($tags)) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ count($tags) }} {{ str('tag')->plural(count($tags)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Tags">
+    <x-ui.table caption="Tags" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[44%]">
-                    <button type="button" wire:click="sortBy('name')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Name</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'name' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('slug')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Slug</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'slug' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('is_active')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Status</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'is_active' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+                <x-ui.table-heading width="taxonomy-primary" sortable sort-key="name" :sort-column="$sortColumn" :sort-direction="$sortDirection">NAME</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="slug" :sort-column="$sortColumn" :sort-direction="$sortDirection">SLUG</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="is_active" :sort-column="$sortColumn" :sort-direction="$sortDirection">STATUS</x-ui.table-heading>
+                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 
         <x-ui.table-body>
             @forelse ($tags as $tag)
                 <x-ui.table-row interactive wire:key="tag-{{ $tag['id'] }}">
-                    <x-ui.table-cell class="w-[44%]">
+                    <x-ui.table-cell width="taxonomy-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $tag['name'] }}</p>
                             @if ($tag['description'])
@@ -84,32 +61,10 @@
                         <x-admin.status-badge :status="$tag['is_active'] ? 'active' : 'inactive'" />
                     </x-ui.table-cell>
                     <x-ui.table-cell align="right">
-                        <div class="flex items-center justify-end gap-2">
-                            <x-ui.button
-                                type="button"
-                                variant="ghost"
-                                class="h-12 w-12 px-0 bg-[color-mix(in_srgb,var(--color-warning)_12%,white)] text-[var(--color-warning-strong)] ring-1 ring-[color-mix(in_srgb,var(--color-warning)_18%,white)] hover:bg-[color-mix(in_srgb,var(--color-warning)_18%,white)] hover:text-[var(--color-warning-strong)]"
-                                wire:click="openEditDrawer({{ $tag['id'] }})"
-                                aria-label="Edit tag {{ $tag['name'] }}"
-                                title="Edit"
-                            >
-                                <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="m13.75 4.75 1.5 1.5M5 15l2.75-.5L15.5 6.75a1.06 1.06 0 0 0 0-1.5l-.75-.75a1.06 1.06 0 0 0-1.5 0L5.5 12.25 5 15Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </x-ui.button>
-                            <x-ui.button
-                                type="button"
-                                variant="ghost"
-                                class="h-12 w-12 px-0 bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] text-[var(--color-danger-strong)] ring-1 ring-[color-mix(in_srgb,var(--color-danger)_18%,white)] hover:bg-[color-mix(in_srgb,var(--color-danger)_16%,white)] hover:text-[var(--color-danger-strong)]"
-                                wire:click="confirmDelete({{ $tag['id'] }})"
-                                aria-label="Delete tag {{ $tag['name'] }}"
-                                title="Delete"
-                            >
-                                <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="M4.75 6.25h10.5M8 8.75v5.5M12 8.75v5.5M6.5 6.25l.5-1.5A1 1 0 0 1 7.95 4h4.1a1 1 0 0 1 .95.75l.5 1.5M6.25 6.25l.4 8.15A1.5 1.5 0 0 0 8.15 15.8h3.7a1.5 1.5 0 0 0 1.5-1.4l.4-8.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </x-ui.button>
-                        </div>
+                        <x-admin.row-actions>
+                            <x-admin.row-action type="button" wire:click="openEditDrawer({{ $tag['id'] }})">Edit</x-admin.row-action>
+                            <x-admin.row-action type="button" tone="danger" wire:click="confirmDelete({{ $tag['id'] }})">Delete</x-admin.row-action>
+                        </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty
@@ -167,22 +122,25 @@
         </x-slot:actions>
     </x-ui.drawer>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$deleteDialogOpen"
         title="Delete tag"
         description="This removes the tag from editorial workflows. Confirm before continuing."
-        tone="destructive"
+        destructive
     >
         <p class="text-sm leading-6 text-[var(--color-muted)]">
             Delete <span class="font-semibold text-[var(--color-ink)]">{{ $deleteTagName }}</span>? This action should only be taken when you are confident the tag is no longer needed for labeling posts.
         </p>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="cancelDelete">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
             <x-ui.button type="button" variant="destructive" wire:click="delete" wire:loading.attr="disabled" wire:target="delete">
                 <span wire:loading.remove wire:target="delete">Delete tag</span>
                 <span wire:loading wire:target="delete">Deleting…</span>
             </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
 </div>

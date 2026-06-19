@@ -34,10 +34,13 @@ class AdminNavigation
                 ],
             ],
             [
-                'title' => 'Roadmap',
+                'title' => 'AI Content',
                 'items' => [
-                    $this->item('Topic Queue', 'topic-queue.index', 'Planned review queue once APIs exist.', true, 'queue'),
-                    $this->item('AI Jobs', 'ai-jobs.index', 'Planned AI job monitoring once APIs exist.', true, 'spark'),
+                    $this->item('Topic Queue', 'topic-queue.index', 'Review suggested topics, approve editorial directions, and manage topic status.', false, 'queue'),
+                    $this->item('Content Briefs', 'content-briefs.index', 'Review, edit, approve, and promote generated briefs toward draft creation.', false, 'document'),
+                    $this->item('Draft Review', 'draft-review.index', 'Review AI-generated draft posts, validate source context, and manually publish when ready.', false, 'posts'),
+                    $this->item('Prompt Templates', 'ai-prompts.index', 'Manage AI prompt templates, version history, and active generation prompts.', false, 'document'),
+                    $this->item('AI Jobs', 'ai-jobs.index', 'Monitor AI workflow execution, failures, and retryable jobs.', false, 'spark'),
                 ],
             ],
         ];

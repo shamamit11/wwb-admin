@@ -48,6 +48,8 @@ class Index extends Component
     #[Url(as: 'dir', except: 'desc')]
     public string $sortDirection = 'desc';
 
+    public bool $aiReviewMode = false;
+
     public array $posts = [];
 
     public bool $actionDialogOpen = false;
@@ -66,6 +68,14 @@ class Index extends Component
 
     public function mount(AdminSessionManager $session, PostClient $posts): mixed
     {
+        $this->aiReviewMode = request()->routeIs('draft-review.*');
+
+        if ($this->aiReviewMode) {
+            $this->statusFilter = 'draft';
+            $this->featuredFilter = 'all';
+            $this->visibilityFilter = 'all';
+        }
+
         return $this->loadPosts($posts, $session);
     }
 
@@ -182,8 +192,9 @@ class Index extends Component
             'stats' => $this->stats(),
             'statusOptions' => self::POST_STATUSES,
             'visibilityOptions' => self::POST_VISIBILITIES,
+            'aiReviewMode' => $this->aiReviewMode,
         ])->layout('layouts.admin', [
-            'title' => 'Posts',
+            'title' => $this->aiReviewMode ? 'Draft Review' : 'Posts',
         ]);
     }
 
@@ -221,13 +232,14 @@ class Index extends Component
     {
         return [
             'search' => trim($this->search) !== '' ? trim($this->search) : null,
-            'status' => $this->statusFilter !== 'all' ? $this->statusFilter : null,
+            'status' => $this->aiReviewMode ? 'draft' : ($this->statusFilter !== 'all' ? $this->statusFilter : null),
             'visibility' => $this->visibilityFilter !== 'all' ? $this->visibilityFilter : null,
             'is_featured' => match ($this->featuredFilter) {
                 'featured' => 1,
                 'standard' => 0,
                 default => null,
             },
+            'is_ai_generated' => $this->aiReviewMode ? 1 : null,
             'sort' => $this->apiSort(),
         ];
     }
@@ -270,11 +282,45 @@ class Index extends Component
             'can_publish' => ! in_array($status, ['published', 'archived'], true),
             'can_schedule' => in_array($status, ['draft', 'unpublished', 'scheduled'], true),
             'can_unpublish' => in_array($status, ['published', 'scheduled'], true),
+            'is_ai_generated' => (bool) Arr::get($post, 'is_ai_generated', false),
+            'source_content_brief_id' => Arr::get($post, 'source_content_brief_id'),
+            'source_content_topic_id' => Arr::get($post, 'source_content_topic_id'),
+            'generated_by_ai_job_id' => Arr::get($post, 'generated_by_ai_job_id'),
+            'generated_by' => Arr::get($post, 'generated_by'),
         ];
     }
 
     protected function stats(): array
     {
+        if ($this->aiReviewMode) {
+            $drafts = collect($this->posts);
+
+            $withSourceBrief = $drafts->filter(fn (array $post): bool => filled($post['source_content_brief_id'] ?? null))->count();
+            $withSourceTopic = $drafts->filter(fn (array $post): bool => filled($post['source_content_topic_id'] ?? null))->count();
+            $withAiJob = $drafts->filter(fn (array $post): bool => filled($post['generated_by_ai_job_id'] ?? null))->count();
+
+            return [
+                [
+                    'label' => 'AI Drafts Pending Review',
+                    'value' => $drafts->count(),
+                    'suffix' => str('draft')->plural($drafts->count()),
+                    'tone' => 'info',
+                ],
+                [
+                    'label' => 'Linked To Briefs',
+                    'value' => $withSourceBrief,
+                    'suffix' => str('draft')->plural($withSourceBrief),
+                    'tone' => 'success',
+                ],
+                [
+                    'label' => 'Linked To Jobs',
+                    'value' => $withAiJob,
+                    'suffix' => str('draft')->plural($withAiJob),
+                    'tone' => $withSourceTopic > 0 ? 'warning' : 'info',
+                ],
+            ];
+        }
+
         $now = now();
         $nextWeek = $now->copy()->addDays(7);
 

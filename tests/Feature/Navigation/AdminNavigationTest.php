@@ -17,7 +17,7 @@ class AdminNavigationTest extends TestCase
         $this->apiBaseUrl = rtrim(config('widewebblog.api.base_url'), '/');
     }
 
-    public function test_authenticated_admin_can_access_mvp_placeholder_routes(): void
+    public function test_authenticated_admin_can_access_service_backed_admin_routes(): void
     {
         $this->fakeModuleIndexRequests();
 
@@ -35,6 +35,12 @@ class AdminNavigationTest extends TestCase
             'knowledge-base.index',
             'seo.index',
             'settings.index',
+            'password.index',
+            'topic-queue.index',
+            'content-briefs.index',
+            'draft-review.index',
+            'ai-prompts.index',
+            'ai-jobs.index',
         ] as $route) {
             $this->withSession($session)
                 ->get(route($route))
@@ -54,21 +60,25 @@ class AdminNavigationTest extends TestCase
             ->assertSee('Overview')
             ->assertSee('Publishing')
             ->assertSee('Operations')
-            ->assertSee('Roadmap')
+            ->assertSee('AI Content')
             ->assertSee('href="'.route('categories.index').'"', false)
             ->assertSee('bg-[var(--color-accent-soft)]', false);
     }
 
-    public function test_roadmap_modules_are_rendered_as_placeholders(): void
+    public function test_topic_queue_route_is_rendered_as_a_service_backed_screen(): void
     {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/content-topics*' => Http::response(['data' => []], 200),
+        ]);
+
         $response = $this->withSession($this->authenticatedSession())
             ->get(route('topic-queue.index'));
 
         $response
             ->assertOk()
-            ->assertSee('Roadmap placeholder')
-            ->assertSee('API Not Available Yet')
-            ->assertSee('Placeholder');
+            ->assertSee('Topic Queue')
+            ->assertSee('Suggested Topics')
+            ->assertSee('Review suggested topic');
     }
 
     public function test_pages_module_is_rendered_as_a_service_backed_publishing_screen(): void
@@ -145,6 +155,22 @@ class AdminNavigationTest extends TestCase
             }
 
             if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/knowledge-base')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/content-topics')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/content-briefs')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/ai-jobs')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($url, $this->apiBaseUrl.'/admin/ai-prompts')) {
                 return Http::response(['data' => []], 200);
             }
 

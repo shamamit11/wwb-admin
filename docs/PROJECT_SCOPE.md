@@ -58,10 +58,18 @@ The first release should allow an authenticated admin to:
 
 ## Later-Phase Modules
 
-The UI/UX specification exposes future-facing areas that are not fully represented in the current API phase. These should be treated as planned or placeholder modules until the service contract exists:
+The UI/UX specification still includes some future-facing areas that are not fully represented in the current Admin contract. Treat only the unsupported items as planned or placeholder modules.
+
+Implemented AI workflow modules:
 
 - Topic Queue
+- Content Briefs
+- Prompt Templates
 - AI Jobs
+
+Still contract-limited:
+
+- Draft Review as an AI-specific filtered module
 - Advanced Settings
 - Advanced SEO defaults and diagnostics
 - Workflow improvements such as autosave, richer editorial review states, and recovery flows
@@ -82,4 +90,4 @@ The following are out of scope for the first implementation unless a newer servi
 - The admin should mirror the service API contract rather than inventing competing domain models.
 - Client-side validation should improve usability, but service validation remains authoritative.
 - Admin screens may aggregate or reshape service data for UX purposes, but they should not redefine domain behavior.
-- Missing service capabilities should surface as placeholders or deferred roadmap items, not guessed implementations.
+- Missing service capabilities should surface as placeholders or deferred roadmap items, not guessed implementations. This still applies to AI-draft provenance gaps.

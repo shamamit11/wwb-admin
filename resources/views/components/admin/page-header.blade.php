@@ -4,7 +4,7 @@
     'description' => null,
 ])
 
-<div {{ $attributes->class('flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between') }}>
+<div {{ $attributes->class('flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between') }}>
     <div class="max-w-2xl">
         @if ($eyebrow)
             <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">{{ $eyebrow }}</p>
@@ -20,7 +20,7 @@
     </div>
 
     @if (trim($slot))
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3 lg:justify-end">
             {{ $slot }}
         </div>
     @endif

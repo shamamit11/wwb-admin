@@ -1,14 +1,10 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Media Library"
-            description="Browse reusable assets, inspect usage, and maintain metadata for editorial workflows."
-        />
-
-        <div class="shrink-0 lg:pt-1">
-            <x-ui.button type="button" wire:click="openUploadDrawer">Upload Media</x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-header
+        title="Media Library"
+        description="Browse reusable assets, inspect usage, and maintain metadata for editorial workflows."
+    >
+        <x-ui.button type="button" wire:click="openUploadDrawer">Upload Media</x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
@@ -16,19 +12,21 @@
         </div>
     @endif
 
-    <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-4 shadow-[var(--shadow-card)]">
-        <div class="flex flex-col gap-3 2xl:flex-row 2xl:items-center">
-            <div class="min-w-0 flex-1 2xl:max-w-[25rem]">
-                <label for="media-search" class="sr-only">Search media</label>
+    <x-admin.filter-bar>
+        <x-slot:search>
+            <label class="block">
+                <span class="sr-only">Search media</span>
                 <x-ui.input
                     id="media-search"
                     type="search"
                     wire:model.live.debounce.350ms="search"
                     placeholder="Search media by filename or metadata"
                 />
-            </div>
+            </label>
+        </x-slot:search>
 
-            <div class="grid flex-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:min-w-0">
+        <x-slot:filters>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <x-ui.select wire:model.live="sourceTypeFilter">
                     <option value="all">All sources</option>
                     <option value="uploaded">Uploaded</option>
@@ -56,55 +54,28 @@
                     <option value="non-images">Non-images only</option>
                 </x-ui.select>
             </div>
+        </x-slot:filters>
 
-            <div class="shrink-0 text-right text-sm text-[var(--color-muted)] 2xl:min-w-[5.5rem]">
-                {{ count($mediaItems) }} {{ str('asset')->plural(count($mediaItems)) }}
-            </div>
-        </div>
-    </div>
+        <x-slot:results>{{ count($mediaItems) }} {{ str('asset')->plural(count($mediaItems)) }}</x-slot:results>
+    </x-admin.filter-bar>
 
-    <x-ui.table caption="Media library">
+    <x-ui.table caption="Media library" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[12%]">Preview</x-ui.table-heading>
-                <x-ui.table-heading class="w-[34%]">
-                    <button type="button" wire:click="sortBy('original_filename')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>File</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'original_filename' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('source_type')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Source</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'source_type' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('status')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Status</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'status' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading align="center">
-                    <button type="button" wire:click="sortBy('usage_count')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Usage</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'usage_count' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('created_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Created</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'created_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+                <x-ui.table-heading width="asset-preview">PREVIEW</x-ui.table-heading>
+                <x-ui.table-heading width="content-primary" sortable sort-key="original_filename" :sort-column="$sortColumn" :sort-direction="$sortDirection">FILE</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="source_type" :sort-column="$sortColumn" :sort-direction="$sortDirection">SOURCE</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="status" :sort-column="$sortColumn" :sort-direction="$sortDirection">STATUS</x-ui.table-heading>
+                <x-ui.table-heading align="center" sortable sort-key="usage_count" :sort-column="$sortColumn" :sort-direction="$sortDirection">USAGE</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="created_at" :sort-column="$sortColumn" :sort-direction="$sortDirection">CREATED</x-ui.table-heading>
+                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 
         <x-ui.table-body>
             @forelse ($mediaItems as $item)
                 <x-ui.table-row interactive wire:key="media-{{ $item['id'] }}">
-                    <x-ui.table-cell>
+                    <x-ui.table-cell width="asset-preview">
                         <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
                             @if ($item['is_image'] && $item['url'])
                                 <img src="{{ $item['url'] }}" alt="{{ $item['alt_text'] ?: $item['original_filename'] }}" class="h-full w-full object-cover">
@@ -113,7 +84,7 @@
                             @endif
                         </button>
                     </x-ui.table-cell>
-                    <x-ui.table-cell class="w-[34%]">
+                    <x-ui.table-cell width="content-primary">
                         <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="min-w-0 text-left">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $item['original_filename'] }}</p>
                             <p class="mt-1 text-sm text-[var(--color-muted)]">
@@ -137,49 +108,22 @@
                     <x-ui.table-cell align="right">
                         <div
                             x-data="{ copied: false, async copyUrl() { const url = @js($item['url'] ?? ''); if (! url) { return; } if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(url); } else { const input = document.createElement('input'); input.value = url; document.body.appendChild(input); input.select(); document.execCommand('copy'); input.remove(); } this.copied = true; setTimeout(() => this.copied = false, 1600); } }"
-                            class="flex items-center justify-end gap-2"
+                            class="flex justify-end"
                         >
-                            <x-ui.button
-                                type="button"
-                                variant="ghost"
-                                class="h-12 w-12 px-0 bg-[color-mix(in_srgb,var(--color-accent)_10%,white)] text-[var(--color-accent-strong)] ring-1 ring-[color-mix(in_srgb,var(--color-accent)_18%,white)] hover:bg-[color-mix(in_srgb,var(--color-accent)_16%,white)] hover:text-[var(--color-accent-strong)]"
-                                x-on:click="copyUrl()"
-                                x-bind:aria-label="copied ? 'Copied media URL for {{ $item['original_filename'] }}' : 'Copy media URL for {{ $item['original_filename'] }}'"
-                                x-bind:title="copied ? 'Copied' : 'Copy URL'"
-                            >
-                                <span class="sr-only">Copy URL</span>
-                                <svg x-show="! copied" class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="M7.25 7A2.25 2.25 0 0 1 9.5 4.75h5A2.25 2.25 0 0 1 16.75 7v7A2.25 2.25 0 0 1 14.5 16.25h-5A2.25 2.25 0 0 1 7.25 14V7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M4.75 12.5V6A2.25 2.25 0 0 1 7 3.75h4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <svg x-cloak x-show="copied" class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="m5.75 10.25 2.5 2.5 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </x-ui.button>
-                            <x-ui.button
-                                type="button"
-                                variant="ghost"
-                                class="h-12 w-12 px-0 bg-[color-mix(in_srgb,var(--color-warning)_12%,white)] text-[var(--color-warning-strong)] ring-1 ring-[color-mix(in_srgb,var(--color-warning)_18%,white)] hover:bg-[color-mix(in_srgb,var(--color-warning)_18%,white)] hover:text-[var(--color-warning-strong)]"
-                                wire:click="openDetailDrawer({{ $item['id'] }})"
-                                aria-label="Edit media {{ $item['original_filename'] }}"
-                                title="Edit metadata"
-                            >
-                                <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="m13.75 4.75 1.5 1.5M5 15l2.75-.5L15.5 6.75a1.06 1.06 0 0 0 0-1.5l-.75-.75a1.06 1.06 0 0 0-1.5 0L5.5 12.25 5 15Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </x-ui.button>
-                            <x-ui.button
-                                type="button"
-                                variant="ghost"
-                                class="h-12 w-12 px-0 bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] text-[var(--color-danger-strong)] ring-1 ring-[color-mix(in_srgb,var(--color-danger)_18%,white)] hover:bg-[color-mix(in_srgb,var(--color-danger)_16%,white)] hover:text-[var(--color-danger-strong)]"
-                                wire:click="confirmDelete({{ $item['id'] }})"
-                                aria-label="Delete media {{ $item['original_filename'] }}"
-                                title="Delete"
-                            >
-                                <svg class="h-6 w-6" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="M4.75 6.25h10.5M8 8.75v5.5M12 8.75v5.5M6.5 6.25l.5-1.5A1 1 0 0 1 7.95 4h4.1a1 1 0 0 1 .95.75l.5 1.5M6.25 6.25l.4 8.15A1.5 1.5 0 0 0 8.15 15.8h3.7a1.5 1.5 0 0 0 1.5-1.4l.4-8.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </x-ui.button>
+                            <x-admin.row-actions>
+                                <x-admin.row-action
+                                    type="button"
+                                    class="text-[var(--color-muted)]"
+                                    x-on:click="copyUrl()"
+                                    x-bind:aria-label="copied ? 'Copied media URL for {{ $item['original_filename'] }}' : 'Copy media URL for {{ $item['original_filename'] }}'"
+                                    x-bind:title="copied ? 'Copied' : 'Copy URL'"
+                                >
+                                    <span x-show="! copied">Copy URL</span>
+                                    <span x-cloak x-show="copied">Copied</span>
+                                </x-admin.row-action>
+                                <x-admin.row-action type="button" wire:click="openDetailDrawer({{ $item['id'] }})">Edit</x-admin.row-action>
+                                <x-admin.row-action type="button" tone="danger" wire:click="confirmDelete({{ $item['id'] }})">Delete</x-admin.row-action>
+                            </x-admin.row-actions>
                         </div>
                     </x-ui.table-cell>
                 </x-ui.table-row>
@@ -505,11 +449,11 @@
         </x-slot:actions>
     </x-ui.drawer>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$deleteDialogOpen"
         title="Delete media asset"
         :description="$deleteBlocked ? 'This asset is currently in use and cannot be deleted.' : 'Delete only when the asset is no longer needed anywhere in editorial workflows.'"
-        tone="destructive"
+        destructive
     >
         <div class="space-y-4 text-sm leading-6 text-[var(--color-muted)]">
             <p>
@@ -536,14 +480,17 @@
             @endif
         </div>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="cancelDelete">Cancel</x-ui.button>
-            @unless ($deleteBlocked)
+        </x-slot:cancel>
+
+        @unless ($deleteBlocked)
+            <x-slot:confirm>
                 <x-ui.button type="button" variant="destructive" wire:click="delete" wire:loading.attr="disabled" wire:target="delete">
                     <span wire:loading.remove wire:target="delete">Delete asset</span>
                     <span wire:loading wire:target="delete">Deleting…</span>
                 </x-ui.button>
-            @endunless
-        </x-slot:actions>
-    </x-ui.dialog>
+            </x-slot:confirm>
+        @endunless
+    </x-admin.confirm-dialog>
 </div>

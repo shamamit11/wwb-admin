@@ -1,18 +1,14 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            :title="$editingEntryId ? 'Edit Knowledge Entry' : 'Create Knowledge Entry'"
-            description="Capture practical editorial context in markdown, keep metadata lightweight, and avoid overbuilding the writing flow."
-        />
-
-        <div class="flex flex-wrap items-center gap-3 lg:pt-1">
-            <x-ui.button as="a" :href="route('knowledge-base.index')" variant="secondary">Back to Knowledge Base</x-ui.button>
-            <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
-                <span wire:loading.remove wire:target="save">{{ $editingEntryId ? 'Save Entry' : 'Create Entry' }}</span>
-                <span wire:loading wire:target="save">Saving…</span>
-            </x-ui.button>
-        </div>
-    </div>
+    <x-admin.page-header
+        :title="$editingEntryId ? 'Edit Knowledge Entry' : 'Create Knowledge Entry'"
+        description="Capture practical editorial context in markdown, keep metadata lightweight, and avoid overbuilding the writing flow."
+    >
+        <x-ui.button as="a" :href="route('knowledge-base.index')" variant="secondary">Back to Knowledge Base</x-ui.button>
+        <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+            <span wire:loading.remove wire:target="save">{{ $editingEntryId ? 'Save Entry' : 'Create Entry' }}</span>
+            <span wire:loading wire:target="save">Saving…</span>
+        </x-ui.button>
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
@@ -107,8 +103,11 @@
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Metadata</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Use a simple JSON array of strings for lightweight reference tags or notes.</p>
                 </div>
+
+                <x-admin.callout title="Metadata Format">
+                    Use a simple JSON array of strings for lightweight reference tags or notes.
+                </x-admin.callout>
 
                 <x-ui.field label="Metadata JSON Array" for="knowledge-metadata-json" :error="$errors->first('metadataJson')" hint='Example: ["agent-memory","source:research"]'>
                     <x-ui.textarea id="knowledge-metadata-json" wire:model.blur="metadataJson" rows="6" placeholder='["editorial-note","research"]' :invalid="$errors->has('metadataJson')" />
@@ -119,17 +118,61 @@
                 <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                     <div class="space-y-1">
                         <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Linked Context</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Linking remains read-only here until explicit linking flows are implemented.</p>
                     </div>
 
-                    <div class="space-y-3">
+                    <x-admin.callout title="Current Contract" tone="warning">
+                        Add post and topic links by ID using the documented service-backed actions. Unlinking is not available in the current contract.
+                    </x-admin.callout>
+
+                    @if ($linkError)
+                        <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                            {{ $linkError }}
+                        </div>
+                    @endif
+
+                    <div class="space-y-4">
                         <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Linked Posts</p>
                             <p class="mt-2 text-sm text-[var(--color-ink)]">{{ count($linkedPosts) }}</p>
+                            @if ($linkedPosts !== [])
+                                <div class="mt-3 space-y-2">
+                                    @foreach ($linkedPosts as $post)
+                                        <p class="text-sm text-[var(--color-muted)]">#{{ $post['id'] ?? 'n/a' }} {{ $post['title'] ?? 'Untitled post' }}</p>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
+
+                        <div class="space-y-3">
+                            <x-ui.field label="Link Post ID" for="knowledge-link-post-id" :error="$errors->first('linkPostId')" hint="Use an existing post ID from the admin posts module.">
+                                <x-ui.input id="knowledge-link-post-id" wire:model.blur="linkPostId" inputmode="numeric" placeholder="12" :invalid="$errors->has('linkPostId')" />
+                            </x-ui.field>
+                            <x-ui.button type="button" variant="secondary" class="w-full" wire:click="linkPost" wire:loading.attr="disabled" wire:target="linkPost">
+                                <span wire:loading.remove wire:target="linkPost">Link Post</span>
+                                <span wire:loading wire:target="linkPost">Linking…</span>
+                            </x-ui.button>
+                        </div>
+
                         <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Linked Topics</p>
                             <p class="mt-2 text-sm text-[var(--color-ink)]">{{ count($linkedTopics) }}</p>
+                            @if ($linkedTopics !== [])
+                                <div class="mt-3 space-y-2">
+                                    @foreach ($linkedTopics as $topic)
+                                        <p class="text-sm text-[var(--color-muted)]">#{{ $topic['id'] ?? 'n/a' }} {{ $topic['title'] ?? 'Untitled topic' }}</p>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="space-y-3">
+                            <x-ui.field label="Link Topic ID" for="knowledge-link-topic-id" :error="$errors->first('linkTopicId')" hint="Use an existing topic ID from the topic queue.">
+                                <x-ui.input id="knowledge-link-topic-id" wire:model.blur="linkTopicId" inputmode="numeric" placeholder="34" :invalid="$errors->has('linkTopicId')" />
+                            </x-ui.field>
+                            <x-ui.button type="button" variant="secondary" class="w-full" wire:click="linkTopic" wire:loading.attr="disabled" wire:target="linkTopic">
+                                <span wire:loading.remove wire:target="linkTopic">Link Topic</span>
+                                <span wire:loading wire:target="linkTopic">Linking…</span>
+                            </x-ui.button>
                         </div>
                     </div>
                 </section>

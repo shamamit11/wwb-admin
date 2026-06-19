@@ -1,14 +1,16 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Posts"
-            description="Manage editorial inventory, publish state, category assignment, and entry points into the structured post editor."
-        />
-
-        <div class="shrink-0 lg:pt-1">
+    <x-admin.page-header
+        :title="$aiReviewMode ? 'Draft Review' : 'Posts'"
+        :description="$aiReviewMode
+            ? 'Review AI-generated draft posts, inspect source provenance, and promote only after manual editorial approval.'
+            : 'Manage editorial inventory, publish state, category assignment, and entry points into the structured post editor.'"
+    >
+        @if ($aiReviewMode)
+            <x-ui.button as="a" :href="route('posts.index')" variant="secondary">Back to Posts</x-ui.button>
+        @else
             <x-ui.button as="a" :href="route('posts.create')">Create Post</x-ui.button>
-        </div>
-    </div>
+        @endif
+    </x-admin.page-header>
 
     @if ($pageError)
         <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
@@ -18,43 +20,29 @@
 
     <div class="grid gap-4 md:grid-cols-3">
         @foreach ($stats as $stat)
-            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-4 shadow-[var(--shadow-card)]">
-                <div class="flex items-center gap-4">
-                    <div
-                        @class([
-                            'flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-button)]',
-                            'bg-[color-mix(in_srgb,var(--color-success)_12%,white)] text-[var(--color-success-strong)]' => $stat['tone'] === 'success',
-                            'bg-[color-mix(in_srgb,#3b82f6_12%,white)] text-[#2563eb]' => $stat['tone'] === 'info',
-                            'bg-[color-mix(in_srgb,var(--color-warning)_16%,white)] text-[var(--color-warning-strong)]' => $stat['tone'] === 'warning',
-                        ])
-                    >
-                        @if ($stat['tone'] === 'success')
-                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/>
-                                <path d="m7.6 10 1.55 1.55L12.4 8.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        @elseif ($stat['tone'] === 'info')
-                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/>
-                                <path d="M10 6.8v3.6l2.2 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        @else
-                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <path d="M5.5 12.75 8.15 10.1l1.95 1.95 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M13.25 7.65h1.95V9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        @endif
-                    </div>
-
-                    <div class="min-w-0">
-                        <p class="text-xs font-medium text-[var(--color-muted)]">{{ $stat['label'] }}</p>
-                        <p class="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">
-                            {{ $stat['value'] }}
-                            <span class="text-base font-semibold">{{ str($stat['suffix'])->headline() }}</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <x-admin.stat-card
+                :label="$stat['label']"
+                :value="$stat['value']"
+                :suffix="str($stat['suffix'])->headline()"
+                :tone="$stat['tone'] ?? 'default'"
+            >
+                @if ($stat['tone'] === 'success')
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="m7.6 10 1.55 1.55L12.4 8.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                @elseif ($stat['tone'] === 'info')
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M10 6.8v3.6l2.2 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                @else
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M5.5 12.75 8.15 10.1l1.95 1.95 4.4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M13.25 7.65h1.95V9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                @endif
+            </x-admin.stat-card>
         @endforeach
     </div>
 
@@ -71,79 +59,72 @@
         </x-slot:search>
 
         <x-slot:filters>
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="w-[11rem] shrink-0">
-                    <x-ui.select wire:model.live="statusFilter">
-                        <option value="all">All statuses</option>
-                        @foreach ($statusOptions as $statusOption)
-                            <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
+            @if (! $aiReviewMode)
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="w-[11rem] shrink-0">
+                        <x-ui.select wire:model.live="statusFilter">
+                            <option value="all">All statuses</option>
+                            @foreach ($statusOptions as $statusOption)
+                                <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </div>
 
-                <div class="w-[11rem] shrink-0">
-                    <x-ui.select wire:model.live="visibilityFilter">
-                        <option value="all">All visibility</option>
-                        @foreach ($visibilityOptions as $visibilityOption)
-                            <option value="{{ $visibilityOption }}">{{ str($visibilityOption)->headline() }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
+                    <div class="w-[11rem] shrink-0">
+                        <x-ui.select wire:model.live="visibilityFilter">
+                            <option value="all">All visibility</option>
+                            @foreach ($visibilityOptions as $visibilityOption)
+                                <option value="{{ $visibilityOption }}">{{ str($visibilityOption)->headline() }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </div>
 
-                <div class="w-[11rem] shrink-0">
-                    <x-ui.select wire:model.live="featuredFilter">
-                        <option value="all">All posts</option>
-                        <option value="featured">Featured only</option>
-                        <option value="standard">Standard only</option>
-                    </x-ui.select>
+                    <div class="w-[11rem] shrink-0">
+                        <x-ui.select wire:model.live="featuredFilter">
+                            <option value="all">All posts</option>
+                            <option value="featured">Featured only</option>
+                            <option value="standard">Standard only</option>
+                        </x-ui.select>
+                    </div>
                 </div>
-            </div>
+            @endif
         </x-slot:filters>
 
-        <x-slot:secondary>
-            <div class="text-sm text-[var(--color-muted)]">
-                {{ count($posts) }} {{ str('post')->plural(count($posts)) }}
-            </div>
-        </x-slot:secondary>
+        <x-slot:results>{{ count($posts) }} {{ str('post')->plural(count($posts)) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="Posts">
+    <x-ui.table caption="Posts" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading class="w-[31%]">
-                    <button type="button" wire:click="sortBy('title')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Title</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'title' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>Status</x-ui.table-heading>
-                <x-ui.table-heading>Category</x-ui.table-heading>
-                <x-ui.table-heading>Author</x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('published_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Published</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'published_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading>
-                    <button type="button" wire:click="sortBy('updated_at')" class="inline-flex items-center gap-2 transition-colors hover:text-[var(--color-ink)]">
-                        <span>Updated</span>
-                        <span class="text-[10px] leading-none">{{ $sortColumn === 'updated_at' ? ($sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
-                    </button>
-                </x-ui.table-heading>
-                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
+                <x-ui.table-heading width="content-primary" sortable sort-key="title" :sort-column="$sortColumn" :sort-direction="$sortDirection">TITLE</x-ui.table-heading>
+                @if ($aiReviewMode)
+                    <x-ui.table-heading>SOURCE BRIEF</x-ui.table-heading>
+                    <x-ui.table-heading>SOURCE TOPIC</x-ui.table-heading>
+                    <x-ui.table-heading>GENERATED BY</x-ui.table-heading>
+                    <x-ui.table-heading sortable sort-key="updated_at" :sort-column="$sortColumn" :sort-direction="$sortDirection">UPDATED</x-ui.table-heading>
+                @else
+                    <x-ui.table-heading>STATUS</x-ui.table-heading>
+                    <x-ui.table-heading>CATEGORY</x-ui.table-heading>
+                    <x-ui.table-heading>AUTHOR</x-ui.table-heading>
+                    <x-ui.table-heading sortable sort-key="published_at" :sort-column="$sortColumn" :sort-direction="$sortDirection">PUBLISHED</x-ui.table-heading>
+                    <x-ui.table-heading sortable sort-key="updated_at" :sort-column="$sortColumn" :sort-direction="$sortDirection">UPDATED</x-ui.table-heading>
+                @endif
+                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 
         <x-ui.table-body>
             @forelse ($posts as $post)
                 <x-ui.table-row interactive wire:key="post-{{ $post['id'] }}">
-                    <x-ui.table-cell class="w-[31%]">
+                    <x-ui.table-cell width="content-primary">
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2">
                                 <p class="truncate font-semibold text-[var(--color-ink)]">{{ $post['title'] }}</p>
                                 @if ($post['is_featured'])
                                     <x-ui.badge tone="warning">Featured</x-ui.badge>
+                                @endif
+                                @if ($post['is_ai_generated'])
+                                    <x-ui.badge tone="default">AI Draft</x-ui.badge>
                                 @endif
                             </div>
 
@@ -156,78 +137,128 @@
                             @endif
                         </div>
                     </x-ui.table-cell>
-                    <x-ui.table-cell>
-                        <div class="space-y-2">
-                            <x-admin.status-badge :status="$post['status']" />
-                            <x-ui.badge tone="muted">{{ str($post['visibility'])->headline() }}</x-ui.badge>
-                        </div>
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        {{ $post['category_name'] ?: 'Unassigned' }}
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        {{ $post['author_name'] ?: 'Unknown' }}
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        <div class="space-y-1">
-                            <p>{{ $post['published_at'] ?: 'Not published' }}</p>
-                            @if ($post['scheduled_for'])
-                                <p class="text-xs text-[var(--color-muted)]">Scheduled: {{ $post['scheduled_for'] }}</p>
+                    @if ($aiReviewMode)
+                        <x-ui.table-cell subdued>
+                            @if ($post['source_content_brief_id'])
+                                <a href="{{ route('content-briefs.show', ['contentBrief' => $post['source_content_brief_id']]) }}" class="transition-colors hover:text-[var(--color-ink)]">
+                                    Brief #{{ $post['source_content_brief_id'] }}
+                                </a>
+                            @else
+                                None
                             @endif
-                        </div>
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        <div class="space-y-1">
-                            <p>{{ $post['updated_at'] ?: 'Unknown' }}</p>
-                            @if ($post['reading_time_minutes'] || $post['word_count'])
-                                <p class="text-xs text-[var(--color-muted)]">
-                                    {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time TBC' }}
-                                    @if ($post['word_count'])
-                                        · {{ number_format($post['word_count']) }} words
-                                    @endif
-                                </p>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            @if ($post['source_content_topic_id'])
+                                <a href="{{ route('topic-queue.show', ['topic' => $post['source_content_topic_id']]) }}" class="transition-colors hover:text-[var(--color-ink)]">
+                                    Topic #{{ $post['source_content_topic_id'] }}
+                                </a>
+                            @else
+                                None
                             @endif
-                        </div>
-                    </x-ui.table-cell>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            <div class="space-y-1">
+                                <p>{{ $post['generated_by'] ?: 'Unknown' }}</p>
+                                @if ($post['generated_by_ai_job_id'])
+                                    <a href="{{ route('ai-jobs.show', ['aiJob' => $post['generated_by_ai_job_id']]) }}" class="text-xs transition-colors hover:text-[var(--color-ink)]">
+                                        Job #{{ $post['generated_by_ai_job_id'] }}
+                                    </a>
+                                @endif
+                            </div>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            <div class="space-y-1">
+                                <p>{{ $post['updated_at'] ?: 'Unknown' }}</p>
+                                @if ($post['reading_time_minutes'] || $post['word_count'])
+                                    <p class="text-xs text-[var(--color-muted)]">
+                                        {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time pending' }}
+                                        @if ($post['word_count'])
+                                            · {{ number_format($post['word_count']) }} words
+                                        @endif
+                                    </p>
+                                @endif
+                            </div>
+                        </x-ui.table-cell>
+                    @else
+                        <x-ui.table-cell>
+                            <div class="space-y-2">
+                                <x-admin.status-badge :status="$post['status']" />
+                                <x-ui.badge tone="muted">{{ str($post['visibility'])->headline() }}</x-ui.badge>
+                            </div>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            {{ $post['category_name'] ?: 'Unassigned' }}
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            {{ $post['author_name'] ?: 'Unknown' }}
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            <div class="space-y-1">
+                                <p>{{ $post['published_at'] ?: 'Not published' }}</p>
+                                @if ($post['scheduled_for'])
+                                    <p class="text-xs text-[var(--color-muted)]">Scheduled: {{ $post['scheduled_for'] }}</p>
+                                @endif
+                            </div>
+                        </x-ui.table-cell>
+                        <x-ui.table-cell subdued>
+                            <div class="space-y-1">
+                                <p>{{ $post['updated_at'] ?: 'Unknown' }}</p>
+                                @if ($post['reading_time_minutes'] || $post['word_count'])
+                                    <p class="text-xs text-[var(--color-muted)]">
+                                        {{ $post['reading_time_minutes'] ? $post['reading_time_minutes'].' min read' : 'Reading time pending' }}
+                                        @if ($post['word_count'])
+                                            · {{ number_format($post['word_count']) }} words
+                                        @endif
+                                    </p>
+                                @endif
+                            </div>
+                        </x-ui.table-cell>
+                    @endif
                     <x-ui.table-cell align="right">
-                        <div class="flex flex-wrap items-center justify-end gap-2">
-                            <x-ui.button as="a" :href="route('posts.edit', ['post' => $post['id']])" variant="outline" size="sm">Edit</x-ui.button>
+                        <div class="flex justify-end">
+                            <x-admin.row-actions>
+                                <x-admin.row-action :href="$aiReviewMode ? route('draft-review.show', ['post' => $post['id']]) : route('posts.edit', ['post' => $post['id']])">
+                                    {{ $aiReviewMode ? 'Review' : 'Edit' }}
+                                </x-admin.row-action>
 
-                            @if ($post['can_publish'])
-                                <x-ui.button type="button" variant="secondary" size="sm" wire:click="openActionDialog('publish', {{ $post['id'] }})">
-                                    Publish
-                                </x-ui.button>
-                            @endif
+                                @if ($post['can_publish'])
+                                    <x-admin.row-action wire:click="openActionDialog('publish', {{ $post['id'] }})">
+                                        Publish
+                                    </x-admin.row-action>
+                                @endif
 
-                            @if ($post['can_schedule'])
-                                <x-ui.button type="button" variant="secondary" size="sm" wire:click="openActionDialog('schedule', {{ $post['id'] }})">
-                                    Schedule
-                                </x-ui.button>
-                            @endif
+                                @if ($post['can_schedule'])
+                                    <x-admin.row-action wire:click="openActionDialog('schedule', {{ $post['id'] }})">
+                                        Schedule
+                                    </x-admin.row-action>
+                                @endif
 
-                            @if ($post['can_unpublish'])
-                                <x-ui.button type="button" variant="secondary" size="sm" wire:click="openActionDialog('unpublish', {{ $post['id'] }})">
-                                    Unpublish
-                                </x-ui.button>
-                            @endif
+                                @if ($post['can_unpublish'])
+                                    <x-admin.row-action wire:click="openActionDialog('unpublish', {{ $post['id'] }})">
+                                        Unpublish
+                                    </x-admin.row-action>
+                                @endif
 
-                            <x-ui.button type="button" variant="ghost" size="sm" class="text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="openActionDialog('delete', {{ $post['id'] }})">
-                                Delete
-                            </x-ui.button>
+                                <x-admin.row-action tone="danger" wire:click="openActionDialog('delete', {{ $post['id'] }})">
+                                    Delete
+                                </x-admin.row-action>
+                            </x-admin.row-actions>
                         </div>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty
                 <x-ui.table-empty
-                    colspan="7"
-                    title="No posts match the current view"
-                    message="Adjust the search or filters, or create a new post to start the editorial workflow."
+                    :colspan="$aiReviewMode ? 6 : 7"
+                    :title="$aiReviewMode ? 'No AI drafts are waiting for review' : 'No posts match the current view'"
+                    :message="$aiReviewMode
+                        ? 'AI-generated draft posts will appear here once the Service creates them for manual editorial review.'
+                        : 'Adjust the search or filters, or create a new post to start the editorial workflow.'"
                 />
             @endforelse
         </x-ui.table-body>
     </x-ui.table>
 
-    <x-ui.dialog
+    <x-admin.confirm-dialog
         :open="$actionDialogOpen"
         :title="match ($actionMode) {
             'publish' => 'Publish post',
@@ -243,7 +274,7 @@
             'delete' => 'Delete the post only when it is no longer needed.',
             default => null,
         }"
-        :tone="$actionMode === 'delete' ? 'destructive' : 'default'"
+        :destructive="$actionMode === 'delete'"
         maxWidth="lg"
     >
         <div class="space-y-5">
@@ -277,8 +308,11 @@
             @endif
         </div>
 
-        <x-slot:actions>
+        <x-slot:cancel>
             <x-ui.button type="button" variant="secondary" wire:click="closeActionDialog">Cancel</x-ui.button>
+        </x-slot:cancel>
+
+        <x-slot:confirm>
             <x-ui.button
                 type="button"
                 :variant="$actionMode === 'delete' ? 'destructive' : 'primary'"
@@ -297,6 +331,6 @@
                 </span>
                 <span wire:loading wire:target="executeAction">Saving…</span>
             </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
+        </x-slot:confirm>
+    </x-admin.confirm-dialog>
 </div>

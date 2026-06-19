@@ -44,4 +44,11 @@ class AuthClient
             $this->api->authenticated($token, $tokenType)->post('/auth/logout')
         );
     }
+
+    public function changePassword(string $token, ?string $tokenType = 'Bearer', array $payload = []): array
+    {
+        return $this->api->handle(
+            $this->api->authenticated($token, $tokenType)->post('/admin/change-password', $payload)
+        );
+    }
 }

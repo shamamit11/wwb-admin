@@ -156,6 +156,7 @@ The current service API supports these admin-facing modules:
 - `PUT /admin/posts/{post}`
 - `DELETE /admin/posts/{post}`
 - `POST /admin/posts/{post}/publish`
+- `POST /admin/posts/{post}/rewrite`
 - `POST /admin/posts/{post}/schedule`
 - `POST /admin/posts/{post}/unpublish`
 
@@ -217,6 +218,40 @@ The current service API supports these admin-facing modules:
 - `PUT /admin/tags/{tag}`
 - `DELETE /admin/tags/{tag}`
 
+### Topic Queue
+
+- `GET /admin/content-topics`
+- `GET /admin/content-topics/{contentTopic}`
+- `PATCH /admin/content-topics/{contentTopic}`
+- `POST /admin/content-topics/{contentTopic}/approve`
+- `POST /admin/content-topics/{contentTopic}/reject`
+- `POST /admin/content-topics/{contentTopic}/mark-used`
+- `POST /admin/content-topics/{contentTopic}/generate-brief`
+
+### Content Briefs
+
+- `GET /admin/content-briefs`
+- `GET /admin/content-briefs/{contentBrief}`
+- `PATCH /admin/content-briefs/{contentBrief}`
+- `POST /admin/content-briefs/{contentBrief}/approve`
+- `POST /admin/content-briefs/{contentBrief}/generate-draft`
+
+### Prompt Templates
+
+- `GET /admin/ai-prompts`
+- `POST /admin/ai-prompts`
+- `GET /admin/ai-prompts/{aiPrompt}`
+- `PATCH /admin/ai-prompts/{aiPrompt}`
+- `POST /admin/ai-prompts/{aiPrompt}/versions`
+- `POST /admin/ai-prompts/{aiPrompt}/activate-version/{version}`
+
+### AI Jobs
+
+- `GET /admin/ai-jobs`
+- `GET /admin/ai-jobs/{aiJob}`
+- `POST /admin/ai-jobs/topic-discovery`
+- `POST /admin/ai-jobs/{aiJob}/retry`
+
 ## Payload Notes By Module
 
 ### Posts
@@ -226,6 +261,8 @@ The admin must support:
 - status values: `draft`, `scheduled`, `published`, `unpublished`, `archived`
 - visibility values: `public`, `private`, `internal`
 - structured `blocks` arrays
+- rewrite job scopes: `full_draft`, `section`, `paragraph`
+- targeted rewrite requests through `POST /admin/posts/{post}/rewrite` with optional `target_block_ids`, optional `instructions`, and optional `prompt_template_key`
 - explicit schedule flow through `POST /admin/posts/{post}/schedule`
 
 ### Templates
@@ -269,6 +306,15 @@ Knowledge base entry types currently include:
 - `category`
 - `knowledge_base_entry`
 
+### AI Workflow
+
+Admin AI workflow rules:
+
+- topic discovery is started through the Service AI job endpoint, not directly against a provider
+- topic approval, brief approval, draft generation, prompt version activation, and job retry all remain Service-backed actions
+- Admin must not run provider prompts directly
+- Admin must not auto-publish AI-generated posts
+
 ## Recommended Client Abstraction
 
 Use one top-level service gateway with module-specific clients underneath:
@@ -278,7 +324,11 @@ Services/WideWebBlogApi/
 ├── WideWebBlogApiManager.php
 ├── Clients/
 │   ├── AuthClient.php
+│   ├── AiJobClient.php
+│   ├── AiPromptClient.php
 │   ├── CategoryClient.php
+│   ├── ContentBriefClient.php
+│   ├── ContentTopicClient.php
 │   ├── PostClient.php
 │   ├── MediaClient.php
 │   ├── TemplateClient.php

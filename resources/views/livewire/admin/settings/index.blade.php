@@ -1,18 +1,16 @@
 <div class="space-y-6">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <x-admin.page-header
-            title="Settings"
-            description="Review safe operational configuration summaries without inventing unsupported service-backed settings flows."
-        />
-
-        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm text-[var(--color-muted)]">
+    <x-admin.page-header
+        title="Settings"
+        description="Review safe operational configuration summaries without inventing unsupported service-backed settings flows."
+    >
+        <x-admin.callout title="Read-only" class="max-w-md">
             This screen is read-only until broader settings endpoints exist in the service contract.
-        </div>
-    </div>
+        </x-admin.callout>
+    </x-admin.page-header>
 
-    <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-warning)_7%,white)] px-5 py-4 text-sm text-[var(--color-muted)] shadow-[var(--shadow-card)]">
+    <x-admin.callout tone="warning">
         No service-backed settings endpoint exists yet for broad admin configuration. Tabs below only expose safe summaries that are already backed by local config or existing operational modules.
-    </div>
+    </x-admin.callout>
 
     <x-ui.tabs>
         <x-ui.tabs-list>
@@ -53,10 +51,9 @@
                     </div>
                 </x-ui.tabs-panel>
 
-                <section class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Current Constraint</p>
-                    <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">Branding, locale defaults, maintenance controls, and other application-wide settings should stay config-managed until backend support defines a proper service-backed write contract.</p>
-                </section>
+                <x-admin.callout title="Current Constraint" tone="warning">
+                    Branding, locale defaults, maintenance controls, and other application-wide settings should stay config-managed until backend support defines a proper service-backed write contract.
+                </x-admin.callout>
             </div>
         </div>
     @elseif ($activeTab === 'publishing')
@@ -130,10 +127,9 @@
                 </div>
             </section>
 
-            <section class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Boundary</p>
-                <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">Bucket names, access keys, custom endpoints, and any future media-provider credentials remain intentionally hidden until there is an explicit secure management design.</p>
-            </section>
+            <x-admin.callout title="Boundary" tone="warning">
+                Bucket names, access keys, custom endpoints, and any future media-provider credentials remain intentionally hidden until there is an explicit secure management design.
+            </x-admin.callout>
         </div>
     @elseif ($activeTab === 'ai')
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)]">
@@ -151,10 +147,9 @@
                 </x-ui.empty-state>
             </section>
 
-            <section class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Current State</p>
-                <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">AI jobs and advanced AI settings remain roadmap items. Sensitive provider secrets should not appear in this admin until a dedicated secure flow exists.</p>
-            </section>
+            <x-admin.callout title="Current State" tone="warning">
+                AI jobs and advanced AI settings remain roadmap items. Sensitive provider secrets should not appear in this admin until a dedicated secure flow exists.
+            </x-admin.callout>
         </div>
     @else
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
@@ -191,10 +186,9 @@
                 </div>
             </section>
 
-            <section class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Security Note</p>
-                <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">This view intentionally stops at non-secret operational metadata. API tokens, cloud credentials, webhook secrets, and provider keys should not be surfaced by the UI without explicit product and backend support.</p>
-            </section>
+            <x-admin.callout title="Security Note" tone="warning">
+                This view intentionally stops at non-secret operational metadata. API tokens, cloud credentials, webhook secrets, and provider keys should not be surfaced by the UI without explicit product and backend support.
+            </x-admin.callout>
         </div>
     @endif
 </div>

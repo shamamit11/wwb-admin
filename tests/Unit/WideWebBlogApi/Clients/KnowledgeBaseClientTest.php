@@ -90,4 +90,48 @@ class KnowledgeBaseClientTest extends TestCase
         $this->assertSame(10, $created['data']['id']);
         $this->assertSame('Updated research note', $updated['data']['title']);
     }
+
+    public function test_it_can_link_knowledge_base_entries_to_posts_and_topics(): void
+    {
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/knowledge-base/10/link-post') {
+                $this->assertSame(55, $request['post_id']);
+
+                return Http::response([
+                    'data' => [
+                        'id' => 10,
+                        'linked_posts' => [
+                            ['id' => 55, 'title' => 'Related Post'],
+                        ],
+                    ],
+                ], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/knowledge-base/10/link-topic') {
+                $this->assertSame(77, $request['topic_id']);
+
+                return Http::response([
+                    'data' => [
+                        'id' => 10,
+                        'linked_topics' => [
+                            ['id' => 77, 'title' => 'Related Topic'],
+                        ],
+                    ],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        $linkedPost = app(KnowledgeBaseClient::class)->linkPost('test-token', 'Bearer', 10, [
+            'post_id' => 55,
+        ]);
+
+        $linkedTopic = app(KnowledgeBaseClient::class)->linkTopic('test-token', 'Bearer', 10, [
+            'topic_id' => 77,
+        ]);
+
+        $this->assertSame(55, $linkedPost['data']['linked_posts'][0]['id']);
+        $this->assertSame(77, $linkedTopic['data']['linked_topics'][0]['id']);
+    }
 }
