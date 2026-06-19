@@ -99,7 +99,7 @@
                                 </p>
                             </div>
 
-                            <x-ui.button as="a" :href="route('posts.edit', ['post' => $selectedPost['id']])" variant="secondary">Open Post Editor</x-ui.button>
+                            <x-ui.button as="a" :href="route('posts.edit', ['post' => $selectedPost['id']])" variant="secondary">Edit Post</x-ui.button>
                         </div>
 
                         <div class="grid gap-4 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">

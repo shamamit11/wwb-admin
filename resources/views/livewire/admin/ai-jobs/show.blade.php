@@ -4,7 +4,7 @@
         :title="filled($job['id'] ?? null) ? 'Job #'.$job['id'] : 'AI job detail'"
         description="Inspect job lifecycle, generation steps, payload summaries, and retry state from the service-owned AI orchestration pipeline."
     >
-        <x-ui.button as="a" :href="route('ai-jobs.index')" variant="secondary">Back to Jobs</x-ui.button>
+        <x-ui.button as="a" :href="route('ai-jobs.index')" variant="secondary">Back to AI Jobs</x-ui.button>
         <x-ui.button type="button" variant="secondary" wire:click="refreshJob" wire:loading.attr="disabled" wire:target="refreshJob">
             <span wire:loading.remove wire:target="refreshJob">Refresh Status</span>
             <span wire:loading wire:target="refreshJob">Refreshing…</span>

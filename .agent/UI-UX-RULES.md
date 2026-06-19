@@ -14,6 +14,14 @@
 - row actions on the right
 - bulk actions only when clearly useful
 
+## Action Label Vocabulary
+
+- use `Review` for approval or editorial workflow screens
+- use `Edit` for mutable editors and settings screens
+- use `Details` for read-only drilldown or inspection screens
+- use `Back to {resource name}` for secondary return navigation
+- use user-facing workflow verbs like `Run Topic Discovery`, `Generate Brief`, and `Generate Draft` instead of implementation labels like `Create AI Job`
+
 ## Validation Behavior
 
 - inline field validation for obvious errors where appropriate

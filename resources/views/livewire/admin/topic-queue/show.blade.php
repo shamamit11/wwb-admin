@@ -4,7 +4,7 @@
         :title="$title ?: 'Topic detail'"
         description="Review topic metadata, adjust editorial framing, and move the suggestion through approval states without duplicating workflow logic in Admin."
     >
-        <x-ui.button as="a" :href="route('topic-queue.index')" variant="secondary">Back to Queue</x-ui.button>
+        <x-ui.button as="a" :href="route('topic-queue.index')" variant="secondary">Back to Topic Queue</x-ui.button>
     </x-admin.page-header>
 
     @if ($pageError)

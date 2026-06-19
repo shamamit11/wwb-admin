@@ -167,7 +167,7 @@
 
         <x-slot:confirm>
             <x-ui.button type="button" wire:click="runTopicDiscovery" wire:loading.attr="disabled" wire:target="runTopicDiscovery">
-                <span wire:loading.remove wire:target="runTopicDiscovery">Create AI Job</span>
+                <span wire:loading.remove wire:target="runTopicDiscovery">Run Topic Discovery</span>
                 <span wire:loading wire:target="runTopicDiscovery">Creating…</span>
             </x-ui.button>
         </x-slot:confirm>

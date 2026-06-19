@@ -92,7 +92,7 @@
                     <x-ui.table-cell subdued>{{ $prompt['updated_at'] ?? 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
                         <x-admin.row-actions>
-                            <x-admin.row-action as="a" :href="route('ai-prompts.show', ['aiPrompt' => $prompt['id']])">Open</x-admin.row-action>
+                            <x-admin.row-action as="a" :href="route('ai-prompts.show', ['aiPrompt' => $prompt['id']])">Edit</x-admin.row-action>
                         </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>

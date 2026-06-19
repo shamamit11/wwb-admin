@@ -4,7 +4,7 @@
         :title="$title !== '' ? $title : 'Content brief detail'"
         description="Review and refine the structured brief before approval, then trigger blog draft generation through the Service workflow."
     >
-        <x-ui.button as="a" :href="route('content-briefs.index')" variant="secondary">Back to Briefs</x-ui.button>
+        <x-ui.button as="a" :href="route('content-briefs.index')" variant="secondary">Back to Content Briefs</x-ui.button>
     </x-admin.page-header>
 
     @if ($pageError)
@@ -143,7 +143,7 @@
                             <x-admin.status-badge :status="$topic['status'] ?? null" />
                         </div>
                         @if ($topicLink)
-                            <x-ui.button as="a" :href="$topicLink" variant="outline" size="sm">Open Topic Review</x-ui.button>
+                            <x-ui.button as="a" :href="$topicLink" variant="outline" size="sm">Review Topic</x-ui.button>
                         @endif
                     </div>
                 </div>
@@ -241,7 +241,7 @@
 
         <x-slot:confirm>
             <x-ui.button type="button" wire:click="generateDraft" wire:loading.attr="disabled" wire:target="generateDraft">
-                <span wire:loading.remove wire:target="generateDraft">Create AI Job</span>
+                <span wire:loading.remove wire:target="generateDraft">Generate Draft</span>
                 <span wire:loading wire:target="generateDraft">Creating…</span>
             </x-ui.button>
         </x-slot:confirm>
