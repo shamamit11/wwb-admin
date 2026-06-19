@@ -1,14 +1,14 @@
-# Task: UI-013 Standardize list-to-detail entry patterns
+# Task: Enhance settings tabs visual treatment
 
 Status: Completed
 
 ## Goal
 
-Define and apply consistent rules for when list rows lead to review, details, or edit destinations, and ensure the action text matches the destination purpose.
+Improve the Settings tab strip so it feels more intentional, polished, and aligned with the shared admin UI primitives.
 
 ## Background
 
-`UI-TASKS.md` notes that admin list screens mix `Review`, `Open`, `Inspect`, and `Edit` for next-step entry actions. UI-009 already normalized vocabulary, but this task needs to confirm the route semantics themselves and align the visible labels with those semantics.
+The current Settings tabs render correctly but look visually flat in the current admin theme. The request is to enhance the appearance without changing the read-only settings behavior or introducing a one-off page-specific pattern.
 
 ## Required Context
 
@@ -16,57 +16,49 @@ Define and apply consistent rules for when list rows lead to review, details, or
 - `.agent/COMPONENT-SYSTEM.md`
 - `.agent/skills/blade-components.md`
 - `.agent/skills/shadcn-inspired-ui.md`
-- `.agent/skills/tables-filters-pagination.md`
 - `docs/COMPONENT_SYSTEM.md`
 - `docs/UI_UX_GUIDELINES.md`
-- `UI-TASKS.md`
-- completed UI task notes for related standardization passes
 
 ## Files To Inspect
 
-- list screens called out by `UI-TASKS.md`:
-  - `topic-queue/index.blade.php`
-  - `content-briefs/index.blade.php`
-  - `ai-jobs/index.blade.php`
-  - `pages/index.blade.php`
-  - `knowledge-base/index.blade.php`
-- related destination views or route targets for those row actions
+- `resources/views/livewire/admin/settings/index.blade.php`
+- `resources/views/livewire/admin/seo/index.blade.php`
+- `resources/views/components/ui/tabs-list.blade.php`
+- `resources/views/components/ui/tabs-trigger.blade.php`
 
 ## Files To Change
 
-- `.agent/tasks/current-task.md`
-- only the scoped list views and lightweight guidance needed to standardize entry patterns
+- `resources/views/components/ui/tabs-list.blade.php`
+- `resources/views/components/ui/tabs-trigger.blade.php`
 
 ## Implementation Steps
 
-1. Inspect current row-action destinations and the purpose of each target screen.
-2. Define the minimal rule for `Review` vs `Details` vs `Edit` based on destination behavior.
-3. Update scoped list actions to match the destination semantics without changing unrelated actions.
+1. Confirm where shared tabs primitives are used.
+2. Improve container spacing, surface, and trigger states in the reusable tabs components.
+3. Keep the change compatible with both link-based and button-based tab triggers.
 4. Run narrow validation.
+5. Tighten the visual hierarchy further if the first pass remains too subtle in rendered UI.
 
 ## Acceptance Criteria
 
-- Scoped list-row actions use labels that match the purpose of the target screen.
-- Similar destination types use the same entry pattern in scope.
-- No unrelated route, layout, or workflow behavior changes are introduced.
+- Settings tabs have a clearer shared container treatment and active state.
+- Inactive tabs have clearer hover and focus affordances.
+- SEO tabs continue to render correctly with the shared primitive.
+- No page-specific markup changes are required for the enhancement.
 
 ## Validation Commands
 
-- `php artisan test --filter=View`
-- `php artisan test --filter=Admin`
+- `php artisan test --filter=Seo`
+- `php artisan test --filter=Settings`
 
 ## Risks
 
-- Some screens combine review and edit behavior on the same destination, so the chosen label must reflect the dominant user task rather than perfect purity.
+- Shared primitive changes also affect the SEO tab surface.
+- Visual validation is limited to code inspection unless browser rendering is checked.
 
 ## Completion Notes
 
-- Reviewed the scoped list screens and their destination views:
-  - Topic Queue and Content Briefs already route to review-first screens, so `Review` remains correct.
-  - AI Jobs already routes to a read-only inspection screen, so `Details` remains correct.
-  - Pages and Knowledge Base already route to mutable editors, so `Edit` remains correct.
-- Added explicit shared guidance to `.agent/UI-UX-RULES.md` for choosing `Review`, `Details`, or `Edit` based on the dominant task of the destination screen.
-- No scoped list-view code changes were required because the current row-action labels already match the destination semantics after the earlier UI-009 pass.
-- Validation passed:
-  - `php artisan test --filter=View`
-  - `php artisan test --filter=Admin`
+- First pass was too subtle in rendered UI and did not create a meaningfully stronger segmented control.
+- Second pass switched the shared tabs primitive to a clearer pill-style segmented control with stronger active-state contrast.
+- Updated both link-based and button-based tab triggers without changing behavior.
+- Verified with `php artisan test --filter=Settings` and `php artisan test --filter=Seo`.
