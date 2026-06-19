@@ -1,12 +1,16 @@
 <div class="space-y-6">
     <x-admin.page-header
+        eyebrow="Editorial Workflow"
         title="Topic Queue"
         description="Review service-generated topic suggestions, filter editorial opportunities, and move approved topics toward the briefing workflow."
     >
-        <x-ui.button type="button" wire:click="openDiscoveryDialog" wire:loading.attr="disabled" wire:target="openDiscoveryDialog">
-            <span wire:loading.remove wire:target="openDiscoveryDialog">Run Topic Discovery</span>
-            <span wire:loading wire:target="openDiscoveryDialog">Opening…</span>
-        </x-ui.button>
+        <div class="flex max-w-sm flex-col gap-2 lg:items-end">
+            <x-ui.button type="button" wire:click="openDiscoveryDialog" wire:loading.attr="disabled" wire:target="openDiscoveryDialog">
+                <span wire:loading.remove wire:target="openDiscoveryDialog">Run Topic Discovery</span>
+                <span wire:loading wire:target="openDiscoveryDialog">Opening…</span>
+            </x-ui.button>
+            <p class="text-sm text-[var(--color-muted)] lg:text-right">Generate new service-side topic suggestions without leaving the current editorial review queue.</p>
+        </div>
     </x-admin.page-header>
 
     @if ($pageError)
@@ -15,11 +19,15 @@
         </div>
     @endif
 
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         @foreach ($stats as $stat)
             <x-admin.stat-card :label="$stat['label']" :value="$stat['value']" :tone="$stat['tone'] ?? 'default'" />
         @endforeach
     </div>
+
+    <x-admin.callout title="Review Flow">
+        Suggested topics stay in this queue until an editor approves, rejects, or advances them into brief generation.
+    </x-admin.callout>
 
     <x-admin.filter-bar>
         <x-slot:search>
@@ -34,8 +42,8 @@
         </x-slot:search>
 
         <x-slot:filters>
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="w-[11rem] shrink-0">
+            <div class="grid w-full gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div class="min-w-0">
                     <x-ui.select wire:model.live="statusFilter">
                         <option value="all">All statuses</option>
                         @foreach ($statusOptions as $statusOption)
@@ -44,7 +52,7 @@
                     </x-ui.select>
                 </div>
 
-                <div class="w-[13rem] shrink-0">
+                <div class="min-w-0">
                     <x-ui.select wire:model.live="clusterFilter">
                         <option value="all">All clusters</option>
                         @foreach ($clusterOptions as $clusterOption)
@@ -53,7 +61,7 @@
                     </x-ui.select>
                 </div>
 
-                <div class="w-[11rem] shrink-0">
+                <div class="min-w-0">
                     <x-ui.select wire:model.live="sourceFilter">
                         <option value="all">All sources</option>
                         @foreach ($sourceOptions as $sourceOption)
@@ -114,7 +122,7 @@
         </x-ui.table-body>
     </x-ui.table>
 
-    <x-ui.pagination :pagination="$pagination" item-label="topic" />
+    <x-ui.pagination :pagination="$pagination" item-label="topic" class="border-transparent bg-transparent px-0 py-0" />
 
     <x-admin.confirm-dialog
         :open="$discoveryDialogOpen"
