@@ -26,6 +26,7 @@ class AdminNavigationTest extends TestCase
         foreach ([
             'homepage.index',
             'about-page.index',
+            'contact-page.index',
             'posts.index',
             'pages.index',
             'pages.create',
@@ -34,6 +35,8 @@ class AdminNavigationTest extends TestCase
             'media.index',
             'templates.index',
             'knowledge-base.index',
+            'contact-submissions.index',
+            'contact-submissions.show',
             'seo.index',
             'settings.index',
             'password.index',
@@ -43,8 +46,12 @@ class AdminNavigationTest extends TestCase
             'ai-prompts.index',
             'ai-jobs.index',
         ] as $route) {
+            $parameters = $route === 'contact-submissions.show'
+                ? ['contactSubmission' => 'sub_1']
+                : [];
+
             $this->withSession($session)
-                ->get(route($route))
+                ->get(route($route, $parameters))
                 ->assertOk();
         }
     }
@@ -62,6 +69,8 @@ class AdminNavigationTest extends TestCase
             ->assertSee('CMS')
             ->assertSee('Publishing')
             ->assertSee('Operations')
+            ->assertSee('Contact Page')
+            ->assertSee('Contact Submissions')
             ->assertSee('AI Content')
             ->assertSee('href="'.route('categories.index').'"', false)
             ->assertSee('bg-[var(--color-accent-soft)]', false);
@@ -142,6 +151,61 @@ class AdminNavigationTest extends TestCase
                         'team_section' => ['title' => '', 'description' => '', 'primary_cta_label' => '', 'primary_cta_url' => '', 'members' => []],
                         'seo' => [],
                         'updated_at' => '2026-06-20T15:00:00Z',
+                    ],
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && $url === $this->apiBaseUrl.'/admin/contact-page') {
+                return Http::response([
+                    'data' => [
+                        'hero' => ['eyebrow' => '', 'title' => '', 'description' => ''],
+                        'contact_form' => ['eyebrow' => '', 'title' => '', 'description' => '', 'submit_label' => '', 'success_message' => ''],
+                        'contact_reasons' => ['items' => []],
+                        'seo' => ['meta_title' => '', 'meta_description' => ''],
+                        'updated_at' => '2026-06-20T20:00:00Z',
+                        'updated_by' => ['id' => '1', 'name' => 'Admin User'],
+                    ],
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && $url === $this->apiBaseUrl.'/admin/contact-submissions') {
+                return Http::response([
+                    'data' => [
+                        [
+                            'id' => 'sub_1',
+                            'name' => 'Amit Sharma',
+                            'email' => 'amit@example.com',
+                            'topic' => 'Partnership',
+                            'message' => 'Hello',
+                            'status' => 'new',
+                            'admin_notes' => null,
+                            'metadata' => [],
+                            'submitted_at' => '2026-06-20T10:00:00Z',
+                            'reviewed_at' => null,
+                            'reviewed_by' => null,
+                            'created_at' => '2026-06-20T10:00:00Z',
+                            'updated_at' => '2026-06-20T10:00:00Z',
+                        ],
+                    ],
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && $url === $this->apiBaseUrl.'/admin/contact-submissions/sub_1') {
+                return Http::response([
+                    'data' => [
+                        'id' => 'sub_1',
+                        'name' => 'Amit Sharma',
+                        'email' => 'amit@example.com',
+                        'topic' => 'Partnership',
+                        'message' => 'Hello',
+                        'status' => 'new',
+                        'admin_notes' => null,
+                        'metadata' => [],
+                        'submitted_at' => '2026-06-20T10:00:00Z',
+                        'reviewed_at' => null,
+                        'reviewed_by' => null,
+                        'created_at' => '2026-06-20T10:00:00Z',
+                        'updated_at' => '2026-06-20T10:00:00Z',
                     ],
                 ], 200);
             }

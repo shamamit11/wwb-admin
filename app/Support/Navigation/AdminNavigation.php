@@ -18,6 +18,7 @@ class AdminNavigation
                 'items' => [
                     $this->item('Homepage', 'homepage.index', 'Structured homepage curation and section management.', false, 'homepage'),
                     $this->item('About Us', 'about-page.index', 'Singleton About Page editor backed by the dedicated service contract.', false, 'document'),
+                    $this->item('Contact Page', 'contact-page.index', 'Singleton Contact Page editor backed by the dedicated service contract.', false, 'document'),
                     $this->item('Pages', 'pages.index', 'Manage static and evergreen service-backed pages.', false, 'pages'),
                 ],
             ],
@@ -36,6 +37,7 @@ class AdminNavigation
                 'title' => 'Operations',
                 'items' => [
                     $this->item('SEO', 'seo.index', 'Metadata, score, schema, sitemap, and feed visibility.', false, 'seo'),
+                    $this->item('Contact Submissions', 'contact-submissions.index', 'Review inbound contact form messages, update status, and capture internal notes.', false, 'queue'),
                     $this->item('Settings', 'settings.index', 'Scoped operational settings and placeholders.', false, 'settings'),
                 ],
             ],

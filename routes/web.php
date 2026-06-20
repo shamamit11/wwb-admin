@@ -4,6 +4,9 @@ use App\Http\Controllers\Admin\Auth\LogoutController;
 use App\Livewire\Admin\AiPrompts\Index as AiPromptIndex;
 use App\Livewire\Admin\AiPrompts\Show as AiPromptShow;
 use App\Livewire\Admin\AboutPage\Index as AboutPageIndex;
+use App\Livewire\Admin\ContactPage\Index as ContactPageIndex;
+use App\Livewire\Admin\ContactSubmissions\Index as ContactSubmissionsIndex;
+use App\Livewire\Admin\ContactSubmissions\Show as ContactSubmissionsShow;
 use App\Livewire\Admin\Auth\Login as LoginScreen;
 use App\Livewire\Admin\AiJobs\Index as AiJobIndex;
 use App\Livewire\Admin\AiJobs\Show as AiJobShow;
@@ -53,6 +56,12 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/homepage', HomepageIndex::class)->name('homepage.index');
 
     Route::get('/about-page', AboutPageIndex::class)->name('about-page.index');
+
+    Route::get('/contact-page', ContactPageIndex::class)->name('contact-page.index');
+
+    Route::get('/contact-submissions', ContactSubmissionsIndex::class)->name('contact-submissions.index');
+
+    Route::get('/contact-submissions/{contactSubmission}', ContactSubmissionsShow::class)->name('contact-submissions.show');
 
     Route::get('/categories', CategoryIndex::class)->name('categories.index');
 

@@ -1,23 +1,39 @@
-# Task: <title>
+# Task: TBC
 
-Status: Planned | In Progress | Blocked | Completed
+Status: Pending
 
 ## Goal
 
+TBC
+
 ## Background
+
+TBC
 
 ## Required Context
 
+- TBC
+
 ## Files To Inspect
+
+- TBC
 
 ## Files To Change
 
+- TBC
+
 ## Implementation Steps
+
+1. TBC
 
 ## Acceptance Criteria
 
+- TBC
+
 ## Validation Commands
+
+- TBC
 
 ## Risks
 
-## Completion Notes
+- TBC
