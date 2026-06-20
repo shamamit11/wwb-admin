@@ -46,9 +46,71 @@ class PageIndexTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Create Page')
+            ->assertSee('Legal Pages')
             ->assertSee('Privacy Policy')
             ->assertSee('FAQ')
             ->assertSee('Pages');
+    }
+
+    public function test_pages_index_makes_legal_pages_easy_to_manage(): void
+    {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/pages*' => Http::response([
+                'data' => [
+                    $this->pageResource([
+                        'id' => 11,
+                        'title' => 'Privacy Policy',
+                        'slug' => 'privacy-policy',
+                        'type' => 'legal',
+                        'status' => 'published',
+                    ]),
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('pages.index'));
+
+        $response
+            ->assertOk()
+            ->assertSee('Show Legal Only')
+            ->assertSee('Privacy Policy')
+            ->assertSee('Terms and Conditions')
+            ->assertSee(route('pages.edit', ['page' => 11]), false)
+            ->assertSee(route('pages.create', ['preset' => 'terms-and-conditions']), false);
+    }
+
+    public function test_pages_index_can_filter_to_legal_pages(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/pages')) {
+                static $count = 0;
+                $count++;
+
+                if ($count > 1) {
+                    $this->assertSame('legal', $request->data()['type'] ?? null);
+                }
+
+                return Http::response([
+                    'data' => [
+                        $this->pageResource([
+                            'id' => 1,
+                            'title' => 'Privacy Policy',
+                            'slug' => 'privacy-policy',
+                            'type' => 'legal',
+                        ]),
+                    ],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Index::class)
+            ->set('typeFilter', 'legal')
+            ->assertSee('Privacy Policy');
     }
 
     public function test_page_can_be_deleted_from_index(): void
@@ -82,7 +144,7 @@ class PageIndexTest extends TestCase
             ->call('confirmDelete', 1)
             ->assertSet('deleteDialogOpen', true)
             ->call('delete')
-            ->assertDontSee('Privacy Policy');
+            ->assertDontSee(route('pages.edit', ['page' => 1]));
     }
 
     protected function authenticatedSession(): array

@@ -30,6 +30,30 @@ class PageEditorTest extends TestCase
             ->assertSee('Metadata');
     }
 
+    public function test_page_create_route_can_prefill_privacy_policy_legal_preset(): void
+    {
+        Livewire::withQueryParams(['preset' => 'privacy-policy'])
+            ->test(Editor::class)
+            ->assertSet('title', 'Privacy Policy')
+            ->assertSet('slug', 'privacy-policy')
+            ->assertSet('pageType', 'legal')
+            ->assertSet('status', 'published')
+            ->assertSet('visibility', 'public')
+            ->assertSet('summary', 'Public legal page describing how data is collected, used, and protected.');
+    }
+
+    public function test_page_create_route_can_prefill_terms_legal_preset(): void
+    {
+        Livewire::withQueryParams(['preset' => 'terms-and-conditions'])
+            ->test(Editor::class)
+            ->assertSet('title', 'Terms and Conditions')
+            ->assertSet('slug', 'terms-and-conditions')
+            ->assertSet('pageType', 'legal')
+            ->assertSet('status', 'published')
+            ->assertSet('visibility', 'public')
+            ->assertSet('summary', 'Public legal page covering site usage terms, obligations, and limitations.');
+    }
+
     public function test_page_can_be_created_and_redirects_to_edit_route(): void
     {
         session($this->authenticatedSession());

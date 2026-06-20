@@ -15,6 +15,21 @@ use Livewire\Component;
 
 class Editor extends Component
 {
+    private const LEGAL_PAGE_PRESETS = [
+        'privacy-policy' => [
+            'title' => 'Privacy Policy',
+            'slug' => 'privacy-policy',
+            'summary' => 'Public legal page describing how data is collected, used, and protected.',
+            'content_markdown' => "# Privacy Policy\n\n## Overview\n\nDescribe how the site collects, uses, stores, and protects personal data.\n",
+        ],
+        'terms-and-conditions' => [
+            'title' => 'Terms and Conditions',
+            'slug' => 'terms-and-conditions',
+            'summary' => 'Public legal page covering site usage terms, obligations, and limitations.',
+            'content_markdown' => "# Terms and Conditions\n\n## Overview\n\nDescribe the rules, responsibilities, and conditions for using the site.\n",
+        ],
+    ];
+
     private const PAGE_TYPES = [
         'legal',
         'marketing',
@@ -78,6 +93,8 @@ class Editor extends Component
         if (is_numeric($page)) {
             return $this->loadPage((int) $page, $pages, $session);
         }
+
+        $this->applyLegalPreset((string) request()->query('preset', ''));
 
         return null;
     }
@@ -219,6 +236,24 @@ class Editor extends Component
         $this->updatedBy = is_array(Arr::get($page, 'updated_by')) ? Arr::get($page, 'updated_by') : [];
         $this->createdAt = $this->formatTimestamp(Arr::get($page, 'created_at'));
         $this->updatedAt = $this->formatTimestamp(Arr::get($page, 'updated_at'));
+    }
+
+    protected function applyLegalPreset(string $preset): void
+    {
+        $definition = self::LEGAL_PAGE_PRESETS[$preset] ?? null;
+
+        if (! is_array($definition)) {
+            return;
+        }
+
+        $this->title = $definition['title'];
+        $this->slug = $definition['slug'];
+        $this->pageType = 'legal';
+        $this->status = 'published';
+        $this->visibility = 'public';
+        $this->summary = $definition['summary'];
+        $this->contentMarkdown = $definition['content_markdown'];
+        $this->metaJson = "[\n    \"legal\"\n]";
     }
 
     protected function payload(array $validated): array

@@ -12,6 +12,60 @@
         </div>
     @endif
 
+    <section class="space-y-4 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div class="space-y-1">
+                <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Legal Pages</h2>
+                <p class="text-sm text-[var(--color-muted)]">Use the existing Pages API flow for Privacy Policy and Terms and Conditions. Filter the list to legal pages or jump straight into one of the recommended public legal entries.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <x-ui.button
+                    type="button"
+                    variant="{{ $typeFilter === 'legal' ? 'default' : 'secondary' }}"
+                    wire:click="$set('typeFilter', 'legal')"
+                >
+                    Show Legal Only
+                </x-ui.button>
+                @if ($typeFilter === 'legal')
+                    <x-ui.button type="button" variant="secondary" wire:click="$set('typeFilter', 'all')">Show All Pages</x-ui.button>
+                @endif
+            </div>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-2">
+            @foreach ($legalPageCards as $card)
+                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-5 py-5">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="space-y-2">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="text-base font-semibold text-[var(--color-ink)]">{{ $card['title'] }}</h3>
+                                @if (is_array($card['page']))
+                                    <x-admin.status-badge :status="$card['page']['status']" />
+                                @else
+                                    <span class="inline-flex items-center rounded-full bg-[var(--color-panel)] px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)] ring-1 ring-[var(--color-line)]">Missing</span>
+                                @endif
+                            </div>
+                            <p class="text-sm text-[var(--color-muted)]">/{{ $card['slug'] }}</p>
+                            <p class="text-sm text-[var(--color-muted)]">{{ $card['description'] }}</p>
+                            @if (is_array($card['page']) && $card['page']['summary'])
+                                <p class="text-sm text-[var(--color-muted)]">{{ $card['page']['summary'] }}</p>
+                            @endif
+                        </div>
+
+                        <div class="flex shrink-0 flex-wrap items-center gap-2">
+                            @if (is_array($card['page']))
+                                <x-ui.button as="a" :href="route('pages.edit', ['page' => $card['page']['id']])" size="sm">Edit</x-ui.button>
+                            @else
+                                <x-ui.button as="a" :href="route('pages.create', ['preset' => $card['key']])" size="sm">Create</x-ui.button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </section>
+
     <x-admin.filter-bar>
         <x-slot:search>
             <label class="block">

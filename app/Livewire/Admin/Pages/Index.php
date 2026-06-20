@@ -148,6 +148,7 @@ class Index extends Component
             'pageTypes' => self::PAGE_TYPES,
             'pageStatuses' => self::PAGE_STATUSES,
             'pageVisibilities' => self::PAGE_VISIBILITIES,
+            'legalPageCards' => $this->legalPageCards(),
         ])->layout('layouts.admin', [
             'title' => 'Pages',
         ]);
@@ -215,6 +216,44 @@ class Index extends Component
             'updated_at' => $this->formatTimestamp(Arr::get($page, 'updated_at')),
             'created_by_name' => (string) (Arr::get($page, 'created_by.name') ?? ''),
         ];
+    }
+
+    protected function legalPageCards(): array
+    {
+        $definitions = [
+            [
+                'key' => 'privacy-policy',
+                'title' => 'Privacy Policy',
+                'slug' => 'privacy-policy',
+                'description' => 'Public legal disclosure covering privacy, data handling, and tracking practices.',
+            ],
+            [
+                'key' => 'terms-and-conditions',
+                'title' => 'Terms and Conditions',
+                'slug' => 'terms-and-conditions',
+                'description' => 'Public legal page for usage terms, site rules, and service conditions.',
+            ],
+        ];
+
+        return collect($definitions)
+            ->map(function (array $definition): array {
+                $match = collect($this->pages)->first(function (array $page) use ($definition): bool {
+                    return $page['type'] === 'legal'
+                        && (
+                            $page['slug'] === $definition['slug']
+                            || strcasecmp($page['title'], $definition['title']) === 0
+                        );
+                });
+
+                return [
+                    'key' => $definition['key'],
+                    'title' => $definition['title'],
+                    'slug' => $definition['slug'],
+                    'description' => $definition['description'],
+                    'page' => $match,
+                ];
+            })
+            ->all();
     }
 
     protected function formatTimestamp(mixed $value): ?string
