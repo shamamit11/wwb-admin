@@ -253,7 +253,7 @@ class Editor extends Component
             'wordCount' => ['nullable', 'integer', 'min:0'],
             'isFeatured' => ['boolean'],
             'metaJson' => ['nullable', function (string $attribute, mixed $value, \Closure $fail): void {
-                $this->validateJsonStringArrayPayload($attribute, $value, $fail);
+                $this->validateMetaJsonPayload($attribute, $value, $fail);
             }],
             'tagIds' => ['array'],
             'tagIds.*' => ['integer'],
@@ -976,7 +976,7 @@ class Editor extends Component
 
         $decoded = json_decode($this->metaJson, true);
 
-        return is_array($decoded) ? array_values($decoded) : null;
+        return is_array($decoded) ? $decoded : null;
     }
 
     protected function rewriteRules(): array
@@ -1280,7 +1280,7 @@ class Editor extends Component
         ];
     }
 
-    protected function validateJsonStringArrayPayload(string $attribute, mixed $value, \Closure $fail): void
+    protected function validateMetaJsonPayload(string $attribute, mixed $value, \Closure $fail): void
     {
         if (! is_string($value) || trim($value) === '') {
             return;
@@ -1289,23 +1289,13 @@ class Editor extends Component
         try {
             $decoded = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            $fail('Use a valid JSON array of strings.');
+            $fail('Use valid JSON for the post meta payload.');
 
             return;
         }
 
-        if (! is_array($decoded) || array_is_list($decoded) === false) {
-            $fail('Use a JSON array of strings.');
-
-            return;
-        }
-
-        foreach ($decoded as $item) {
-            if (! is_string($item)) {
-                $fail('Each meta item must be a string.');
-
-                return;
-            }
+        if (! is_array($decoded)) {
+            $fail('Use a JSON object or array for the post meta payload.');
         }
     }
 

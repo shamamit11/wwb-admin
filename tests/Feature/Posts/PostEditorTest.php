@@ -327,6 +327,126 @@ class PostEditorTest extends TestCase
             ->assertSet('title', 'Updated Post');
     }
 
+    public function test_ai_draft_review_can_save_with_associative_meta_payload(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/categories') {
+                return Http::response(['data' => [$this->categoryResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/tags') {
+                return Http::response(['data' => [$this->tagResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/templates') {
+                return Http::response(['data' => [$this->templateResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && str_starts_with($request->url(), $this->apiBaseUrl.'/admin/media')) {
+                return Http::response(['data' => [$this->mediaResource()]], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/posts/1') {
+                return Http::response([
+                    'data' => $this->postResource([
+                        'id' => 1,
+                        'title' => 'AI Draft',
+                        'slug' => 'ai-draft',
+                        'status' => 'draft',
+                        'is_ai_generated' => true,
+                        'source_content_brief_id' => 14,
+                        'source_content_topic_id' => 8,
+                        'generated_by_ai_job_id' => 22,
+                        'generated_by' => 'BlogWriterAgent',
+                        'blocks' => [
+                            [
+                                'id' => 100,
+                                'block_key' => 'intro',
+                                'block_type' => 'paragraph',
+                                'sort_order' => 1,
+                                'content_markdown' => 'Draft intro paragraph',
+                                'content_html_cache' => null,
+                                'plain_text_cache' => 'Draft intro paragraph',
+                                'settings' => [],
+                                'source_template_block_id' => null,
+                                'created_at' => '2026-06-10T09:00:00Z',
+                                'updated_at' => '2026-06-10T09:00:00Z',
+                            ],
+                        ],
+                        'meta' => [
+                            'source_content_brief_id' => 14,
+                            'source_content_topic_id' => 8,
+                            'generated_by' => 'BlogWriterAgent',
+                            'secondary_keywords' => ['automation', 'workflow'],
+                            'suggested_tags' => ['Editorial Ops', 'AI Governance'],
+                        ],
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && str_contains($request->url(), '/admin/seo/')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if ($request->method() === 'PUT' && $request->url() === $this->apiBaseUrl.'/admin/posts/1') {
+                $this->assertSame([
+                    'source_content_brief_id' => 14,
+                    'source_content_topic_id' => 8,
+                    'generated_by' => 'BlogWriterAgent',
+                    'secondary_keywords' => ['automation', 'workflow'],
+                    'suggested_tags' => ['Editorial Ops', 'AI Governance'],
+                ], $request['meta']);
+
+                return Http::response([
+                    'data' => $this->postResource([
+                        'id' => 1,
+                        'title' => 'AI Draft',
+                        'slug' => 'ai-draft',
+                        'status' => 'draft',
+                        'is_ai_generated' => true,
+                        'source_content_brief_id' => 14,
+                        'source_content_topic_id' => 8,
+                        'generated_by_ai_job_id' => 22,
+                        'generated_by' => 'BlogWriterAgent',
+                        'blocks' => [
+                            [
+                                'id' => 100,
+                                'block_key' => 'intro',
+                                'block_type' => 'paragraph',
+                                'sort_order' => 1,
+                                'content_markdown' => 'Draft intro paragraph',
+                                'content_html_cache' => null,
+                                'plain_text_cache' => 'Draft intro paragraph',
+                                'settings' => [],
+                                'source_template_block_id' => null,
+                                'created_at' => '2026-06-10T09:00:00Z',
+                                'updated_at' => '2026-06-10T09:00:00Z',
+                            ],
+                        ],
+                        'meta' => [
+                            'source_content_brief_id' => 14,
+                            'source_content_topic_id' => 8,
+                            'generated_by' => 'BlogWriterAgent',
+                            'secondary_keywords' => ['automation', 'workflow'],
+                            'suggested_tags' => ['Editorial Ops', 'AI Governance'],
+                        ],
+                    ]),
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Editor::class, ['post' => 1])
+            ->set('aiReviewMode', true)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('generatedBy', 'BlogWriterAgent')
+            ->assertSet('metaJson', "{\n    \"source_content_brief_id\": 14,\n    \"source_content_topic_id\": 8,\n    \"generated_by\": \"BlogWriterAgent\",\n    \"secondary_keywords\": [\n        \"automation\",\n        \"workflow\"\n    ],\n    \"suggested_tags\": [\n        \"Editorial Ops\",\n        \"AI Governance\"\n    ]\n}");
+    }
+
     public function test_post_editor_maps_nested_api_validation_errors(): void
     {
         session($this->authenticatedSession());

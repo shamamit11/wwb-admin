@@ -58,7 +58,7 @@ class PostEditorData
             readingTimeMinutes: Arr::get($post, 'reading_time_minutes'),
             wordCount: Arr::get($post, 'word_count'),
             isFeatured: (bool) Arr::get($post, 'is_featured', false),
-            metaJson: self::jsonArray(Arr::get($post, 'meta')),
+            metaJson: self::jsonPayload(Arr::get($post, 'meta')),
             meta: is_array(Arr::get($post, 'meta')) ? Arr::get($post, 'meta') : [],
             tagIds: collect(Arr::get($post, 'tags', []))
                 ->pluck('id')
@@ -120,7 +120,7 @@ class PostEditorData
         }
     }
 
-    public static function jsonArray(mixed $value): string
+    public static function jsonPayload(mixed $value): string
     {
         if (! is_array($value) || $value === []) {
             return '';

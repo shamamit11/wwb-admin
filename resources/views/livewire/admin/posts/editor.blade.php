@@ -384,8 +384,8 @@
                     </div>
                 @endif
 
-                <x-ui.field label="Meta JSON Array" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional JSON array of strings stored in the post meta payload.">
-                    <x-ui.textarea id="post-meta-json" rows="5" wire:model.blur="metaJson" placeholder='["editorial-note","campaign:summer"]' :invalid="$errors->has('metaJson')" />
+                <x-ui.field label="Meta JSON" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional JSON object or array stored in the post meta payload. AI provenance and suggestion data are preserved here.">
+                    <x-ui.textarea id="post-meta-json" rows="5" wire:model.blur="metaJson" placeholder='{"campaign":"summer","notes":["editorial-note"]}' :invalid="$errors->has('metaJson')" />
                 </x-ui.field>
             </section>
         </div>
