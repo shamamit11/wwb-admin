@@ -14,11 +14,17 @@ class AdminNavigation
                 ],
             ],
             [
-                'title' => 'Publishing',
+                'title' => 'CMS',
                 'items' => [
                     $this->item('Homepage', 'homepage.index', 'Structured homepage curation and section management.', false, 'homepage'),
-                    $this->item('Posts', 'posts.index', 'Manage post inventory, status, and editorial actions.', false, 'posts'),
+                    $this->item('About Us', 'about-page.index', 'Singleton About Page editor backed by the dedicated service contract.', false, 'document'),
                     $this->item('Pages', 'pages.index', 'Manage static and evergreen service-backed pages.', false, 'pages'),
+                ],
+            ],
+            [
+                'title' => 'Publishing',
+                'items' => [
+                    $this->item('Posts', 'posts.index', 'Manage post inventory, status, and editorial actions.', false, 'posts'),
                     $this->item('Categories', 'categories.index', 'Table-first category structure and taxonomy operations.', false, 'categories'),
                     $this->item('Tags', 'tags.index', 'Tag taxonomy and editorial labeling.', false, 'tags'),
                     $this->item('Media Library', 'media.index', 'Uploaded assets, metadata, and usage review.', false, 'media'),

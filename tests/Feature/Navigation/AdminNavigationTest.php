@@ -25,6 +25,7 @@ class AdminNavigationTest extends TestCase
 
         foreach ([
             'homepage.index',
+            'about-page.index',
             'posts.index',
             'pages.index',
             'pages.create',
@@ -58,6 +59,7 @@ class AdminNavigationTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Overview')
+            ->assertSee('CMS')
             ->assertSee('Publishing')
             ->assertSee('Operations')
             ->assertSee('AI Content')
@@ -126,6 +128,20 @@ class AdminNavigationTest extends TestCase
                         'newsletter_section' => ['enabled' => true],
                         'seo' => [],
                         'updated_at' => '2026-06-17T10:00:00Z',
+                    ],
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && $url === $this->apiBaseUrl.'/admin/about-page') {
+                return Http::response([
+                    'data' => [
+                        'hero' => [],
+                        'mission_section' => [],
+                        'stats_section' => ['items' => []],
+                        'values_section' => ['title' => '', 'items' => []],
+                        'team_section' => ['title' => '', 'description' => '', 'primary_cta_label' => '', 'primary_cta_url' => '', 'members' => []],
+                        'seo' => [],
+                        'updated_at' => '2026-06-20T15:00:00Z',
                     ],
                 ], 200);
             }
