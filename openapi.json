@@ -94,6 +94,113 @@
         }
       }
     },
+    "/public/about": {
+      "get": {
+        "operationId": "v1.public.about",
+        "tags": [
+          "About"
+        ],
+        "responses": {
+          "200": {
+            "description": "`PublicAboutPageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PublicAboutPageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/about-page": {
+      "get": {
+        "operationId": "v1.admin.about-page.show",
+        "tags": [
+          "AboutPage"
+        ],
+        "responses": {
+          "200": {
+            "description": "`AboutPageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AboutPageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "v1.admin.about-page.update",
+        "tags": [
+          "AboutPage"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAboutPageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`AboutPageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AboutPageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
     "/auth/login": {
       "post": {
         "operationId": "v1.auth.login",
@@ -1280,6 +1387,298 @@
         }
       }
     },
+    "/public/contact": {
+      "get": {
+        "operationId": "v1.public.contact.show",
+        "tags": [
+          "Contact"
+        ],
+        "responses": {
+          "200": {
+            "description": "`PublicContactPageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PublicContactPageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/contact/submit": {
+      "post": {
+        "operationId": "v1.public.contact.submit",
+        "tags": [
+          "Contact"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitContactMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`ContactSubmissionReceiptResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContactSubmissionReceiptResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/contact-page": {
+      "get": {
+        "operationId": "v1.admin.contact-page.show",
+        "tags": [
+          "ContactPage"
+        ],
+        "responses": {
+          "200": {
+            "description": "`ContactPageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContactPageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "v1.admin.contact-page.update",
+        "tags": [
+          "ContactPage"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContactPageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`ContactPageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContactPageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admin/contact-submissions": {
+      "get": {
+        "operationId": "v1.admin.contact-submissions.index",
+        "tags": [
+          "ContactSubmission"
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `ContactSubmissionResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ContactSubmissionResource"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      }
+    },
+    "/admin/contact-submissions/{contactSubmission}": {
+      "get": {
+        "operationId": "v1.admin.contact-submissions.show",
+        "tags": [
+          "ContactSubmission"
+        ],
+        "parameters": [
+          {
+            "name": "contactSubmission",
+            "in": "path",
+            "required": true,
+            "description": "The contact submission ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`ContactSubmissionResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContactSubmissionResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "v1.admin.contact-submissions.update",
+        "tags": [
+          "ContactSubmission"
+        ],
+        "parameters": [
+          {
+            "name": "contactSubmission",
+            "in": "path",
+            "required": true,
+            "description": "The contact submission ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContactSubmissionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`ContactSubmissionResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContactSubmissionResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
     "/admin/content-briefs": {
       "get": {
         "operationId": "v1.admin.content-briefs.index",
@@ -1921,11 +2320,58 @@
         ],
         "responses": {
           "200": {
+            "description": "`ContentBriefResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContentBriefResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "202": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Content brief generation queued."
+                    },
+                    "data": {
+                      "type": "string"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "ai_job_id": {
+                          "type": "integer"
+                        },
+                        "ai_job_status": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "ai_job_id",
+                        "ai_job_status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "data",
+                    "meta"
+                  ]
                 }
               }
             }
@@ -4625,6 +5071,44 @@
         }
       }
     },
+    "/public/pages/{slug}": {
+      "get": {
+        "operationId": "v1.public.pages.show",
+        "tags": [
+          "Page"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`PublicPageResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PublicPageResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/posts": {
       "get": {
         "operationId": "v1.admin.posts.index",
@@ -6782,6 +7266,70 @@
   },
   "components": {
     "schemas": {
+      "AboutPageResource": {
+        "type": "object",
+        "properties": {
+          "hero": {
+            "type": "array",
+            "items": {}
+          },
+          "mission_section": {
+            "type": "array",
+            "items": {}
+          },
+          "stats_section": {
+            "type": "array",
+            "items": {}
+          },
+          "values_section": {
+            "type": "array",
+            "items": {}
+          },
+          "team_section": {
+            "type": "array",
+            "items": {}
+          },
+          "seo": {
+            "type": "array",
+            "items": {}
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          }
+        },
+        "required": [
+          "hero",
+          "mission_section",
+          "stats_section",
+          "values_section",
+          "team_section",
+          "seo",
+          "updated_at"
+        ],
+        "title": "AboutPageResource"
+      },
       "AdminAccessTokenResource": {
         "type": "object",
         "properties": {
@@ -7482,6 +8030,168 @@
           "password_confirmation"
         ],
         "title": "ChangeAdminPasswordRequest"
+      },
+      "ContactPageResource": {
+        "type": "object",
+        "properties": {
+          "hero": {
+            "type": "string"
+          },
+          "contact_form": {
+            "type": "string"
+          },
+          "contact_reasons": {
+            "type": "string"
+          },
+          "seo": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          }
+        },
+        "required": [
+          "hero",
+          "contact_form",
+          "contact_reasons",
+          "seo",
+          "updated_at"
+        ],
+        "title": "ContactPageResource"
+      },
+      "ContactSubmissionReceiptResource": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "submitted"
+          },
+          "message": {
+            "type": "string"
+          },
+          "submitted_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "message",
+          "submitted_at"
+        ],
+        "title": "ContactSubmissionReceiptResource"
+      },
+      "ContactSubmissionResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "admin_notes": {
+            "type": "string"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0,
+                "maxItems": 0,
+                "additionalItems": false
+              }
+            ]
+          },
+          "submitted_at": {
+            "type": "string"
+          },
+          "reviewed_at": {
+            "type": "string"
+          },
+          "reviewed_by": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "topic",
+          "message",
+          "status",
+          "admin_notes",
+          "metadata",
+          "submitted_at",
+          "reviewed_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ContactSubmissionResource"
       },
       "ContentBriefResource": {
         "type": "object",
@@ -9063,6 +9773,38 @@
         ],
         "title": "ProcessNewsletterWebhookRequest"
       },
+      "PublicAboutPageResource": {
+        "type": "object",
+        "properties": {
+          "hero": {
+            "type": "string"
+          },
+          "mission_section": {
+            "type": "string"
+          },
+          "stats_section": {
+            "type": "string"
+          },
+          "values_section": {
+            "type": "string"
+          },
+          "team_section": {
+            "type": "string"
+          },
+          "seo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hero",
+          "mission_section",
+          "stats_section",
+          "values_section",
+          "team_section",
+          "seo"
+        ],
+        "title": "PublicAboutPageResource"
+      },
       "PublicCategoryDetailResource": {
         "type": "object",
         "properties": {
@@ -9136,32 +9878,173 @@
         ],
         "title": "PublicCategorySummaryResource"
       },
-      "PublicHomeResource": {
+      "PublicContactPageResource": {
         "type": "object",
         "properties": {
-          "featured_posts": {
-            "type": "array",
-            "items": {}
+          "hero": {
+            "type": "string"
           },
-          "latest_posts": {
-            "type": "array",
-            "items": {}
+          "contact_form": {
+            "type": "string"
           },
-          "categories": {
-            "type": "array",
-            "items": {}
+          "contact_reasons": {
+            "type": "string"
           },
           "seo": {
             "type": "string"
           }
         },
         "required": [
-          "featured_posts",
-          "latest_posts",
-          "categories",
+          "hero",
+          "contact_form",
+          "contact_reasons",
+          "seo"
+        ],
+        "title": "PublicContactPageResource"
+      },
+      "PublicHomeResource": {
+        "type": "object",
+        "properties": {
+          "hero": {
+            "type": "string"
+          },
+          "featured_editorial": {
+            "type": "object",
+            "properties": {
+              "": {
+                "type": "string"
+              },
+              "posts": {
+                "type": "array",
+                "items": {}
+              }
+            },
+            "required": [
+              null,
+              "posts"
+            ]
+          },
+          "guide_section": {
+            "type": "object",
+            "properties": {
+              "": {
+                "type": "string"
+              },
+              "posts": {
+                "type": "array",
+                "items": {}
+              }
+            },
+            "required": [
+              null,
+              "posts"
+            ]
+          },
+          "topic_section": {
+            "type": "object",
+            "properties": {
+              "": {
+                "type": "string"
+              },
+              "categories": {
+                "type": "array",
+                "items": {}
+              }
+            },
+            "required": [
+              null,
+              "categories"
+            ]
+          },
+          "promo_section": {
+            "type": "string"
+          },
+          "newsletter_section": {
+            "type": "string"
+          },
+          "seo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hero",
+          "featured_editorial",
+          "guide_section",
+          "topic_section",
+          "promo_section",
+          "newsletter_section",
           "seo"
         ],
         "title": "PublicHomeResource"
+      },
+      "PublicPageResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "content_markdown": {
+            "type": "string"
+          },
+          "published_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "canonical_url": {
+            "type": "string"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0,
+                "maxItems": 0,
+                "additionalItems": false
+              }
+            ]
+          },
+          "seo": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "type",
+          "summary",
+          "content_markdown",
+          "published_at",
+          "updated_at",
+          "canonical_url",
+          "meta",
+          "seo"
+        ],
+        "title": "PublicPageResource"
       },
       "PublicPostDetailResource": {
         "type": "object",
@@ -10684,6 +11567,44 @@
         ],
         "title": "StoreTemplateRequest"
       },
+      "SubmitContactMessageRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 190
+          },
+          "topic": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "metadata": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "topic",
+          "message"
+        ],
+        "title": "SubmitContactMessageRequest"
+      },
       "SubscribeNewsletterRequest": {
         "type": "object",
         "properties": {
@@ -11059,6 +11980,251 @@
         },
         "title": "TransitionContentTopicRequest"
       },
+      "UpdateAboutPageRequest": {
+        "type": "object",
+        "properties": {
+          "hero": {
+            "type": "object",
+            "properties": {
+              "eyebrow": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "media_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "maxLength": 500
+              },
+              "media_alt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              }
+            }
+          },
+          "mission_section": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 3000
+              },
+              "quote": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 1000
+              }
+            }
+          },
+          "stats_section": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "value": {
+                      "type": "string",
+                      "maxLength": 120
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "value"
+                  ]
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "items"
+            ]
+          },
+          "values_section": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 80
+                    },
+                    "title": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 1000
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "description"
+                  ]
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "items"
+            ]
+          },
+          "team_section": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "primary_cta_label": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "primary_cta_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "maxLength": 500
+              },
+              "members": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "role": {
+                      "type": "string",
+                      "maxLength": 160
+                    },
+                    "image_url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uri",
+                      "maxLength": 500
+                    },
+                    "image_alt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 255
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "role"
+                  ]
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "members"
+            ]
+          },
+          "seo": {
+            "type": "object",
+            "properties": {
+              "meta_title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "meta_description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 320
+              }
+            }
+          }
+        },
+        "required": [
+          "hero",
+          "mission_section",
+          "stats_section",
+          "values_section",
+          "team_section",
+          "seo"
+        ],
+        "title": "UpdateAboutPageRequest"
+      },
       "UpdateAiPromptTemplateRequest": {
         "type": "object",
         "properties": {
@@ -11146,6 +12312,165 @@
           "name"
         ],
         "title": "UpdateCategoryRequest"
+      },
+      "UpdateContactPageRequest": {
+        "type": "object",
+        "properties": {
+          "hero": {
+            "type": "object",
+            "properties": {
+              "eyebrow": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              }
+            }
+          },
+          "contact_form": {
+            "type": "object",
+            "properties": {
+              "eyebrow": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "submit_label": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "success_message": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 500
+              }
+            }
+          },
+          "contact_reasons": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "description"
+                  ]
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "items"
+            ]
+          },
+          "seo": {
+            "type": "object",
+            "properties": {
+              "meta_title": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 255
+              },
+              "meta_description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 320
+              }
+            }
+          }
+        },
+        "required": [
+          "hero",
+          "contact_form",
+          "contact_reasons",
+          "seo"
+        ],
+        "title": "UpdateContactPageRequest"
+      },
+      "UpdateContactSubmissionRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "read",
+              "archived"
+            ]
+          },
+          "admin_notes": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 5000
+          },
+          "metadata": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "UpdateContactSubmissionRequest"
       },
       "UpdateContentBriefRequest": {
         "type": "object",
@@ -11424,31 +12749,6 @@
                 ],
                 "maxLength": 2000
               },
-              "mode": {
-                "type": "string",
-                "enum": [
-                  "manual",
-                  "automatic"
-                ]
-              },
-              "post_ids": {
-                "type": [
-                  "array",
-                  "null"
-                ],
-                "items": {
-                  "type": "integer"
-                }
-              },
-              "category_ids": {
-                "type": [
-                  "array",
-                  "null"
-                ],
-                "items": {
-                  "type": "integer"
-                }
-              },
               "limit": {
                 "type": [
                   "integer",
@@ -11459,9 +12759,6 @@
               }
             },
             "required": [
-              "mode",
-              "post_ids",
-              "category_ids",
               "limit"
             ]
           },
@@ -11482,31 +12779,6 @@
                 ],
                 "maxLength": 2000
               },
-              "mode": {
-                "type": "string",
-                "enum": [
-                  "manual",
-                  "automatic"
-                ]
-              },
-              "post_ids": {
-                "type": [
-                  "array",
-                  "null"
-                ],
-                "items": {
-                  "type": "integer"
-                }
-              },
-              "category_ids": {
-                "type": [
-                  "array",
-                  "null"
-                ],
-                "items": {
-                  "type": "integer"
-                }
-              },
               "limit": {
                 "type": [
                   "integer",
@@ -11517,9 +12789,6 @@
               }
             },
             "required": [
-              "mode",
-              "post_ids",
-              "category_ids",
               "limit"
             ]
           },
@@ -11539,18 +12808,8 @@
                   "null"
                 ],
                 "maxLength": 2000
-              },
-              "category_ids": {
-                "type": "array",
-                "items": {
-                  "type": "integer"
-                },
-                "minItems": 1
               }
-            },
-            "required": [
-              "category_ids"
-            ]
+            }
           },
           "promo_section": {
             "type": "object",
