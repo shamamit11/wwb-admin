@@ -34,6 +34,7 @@ class HomepageIndexTest extends TestCase
             ->assertSee('Homepage')
             ->assertSee('Save All Changes')
             ->assertSee('Featured Editorial')
+            ->assertSee('Recent Articles')
             ->assertSee('Free Digital Creator Kit')
             ->assertSee('Homepage SEO');
     }
@@ -49,8 +50,16 @@ class HomepageIndexTest extends TestCase
 
             if ($request->method() === 'PUT' && $request->url() === $this->apiBaseUrl.'/admin/homepage') {
                 $this->assertSame('Learn AI, SEO, Blogging, and Digital Growth', $request['hero']['title']);
-                $this->assertSame([14, 19], $request['featured_editorial']['post_ids']);
+                $this->assertSame(2, $request['featured_editorial']['limit']);
+                $this->assertSame(6, $request['guide_section']['limit']);
                 $this->assertSame(['AI Blog Post Checklist', 'SEO Article Structure Template'], $request['promo_section']['bullet_points']);
+                $this->assertArrayNotHasKey('mode', $request['featured_editorial']);
+                $this->assertArrayNotHasKey('post_ids', $request['featured_editorial']);
+                $this->assertArrayNotHasKey('category_ids', $request['featured_editorial']);
+                $this->assertArrayNotHasKey('mode', $request['guide_section']);
+                $this->assertArrayNotHasKey('post_ids', $request['guide_section']);
+                $this->assertArrayNotHasKey('category_ids', $request['guide_section']);
+                $this->assertArrayNotHasKey('category_ids', $request['topic_section']);
 
                 return Http::response([
                     'data' => array_replace_recursive($this->homepageResource(), $request->data(), [
@@ -64,11 +73,44 @@ class HomepageIndexTest extends TestCase
 
         Livewire::test(Index::class)
             ->set('hero.title', 'Learn AI, SEO, Blogging, and Digital Growth')
-            ->set('featured_editorial.post_ids', ['14', '19'])
+            ->set('featured_editorial.limit', '2')
+            ->set('guide_section.limit', '6')
             ->set('promo_section.bullet_points', ['AI Blog Post Checklist', 'SEO Article Structure Template'])
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('updated_at', '2026-06-17 12:30');
+    }
+
+    public function test_homepage_screen_encodes_hero_media_url_path_before_update(): void
+    {
+        session($this->authenticatedSession());
+
+        $rawMediaUrl = 'https://media.widewebblog.com/06UTC2019pm/2026/06/01KVJ+20268Q+00:00JunPM25C+2026J842026JunUTC6Q16UTC9E-66b-bpm66UTCSat, 20 Jun 2026 16:19:20 +0000.6UTCbZ';
+        $encodedMediaUrl = 'https://media.widewebblog.com/06UTC2019pm/2026/06/01KVJ%2B20268Q%2B00%3A00JunPM25C%2B2026J842026JunUTC6Q16UTC9E-66b-bpm66UTCSat%2C%2020%20Jun%202026%2016%3A19%3A20%20%2B0000.6UTCbZ';
+
+        Http::fake(function (Request $request) use ($rawMediaUrl, $encodedMediaUrl) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/homepage') {
+                return Http::response(['data' => $this->homepageResource()], 200);
+            }
+
+            if ($request->method() === 'PUT' && $request->url() === $this->apiBaseUrl.'/admin/homepage') {
+                $this->assertSame($encodedMediaUrl, $request['hero']['media_url']);
+
+                return Http::response([
+                    'data' => array_replace_recursive($this->homepageResource(), $request->data(), [
+                        'updated_at' => '2026-06-20T16:30:00Z',
+                    ]),
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Index::class)
+            ->set('hero.media_url', $rawMediaUrl)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('hero.media_url', $encodedMediaUrl);
     }
 
     public function test_homepage_screen_maps_nested_api_validation_errors(): void
@@ -108,10 +150,12 @@ class HomepageIndexTest extends TestCase
             $this->apiBaseUrl.'/admin/homepage' => Http::response([
                 'data' => array_replace_recursive($this->homepageResource(), [
                     'featured_editorial' => [
+                        'mode' => 'automatic',
                         'post_ids' => null,
                         'category_ids' => null,
                     ],
                     'guide_section' => [
+                        'mode' => 'automatic',
                         'post_ids' => null,
                         'category_ids' => null,
                     ],
@@ -133,6 +177,7 @@ class HomepageIndexTest extends TestCase
             ->assertOk()
             ->assertSee('Homepage')
             ->assertSee('Featured Editorial')
+            ->assertSee('Recent Articles')
             ->assertSee('Promo Section');
     }
 
@@ -166,22 +211,22 @@ class HomepageIndexTest extends TestCase
             'featured_editorial' => [
                 'title' => 'Featured Editorial',
                 'description' => 'Expert analysis on the evolving digital landscape.',
-                'mode' => 'manual',
-                'post_ids' => [14, 19],
+                'mode' => 'automatic',
+                'post_ids' => [],
                 'category_ids' => [],
-                'limit' => 3,
+                'limit' => 2,
             ],
             'guide_section' => [
-                'title' => 'Practical Wisdom for Builders',
-                'description' => 'Curated guides for technical creators.',
-                'mode' => 'manual',
-                'post_ids' => [31, 32, 33, 34],
+                'title' => 'Recent Articles',
+                'description' => 'Fresh analysis and practical reads from the latest published work.',
+                'mode' => 'automatic',
+                'post_ids' => [],
                 'category_ids' => [],
-                'limit' => 4,
+                'limit' => 6,
             ],
             'topic_section' => [
-                'title' => 'Browse by Topic',
-                'description' => 'Explore curated collections.',
+                'title' => 'Explore Core Topics',
+                'description' => 'Explore live category collections across the site’s active topics.',
                 'category_ids' => [1, 2, 3, 4],
             ],
             'promo_section' => [

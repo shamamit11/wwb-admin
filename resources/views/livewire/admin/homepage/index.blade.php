@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <x-admin.page-header
         title="Homepage"
-        description="Configure the hero, curated sections, promotional content, and homepage SEO through one structured editorial surface."
+        description="Configure the hero, automatic homepage sections, promotional content, and homepage SEO through one structured editorial surface."
     >
         <x-ui.button as="a" :href="config('app.url')" variant="secondary" target="_blank" rel="noreferrer">Preview Site</x-ui.button>
         <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
@@ -71,7 +71,7 @@
             <section id="homepage-featured" class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Featured Editorial</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Choose whether this section is manually curated or automatically derived from categories and limits.</p>
+                    <p class="text-sm text-[var(--color-muted)]">This section is auto-populated from featured published posts. Editors can only adjust the label, supporting copy, and item limit.</p>
                 </div>
 
                 <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_11rem]">
@@ -83,170 +83,46 @@
                             <x-ui.textarea id="homepage-featured-description" wire:model.blur="featured_editorial.description" rows="3" placeholder="Expert analysis on the evolving digital landscape." :invalid="$errors->has('featured_editorial.description')" />
                         </x-ui.field>
                     </div>
-                    <x-ui.field label="Mode" for="homepage-featured-mode" :error="$errors->first('featured_editorial.mode')">
-                        <x-ui.select id="homepage-featured-mode" wire:model.live="featured_editorial.mode" :invalid="$errors->has('featured_editorial.mode')">
-                            <option value="manual">Manual</option>
-                            <option value="automatic">Automatic</option>
-                        </x-ui.select>
+                    <x-ui.field label="Limit" for="homepage-featured-limit" :error="$errors->first('featured_editorial.limit')" hint="Controls how many featured published posts the service returns automatically.">
+                        <x-ui.input id="homepage-featured-limit" wire:model.blur="featured_editorial.limit" placeholder="3" :invalid="$errors->has('featured_editorial.limit')" />
                     </x-ui.field>
-                </div>
-
-                <div class="grid gap-5 lg:grid-cols-2">
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between gap-3">
-                            <h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Ordered Post IDs</h3>
-                            <x-ui.button type="button" variant="secondary" size="sm" wire:click="addListItem('featured_editorial', 'post_ids')">Add Post ID</x-ui.button>
-                        </div>
-                        @error('featured_editorial.post_ids')<p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>@enderror
-                        <div class="space-y-2">
-                            @forelse ($featured_editorial['post_ids'] as $index => $postId)
-                                <div wire:key="featured-post-id-{{ $index }}" class="flex items-center gap-2 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-3">
-                                    <x-ui.input wire:model.blur="featured_editorial.post_ids.{{ $index }}" placeholder="Post ID" :invalid="$errors->has('featured_editorial.post_ids.'.$index)" />
-                                    <button type="button" wire:click="moveListItem('featured_editorial', 'post_ids', {{ $index }}, 'up')" class="text-sm text-[var(--color-muted)]">↑</button>
-                                    <button type="button" wire:click="moveListItem('featured_editorial', 'post_ids', {{ $index }}, 'down')" class="text-sm text-[var(--color-muted)]">↓</button>
-                                    <button type="button" wire:click="removeListItem('featured_editorial', 'post_ids', {{ $index }})" class="text-sm text-[var(--color-danger-strong)]">Remove</button>
-                                </div>
-                                @error('featured_editorial.post_ids.'.$index)<p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>@enderror
-                            @empty
-                                <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4 text-sm text-[var(--color-muted)]">No manual post IDs added yet.</div>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <div class="space-y-5">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between gap-3">
-                                <h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Category IDs</h3>
-                                <x-ui.button type="button" variant="secondary" size="sm" wire:click="addListItem('featured_editorial', 'category_ids')">Add Category ID</x-ui.button>
-                            </div>
-                            <div class="space-y-2">
-                                @forelse ($featured_editorial['category_ids'] as $index => $categoryId)
-                                    <div wire:key="featured-category-id-{{ $index }}" class="flex items-center gap-2 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-3">
-                                        <x-ui.input wire:model.blur="featured_editorial.category_ids.{{ $index }}" placeholder="Category ID" :invalid="$errors->has('featured_editorial.category_ids.'.$index)" />
-                                        <button type="button" wire:click="moveListItem('featured_editorial', 'category_ids', {{ $index }}, 'up')" class="text-sm text-[var(--color-muted)]">↑</button>
-                                        <button type="button" wire:click="moveListItem('featured_editorial', 'category_ids', {{ $index }}, 'down')" class="text-sm text-[var(--color-muted)]">↓</button>
-                                        <button type="button" wire:click="removeListItem('featured_editorial', 'category_ids', {{ $index }})" class="text-sm text-[var(--color-danger-strong)]">Remove</button>
-                                    </div>
-                                    @error('featured_editorial.category_ids.'.$index)<p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>@enderror
-                                @empty
-                                    <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4 text-sm text-[var(--color-muted)]">No automatic category IDs added yet.</div>
-                                @endforelse
-                            </div>
-                        </div>
-
-                        <x-ui.field label="Limit" for="homepage-featured-limit" :error="$errors->first('featured_editorial.limit')" hint="Used for automatic mode.">
-                            <x-ui.input id="homepage-featured-limit" wire:model.blur="featured_editorial.limit" placeholder="3" :invalid="$errors->has('featured_editorial.limit')" />
-                        </x-ui.field>
-                    </div>
                 </div>
             </section>
 
             <section id="homepage-guides" class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
-                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Guide Section</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Configure the practical guide collection using the same manual or automatic curation model.</p>
+                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Recent Articles</h2>
+                    <p class="text-sm text-[var(--color-muted)]">This section is auto-populated from recent published posts. Editors can adjust the section copy and item limit only.</p>
                 </div>
 
                 <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_11rem]">
                     <div class="space-y-5">
                         <x-ui.field label="Section Title" for="homepage-guides-title" :error="$errors->first('guide_section.title')">
-                            <x-ui.input id="homepage-guides-title" wire:model.blur="guide_section.title" placeholder="Practical Wisdom for Builders" :invalid="$errors->has('guide_section.title')" />
+                            <x-ui.input id="homepage-guides-title" wire:model.blur="guide_section.title" placeholder="Recent Articles" :invalid="$errors->has('guide_section.title')" />
                         </x-ui.field>
                         <x-ui.field label="Description" for="homepage-guides-description" :error="$errors->first('guide_section.description')">
-                            <x-ui.textarea id="homepage-guides-description" wire:model.blur="guide_section.description" rows="3" placeholder="Curated guides for technical creators." :invalid="$errors->has('guide_section.description')" />
+                            <x-ui.textarea id="homepage-guides-description" wire:model.blur="guide_section.description" rows="3" placeholder="Fresh analysis and practical reads from the latest published work." :invalid="$errors->has('guide_section.description')" />
                         </x-ui.field>
                     </div>
-                    <x-ui.field label="Mode" for="homepage-guides-mode" :error="$errors->first('guide_section.mode')">
-                        <x-ui.select id="homepage-guides-mode" wire:model.live="guide_section.mode" :invalid="$errors->has('guide_section.mode')">
-                            <option value="manual">Manual</option>
-                            <option value="automatic">Automatic</option>
-                        </x-ui.select>
+                    <x-ui.field label="Limit" for="homepage-guides-limit" :error="$errors->first('guide_section.limit')" hint="Controls how many recent published posts the service returns automatically.">
+                        <x-ui.input id="homepage-guides-limit" wire:model.blur="guide_section.limit" placeholder="4" :invalid="$errors->has('guide_section.limit')" />
                     </x-ui.field>
-                </div>
-
-                <div class="grid gap-5 lg:grid-cols-2">
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between gap-3">
-                            <h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Ordered Post IDs</h3>
-                            <x-ui.button type="button" variant="secondary" size="sm" wire:click="addListItem('guide_section', 'post_ids')">Add Post ID</x-ui.button>
-                        </div>
-                        <div class="space-y-2">
-                            @forelse ($guide_section['post_ids'] as $index => $postId)
-                                <div wire:key="guide-post-id-{{ $index }}" class="flex items-center gap-2 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-3">
-                                    <x-ui.input wire:model.blur="guide_section.post_ids.{{ $index }}" placeholder="Post ID" :invalid="$errors->has('guide_section.post_ids.'.$index)" />
-                                    <button type="button" wire:click="moveListItem('guide_section', 'post_ids', {{ $index }}, 'up')" class="text-sm text-[var(--color-muted)]">↑</button>
-                                    <button type="button" wire:click="moveListItem('guide_section', 'post_ids', {{ $index }}, 'down')" class="text-sm text-[var(--color-muted)]">↓</button>
-                                    <button type="button" wire:click="removeListItem('guide_section', 'post_ids', {{ $index }})" class="text-sm text-[var(--color-danger-strong)]">Remove</button>
-                                </div>
-                                @error('guide_section.post_ids.'.$index)<p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>@enderror
-                            @empty
-                                <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4 text-sm text-[var(--color-muted)]">No manual guide post IDs added yet.</div>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <div class="space-y-5">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between gap-3">
-                                <h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Category IDs</h3>
-                                <x-ui.button type="button" variant="secondary" size="sm" wire:click="addListItem('guide_section', 'category_ids')">Add Category ID</x-ui.button>
-                            </div>
-                            <div class="space-y-2">
-                                @forelse ($guide_section['category_ids'] as $index => $categoryId)
-                                    <div wire:key="guide-category-id-{{ $index }}" class="flex items-center gap-2 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-3">
-                                        <x-ui.input wire:model.blur="guide_section.category_ids.{{ $index }}" placeholder="Category ID" :invalid="$errors->has('guide_section.category_ids.'.$index)" />
-                                        <button type="button" wire:click="moveListItem('guide_section', 'category_ids', {{ $index }}, 'up')" class="text-sm text-[var(--color-muted)]">↑</button>
-                                        <button type="button" wire:click="moveListItem('guide_section', 'category_ids', {{ $index }}, 'down')" class="text-sm text-[var(--color-muted)]">↓</button>
-                                        <button type="button" wire:click="removeListItem('guide_section', 'category_ids', {{ $index }})" class="text-sm text-[var(--color-danger-strong)]">Remove</button>
-                                    </div>
-                                    @error('guide_section.category_ids.'.$index)<p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>@enderror
-                                @empty
-                                    <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4 text-sm text-[var(--color-muted)]">No automatic guide category IDs added yet.</div>
-                                @endforelse
-                            </div>
-                        </div>
-
-                        <x-ui.field label="Limit" for="homepage-guides-limit" :error="$errors->first('guide_section.limit')" hint="Used for automatic mode.">
-                            <x-ui.input id="homepage-guides-limit" wire:model.blur="guide_section.limit" placeholder="4" :invalid="$errors->has('guide_section.limit')" />
-                        </x-ui.field>
-                    </div>
                 </div>
             </section>
 
             <section id="homepage-topics" class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
-                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Browse by Topic</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Maintain the ordered category IDs used by the topic grid.</p>
+                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Explore Core Topics</h2>
+                    <p class="text-sm text-[var(--color-muted)]">This section is auto-populated from all active categories. Editors can update only the section label and supporting copy.</p>
                 </div>
 
                 <x-ui.field label="Section Title" for="homepage-topics-title" :error="$errors->first('topic_section.title')">
-                    <x-ui.input id="homepage-topics-title" wire:model.blur="topic_section.title" placeholder="Browse by Topic" :invalid="$errors->has('topic_section.title')" />
+                    <x-ui.input id="homepage-topics-title" wire:model.blur="topic_section.title" placeholder="Explore Core Topics" :invalid="$errors->has('topic_section.title')" />
                 </x-ui.field>
 
                 <x-ui.field label="Description" for="homepage-topics-description" :error="$errors->first('topic_section.description')">
-                    <x-ui.textarea id="homepage-topics-description" wire:model.blur="topic_section.description" rows="3" placeholder="Explore curated collections of technical and strategic resources." :invalid="$errors->has('topic_section.description')" />
+                    <x-ui.textarea id="homepage-topics-description" wire:model.blur="topic_section.description" rows="3" placeholder="Explore live category collections across the site’s active topics." :invalid="$errors->has('topic_section.description')" />
                 </x-ui.field>
-
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between gap-3">
-                        <h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Ordered Category IDs</h3>
-                        <x-ui.button type="button" variant="secondary" size="sm" wire:click="addListItem('topic_section', 'category_ids')">Add Category ID</x-ui.button>
-                    </div>
-                    @error('topic_section.category_ids')<p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>@enderror
-                    <div class="space-y-2">
-                        @forelse ($topic_section['category_ids'] as $index => $categoryId)
-                            <div wire:key="topic-category-id-{{ $index }}" class="flex items-center gap-2 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-3">
-                                <x-ui.input wire:model.blur="topic_section.category_ids.{{ $index }}" placeholder="Category ID" :invalid="$errors->has('topic_section.category_ids.'.$index)" />
-                                <button type="button" wire:click="moveListItem('topic_section', 'category_ids', {{ $index }}, 'up')" class="text-sm text-[var(--color-muted)]">↑</button>
-                                <button type="button" wire:click="moveListItem('topic_section', 'category_ids', {{ $index }}, 'down')" class="text-sm text-[var(--color-muted)]">↓</button>
-                                <button type="button" wire:click="removeListItem('topic_section', 'category_ids', {{ $index }})" class="text-sm text-[var(--color-danger-strong)]">Remove</button>
-                            </div>
-                            @error('topic_section.category_ids.'.$index)<p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>@enderror
-                        @empty
-                            <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4 text-sm text-[var(--color-muted)]">Add at least one category ID for the topic grid.</div>
-                        @endforelse
-                    </div>
-                </div>
             </section>
 
             <section id="homepage-promo" class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
@@ -372,7 +248,7 @@
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Homepage Summary</h2>
-                    <p class="text-sm text-[var(--color-muted)]">A quick overview of the current section state and curation mode.</p>
+                    <p class="text-sm text-[var(--color-muted)]">A quick overview of the current section state and automatic content sources.</p>
                 </div>
 
                 <div class="space-y-3">
@@ -388,7 +264,7 @@
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Revision Context</h2>
-                    <p class="text-sm text-[var(--color-muted)]">The homepage is a singleton editorial resource. Save applies the full structured payload.</p>
+                    <p class="text-sm text-[var(--color-muted)]">The homepage is a singleton editorial resource. Save applies the full structured payload while featured posts, recent articles, and core topics are populated automatically by the service.</p>
                 </div>
 
                 <div class="space-y-3">
@@ -411,8 +287,8 @@
                 <div class="space-y-2">
                     <a href="#homepage-hero" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Hero</a>
                     <a href="#homepage-featured" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Featured Editorial</a>
-                    <a href="#homepage-guides" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Guide Section</a>
-                    <a href="#homepage-topics" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Browse by Topic</a>
+                    <a href="#homepage-guides" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Recent Articles</a>
+                    <a href="#homepage-topics" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Explore Core Topics</a>
                     <a href="#homepage-promo" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Promo Block</a>
                     <a href="#homepage-newsletter" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Newsletter</a>
                     <a href="#homepage-seo" class="block rounded-[var(--radius-button)] px-3 py-2 text-sm text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)]">Homepage SEO</a>

@@ -59,26 +59,14 @@ class Index extends Component
 
             'featured_editorial.title' => ['nullable', 'string', 'max:255'],
             'featured_editorial.description' => ['nullable', 'string', 'max:2000'],
-            'featured_editorial.mode' => ['required', 'in:manual,automatic'],
-            'featured_editorial.post_ids' => ['nullable', 'array'],
-            'featured_editorial.post_ids.*' => ['integer'],
-            'featured_editorial.category_ids' => ['nullable', 'array'],
-            'featured_editorial.category_ids.*' => ['integer'],
-            'featured_editorial.limit' => ['nullable', 'integer', 'min:1', 'max:24'],
+            'featured_editorial.limit' => ['required', 'integer', 'min:1', 'max:24'],
 
             'guide_section.title' => ['nullable', 'string', 'max:255'],
             'guide_section.description' => ['nullable', 'string', 'max:2000'],
-            'guide_section.mode' => ['required', 'in:manual,automatic'],
-            'guide_section.post_ids' => ['nullable', 'array'],
-            'guide_section.post_ids.*' => ['integer'],
-            'guide_section.category_ids' => ['nullable', 'array'],
-            'guide_section.category_ids.*' => ['integer'],
-            'guide_section.limit' => ['nullable', 'integer', 'min:1', 'max:24'],
+            'guide_section.limit' => ['required', 'integer', 'min:1', 'max:24'],
 
             'topic_section.title' => ['nullable', 'string', 'max:255'],
             'topic_section.description' => ['nullable', 'string', 'max:2000'],
-            'topic_section.category_ids' => ['required', 'array', 'min:1'],
-            'topic_section.category_ids.*' => ['integer'],
 
             'promo_section.enabled' => ['required', 'boolean'],
             'promo_section.eyebrow' => ['nullable', 'string', 'max:120'],
@@ -262,8 +250,8 @@ class Index extends Component
     protected function fillFromResource(array $data): void
     {
         $this->hero = array_replace($this->defaultHero(), $this->ensureMap(Arr::get($data, 'hero')));
-        $this->featured_editorial = array_replace($this->defaultCuratedSection(3), $this->ensureMap(Arr::get($data, 'featured_editorial')));
-        $this->guide_section = array_replace($this->defaultCuratedSection(4), $this->ensureMap(Arr::get($data, 'guide_section')));
+        $this->featured_editorial = array_replace($this->defaultAutomaticSection(3), $this->ensureMap(Arr::get($data, 'featured_editorial')));
+        $this->guide_section = array_replace($this->defaultAutomaticSection(4), $this->ensureMap(Arr::get($data, 'guide_section')));
         $this->topic_section = array_replace($this->defaultTopicSection(), $this->ensureMap(Arr::get($data, 'topic_section')));
         $this->promo_section = array_replace($this->defaultPromoSection(), $this->ensureMap(Arr::get($data, 'promo_section')));
         $this->newsletter_section = array_replace($this->defaultNewsletterSection(), $this->ensureMap(Arr::get($data, 'newsletter_section')));
@@ -274,8 +262,8 @@ class Index extends Component
         $this->hero['primary_cta_url'] = (string) ($this->hero['primary_cta_url'] ?? '');
         $this->hero['secondary_cta_url'] = (string) ($this->hero['secondary_cta_url'] ?? '');
         $this->hero['media_url'] = (string) ($this->hero['media_url'] ?? '');
-        $this->featured_editorial = $this->normalizeCuratedSection($this->featured_editorial, 3);
-        $this->guide_section = $this->normalizeCuratedSection($this->guide_section, 4);
+        $this->featured_editorial = $this->normalizeAutomaticSection($this->featured_editorial, 3);
+        $this->guide_section = $this->normalizeAutomaticSection($this->guide_section, 4);
         $this->topic_section = $this->normalizeTopicSection($this->topic_section);
         $this->promo_section = $this->normalizePromoSection($this->promo_section);
         $this->newsletter_section = $this->normalizeNewsletterSection($this->newsletter_section);
@@ -297,14 +285,11 @@ class Index extends Component
         ];
     }
 
-    protected function defaultCuratedSection(int $limit): array
+    protected function defaultAutomaticSection(int $limit): array
     {
         return [
             'title' => '',
             'description' => '',
-            'mode' => 'manual',
-            'post_ids' => [],
-            'category_ids' => [],
             'limit' => $limit,
         ];
     }
@@ -314,7 +299,6 @@ class Index extends Component
         return [
             'title' => '',
             'description' => '',
-            'category_ids' => [],
         ];
     }
 
@@ -351,14 +335,11 @@ class Index extends Component
         ];
     }
 
-    protected function normalizeCuratedSection(array $section, int $defaultLimit): array
+    protected function normalizeAutomaticSection(array $section, int $defaultLimit): array
     {
         return [
             'title' => (string) ($section['title'] ?? ''),
             'description' => (string) ($section['description'] ?? ''),
-            'mode' => in_array(($section['mode'] ?? 'manual'), ['manual', 'automatic'], true) ? $section['mode'] : 'manual',
-            'post_ids' => is_array($section['post_ids'] ?? null) ? array_values($section['post_ids']) : [],
-            'category_ids' => is_array($section['category_ids'] ?? null) ? array_values($section['category_ids']) : [],
             'limit' => is_numeric($section['limit'] ?? null) ? (int) $section['limit'] : $defaultLimit,
         ];
     }
@@ -368,7 +349,6 @@ class Index extends Component
         return [
             'title' => (string) ($section['title'] ?? ''),
             'description' => (string) ($section['description'] ?? ''),
-            'category_ids' => is_array($section['category_ids'] ?? null) ? array_values($section['category_ids']) : [],
         ];
     }
 
@@ -408,39 +388,30 @@ class Index extends Component
 
     protected function sanitizeSectionState(): void
     {
-        $this->featured_editorial['post_ids'] = $this->sanitizeIntegerList(Arr::get($this->featured_editorial, 'post_ids', []));
-        $this->featured_editorial['category_ids'] = $this->sanitizeIntegerList(Arr::get($this->featured_editorial, 'category_ids', []));
-        $this->guide_section['post_ids'] = $this->sanitizeIntegerList(Arr::get($this->guide_section, 'post_ids', []));
-        $this->guide_section['category_ids'] = $this->sanitizeIntegerList(Arr::get($this->guide_section, 'category_ids', []));
-        $this->topic_section['category_ids'] = $this->sanitizeIntegerList(Arr::get($this->topic_section, 'category_ids', []));
         $this->promo_section['bullet_points'] = $this->sanitizeStringList(Arr::get($this->promo_section, 'bullet_points', []));
         $this->promo_section['stats'] = $this->sanitizeStats(Arr::get($this->promo_section, 'stats', []));
     }
 
     protected function payload(array $validated): array
     {
+        $hero = $this->nullableStrings($validated['hero']);
+        $hero['media_url'] = $this->normalizeAbsoluteHttpUrl($hero['media_url'] ?? null);
+
         return [
-            'hero' => $this->nullableStrings($validated['hero']),
+            'hero' => $hero,
             'featured_editorial' => [
                 'title' => $this->nullableString(Arr::get($validated, 'featured_editorial.title')),
                 'description' => $this->nullableString(Arr::get($validated, 'featured_editorial.description')),
-                'mode' => (string) Arr::get($validated, 'featured_editorial.mode', 'manual'),
-                'post_ids' => Arr::get($validated, 'featured_editorial.post_ids'),
-                'category_ids' => Arr::get($validated, 'featured_editorial.category_ids'),
-                'limit' => Arr::get($validated, 'featured_editorial.limit'),
+                'limit' => (int) Arr::get($validated, 'featured_editorial.limit', 3),
             ],
             'guide_section' => [
                 'title' => $this->nullableString(Arr::get($validated, 'guide_section.title')),
                 'description' => $this->nullableString(Arr::get($validated, 'guide_section.description')),
-                'mode' => (string) Arr::get($validated, 'guide_section.mode', 'manual'),
-                'post_ids' => Arr::get($validated, 'guide_section.post_ids'),
-                'category_ids' => Arr::get($validated, 'guide_section.category_ids'),
-                'limit' => Arr::get($validated, 'guide_section.limit'),
+                'limit' => (int) Arr::get($validated, 'guide_section.limit', 4),
             ],
             'topic_section' => [
                 'title' => $this->nullableString(Arr::get($validated, 'topic_section.title')),
                 'description' => $this->nullableString(Arr::get($validated, 'topic_section.description')),
-                'category_ids' => Arr::get($validated, 'topic_section.category_ids', []),
             ],
             'promo_section' => [
                 'enabled' => (bool) Arr::get($validated, 'promo_section.enabled', false),
@@ -479,13 +450,37 @@ class Index extends Component
         return $trimmed === '' ? null : $trimmed;
     }
 
-    protected function sanitizeIntegerList(array $items): array
+    protected function normalizeAbsoluteHttpUrl(mixed $value): ?string
     {
-        return collect($items)
-            ->filter(fn (mixed $item): bool => $item !== null && $item !== '')
-            ->map(fn (mixed $item): int => (int) $item)
-            ->values()
-            ->all();
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        if ($trimmed === '' || preg_match('/^https?:\/\//i', $trimmed) !== 1) {
+            return $trimmed === '' ? null : $trimmed;
+        }
+
+        if (! preg_match('~^(https?://)([^/?#]+)([^?#]*)(\?[^#]*)?(#.*)?$~i', $trimmed, $matches)) {
+            return $trimmed;
+        }
+
+        $path = $this->encodeUrlPath($matches[3] ?? '');
+
+        return ($matches[1] ?? '')
+            .($matches[2] ?? '')
+            .$path
+            .($matches[4] ?? '')
+            .($matches[5] ?? '');
+    }
+
+    protected function encodeUrlPath(string $path): string
+    {
+        return implode('/', array_map(
+            fn (string $segment): string => rawurlencode(rawurldecode($segment)),
+            explode('/', $path)
+        ));
     }
 
     protected function sanitizeStringList(array $items): array
@@ -515,9 +510,9 @@ class Index extends Component
     {
         return [
             ['label' => 'Hero', 'detail' => $this->hero['title'] ?: 'No hero title yet'],
-            ['label' => 'Featured Editorial', 'detail' => ucfirst($this->featured_editorial['mode']).' mode · '.count($this->featured_editorial['post_ids']).' post IDs'],
-            ['label' => 'Guide Section', 'detail' => ucfirst($this->guide_section['mode']).' mode · '.count($this->guide_section['post_ids']).' post IDs'],
-            ['label' => 'Browse by Topic', 'detail' => count($this->topic_section['category_ids']).' category IDs'],
+            ['label' => 'Featured Editorial', 'detail' => 'Automatic from featured published posts · '.$this->featured_editorial['limit'].' item limit'],
+            ['label' => 'Recent Articles', 'detail' => 'Automatic from recent published posts · '.$this->guide_section['limit'].' item limit'],
+            ['label' => 'Explore Core Topics', 'detail' => 'Automatic from all active categories'],
             ['label' => 'Promo Block', 'detail' => ($this->promo_section['enabled'] ? 'Enabled' : 'Disabled').' · '.count($this->promo_section['bullet_points']).' bullets'],
             ['label' => 'Newsletter', 'detail' => $this->newsletter_section['enabled'] ? 'Enabled' : 'Disabled'],
             ['label' => 'Homepage SEO', 'detail' => $this->seo['meta_title'] ?: 'No meta title yet'],
@@ -527,11 +522,6 @@ class Index extends Component
     protected function allowsListField(string $section, string $field): bool
     {
         return in_array("{$section}.{$field}", [
-            'featured_editorial.post_ids',
-            'featured_editorial.category_ids',
-            'guide_section.post_ids',
-            'guide_section.category_ids',
-            'topic_section.category_ids',
             'promo_section.bullet_points',
         ], true);
     }

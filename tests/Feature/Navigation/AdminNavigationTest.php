@@ -119,8 +119,8 @@ class AdminNavigationTest extends TestCase
                 return Http::response([
                     'data' => [
                         'hero' => [],
-                        'featured_editorial' => ['mode' => 'manual', 'post_ids' => [], 'category_ids' => [], 'limit' => 3],
-                        'guide_section' => ['mode' => 'manual', 'post_ids' => [], 'category_ids' => [], 'limit' => 4],
+                        'featured_editorial' => ['mode' => 'automatic', 'post_ids' => [], 'category_ids' => [], 'limit' => 3],
+                        'guide_section' => ['mode' => 'automatic', 'post_ids' => [], 'category_ids' => [], 'limit' => 4],
                         'topic_section' => ['category_ids' => [1]],
                         'promo_section' => ['enabled' => true, 'bullet_points' => ['One'], 'stats' => [['label' => 'L', 'value' => 'V']]],
                         'newsletter_section' => ['enabled' => true],
