@@ -38,6 +38,7 @@ class AdminNavigation
                 'items' => [
                     $this->item('SEO', 'seo.index', 'Metadata, score, schema, sitemap, and feed visibility.', false, 'seo'),
                     $this->item('Contact Submissions', 'contact-submissions.index', 'Review inbound contact form messages, update status, and capture internal notes.', false, 'queue'),
+                    $this->item('Site Settings', 'site-settings.index', 'Singleton site settings editor for footer-wide brand, social, and legal footer links.', false, 'settings'),
                     $this->item('Settings', 'settings.index', 'Scoped operational settings and placeholders.', false, 'settings'),
                 ],
             ],

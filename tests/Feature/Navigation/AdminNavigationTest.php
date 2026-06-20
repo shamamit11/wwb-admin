@@ -38,6 +38,7 @@ class AdminNavigationTest extends TestCase
             'contact-submissions.index',
             'contact-submissions.show',
             'seo.index',
+            'site-settings.index',
             'settings.index',
             'password.index',
             'topic-queue.index',
@@ -71,6 +72,7 @@ class AdminNavigationTest extends TestCase
             ->assertSee('Operations')
             ->assertSee('Contact Page')
             ->assertSee('Contact Submissions')
+            ->assertSee('Site Settings')
             ->assertSee('AI Content')
             ->assertSee('href="'.route('categories.index').'"', false)
             ->assertSee('bg-[var(--color-accent-soft)]', false);
@@ -206,6 +208,21 @@ class AdminNavigationTest extends TestCase
                         'reviewed_by' => null,
                         'created_at' => '2026-06-20T10:00:00Z',
                         'updated_at' => '2026-06-20T10:00:00Z',
+                    ],
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && $url === $this->apiBaseUrl.'/admin/site-settings') {
+                return Http::response([
+                    'data' => [
+                        'footer' => [
+                            'brand_name' => 'Wide Web Blog',
+                            'description' => 'Footer description',
+                            'social_links' => [['label' => 'Share', 'url' => 'https://widewebblog.test/share', 'icon' => 'share']],
+                            'legal_links' => [['label' => 'Privacy Policy', 'slug' => 'privacy-policy', 'url' => null]],
+                        ],
+                        'updated_at' => '2026-06-20T17:00:00Z',
+                        'updated_by' => ['id' => 1, 'name' => 'Admin User', 'email' => 'admin@example.com'],
                     ],
                 ], 200);
             }

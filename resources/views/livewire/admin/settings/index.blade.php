@@ -1,15 +1,13 @@
 <div class="space-y-6">
     <x-admin.page-header
         title="Settings"
-        description="Review safe operational configuration summaries without inventing unsupported service-backed settings flows."
+        description="Review safe operational configuration summaries and jump into the dedicated singleton editor for service-backed site settings."
     >
-        <x-admin.callout title="Read-only" class="max-w-md">
-            This screen is read-only until broader settings endpoints exist in the service contract.
-        </x-admin.callout>
+        <x-ui.button as="a" :href="route('site-settings.index')" variant="secondary">Open Site Settings</x-ui.button>
     </x-admin.page-header>
 
     <x-admin.callout tone="warning">
-        No service-backed settings endpoint exists yet for broad admin configuration. Tabs below only expose safe summaries that are already backed by local config or existing operational modules.
+        The only writable service-backed settings flow currently available here is the dedicated Site Settings footer editor. Tabs below remain summary-only until broader settings endpoints exist.
     </x-admin.callout>
 
     <x-ui.tabs>
@@ -46,13 +44,16 @@
             <div class="space-y-6">
                 <x-ui.tabs-panel>
                     <div class="space-y-2">
-                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Editable Scope</h2>
-                        <p class="text-sm text-[var(--color-muted)]">General settings are not writable here in MVP. This section exists to make the boundary explicit rather than imply missing controls.</p>
+                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Writable Settings Surface</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Footer-wide brand, social link, and legal link management now lives in the dedicated Site Settings singleton editor.</p>
+                        <div class="pt-2">
+                            <x-ui.button as="a" :href="route('site-settings.index')">Open Footer Settings</x-ui.button>
+                        </div>
                     </div>
                 </x-ui.tabs-panel>
 
                 <x-admin.callout title="Current Constraint" tone="warning">
-                    Branding, locale defaults, maintenance controls, and other application-wide settings should stay config-managed until backend support defines a proper service-backed write contract.
+                    Broader application settings such as locale defaults, maintenance controls, and secrets should stay config-managed until backend support defines explicit write contracts.
                 </x-admin.callout>
             </div>
         </div>

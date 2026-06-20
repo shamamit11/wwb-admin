@@ -25,6 +25,7 @@ use App\Livewire\Admin\Posts\Editor as PostEditor;
 use App\Livewire\Admin\Posts\Index as PostIndex;
 use App\Livewire\Admin\Seo\Index as SeoIndex;
 use App\Livewire\Admin\Settings\Index as SettingsIndex;
+use App\Livewire\Admin\SiteSettings\Index as SiteSettingsIndex;
 use App\Livewire\Admin\Tags\Index as TagIndex;
 use App\Livewire\Admin\Templates\Index as TemplateIndex;
 use App\Livewire\Admin\TopicQueue\Index as TopicQueueIndex;
@@ -78,6 +79,8 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/knowledge-base/{knowledgeBaseEntry}/edit', KnowledgeBaseEditor::class)->name('knowledge-base.edit');
 
     Route::get('/seo', SeoIndex::class)->name('seo.index');
+
+    Route::get('/settings/site', SiteSettingsIndex::class)->name('site-settings.index');
 
     Route::get('/settings', SettingsIndex::class)->name('settings.index');
 

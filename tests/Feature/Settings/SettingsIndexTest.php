@@ -14,13 +14,14 @@ class SettingsIndexTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Settings')
-            ->assertSee('This screen is read-only until broader settings endpoints exist in the service contract.')
+            ->assertSee('Open Site Settings')
             ->assertSee('General')
             ->assertSee('Publishing')
             ->assertSee('Storage')
             ->assertSee('AI')
             ->assertSee('Integrations')
-            ->assertSee('No service-backed settings endpoint exists yet for broad admin configuration.')
+            ->assertSee('The only writable service-backed settings flow currently available here is the dedicated Site Settings footer editor.')
+            ->assertSee('Footer-wide brand, social link, and legal link management now lives in the dedicated Site Settings singleton editor.')
             ->assertDontSee('Screen scaffolded');
     }
 
