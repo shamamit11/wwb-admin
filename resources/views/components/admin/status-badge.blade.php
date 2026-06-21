@@ -25,6 +25,11 @@
         'reviewed' => ['label' => 'Reviewed', 'tone' => 'default'],
         'failed' => ['label' => 'Failed', 'tone' => 'danger'],
         'review_needed' => ['label' => 'Review Needed', 'tone' => 'warning'],
+        'discovered' => ['label' => 'Discovered', 'tone' => 'warning'],
+        'screened' => ['label' => 'Screened', 'tone' => 'default'],
+        'extracted' => ['label' => 'Extracted', 'tone' => 'success'],
+        'routed' => ['label' => 'Routed', 'tone' => 'success'],
+        'ignored' => ['label' => 'Ignored', 'tone' => 'muted'],
     ];
 
     $resolved = $map[$normalized] ?? ['label' => str($status)->headline(), 'tone' => 'default'];

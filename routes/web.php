@@ -18,6 +18,8 @@ use App\Livewire\Admin\Homepage\Index as HomepageIndex;
 use App\Livewire\Admin\KnowledgeBase\Editor as KnowledgeBaseEditor;
 use App\Livewire\Admin\KnowledgeBase\Index as KnowledgeBaseIndex;
 use App\Livewire\Admin\Media\Index as MediaIndex;
+use App\Livewire\Admin\News\Index as NewsIndex;
+use App\Livewire\Admin\News\Show as NewsShow;
 use App\Livewire\Admin\Pages\Editor as PageEditor;
 use App\Livewire\Admin\Pages\Index as PageIndex;
 use App\Livewire\Admin\Posts\Editor as PostEditor;
@@ -74,6 +76,10 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/knowledge-base/create', KnowledgeBaseEditor::class)->name('knowledge-base.create');
 
     Route::get('/knowledge-base/{knowledgeBaseEntry}/edit', KnowledgeBaseEditor::class)->name('knowledge-base.edit');
+
+    Route::get('/news', NewsIndex::class)->name('news.index');
+
+    Route::get('/news/{news}', NewsShow::class)->name('news.show');
 
     Route::get('/seo', SeoIndex::class)->name('seo.index');
 
