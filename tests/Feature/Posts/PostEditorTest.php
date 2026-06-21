@@ -35,7 +35,53 @@ class PostEditorTest extends TestCase
             ->assertOk()
             ->assertSee('Create Post')
             ->assertSee('Core Content')
-            ->assertSeeText('Taxonomy & Media');
+            ->assertSeeText('Taxonomy & Media')
+            ->assertSeeText('Content Blocks')
+            ->assertSee('Expand All')
+            ->assertSee('Collapse All')
+            ->assertSeeText('Editor Actions')
+            ->assertSeeText('Post Outline')
+            ->assertSeeText('Meta JSON');
+    }
+
+    public function test_editor_block_collapse_state_can_be_managed_without_affecting_block_data(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake([
+            $this->apiBaseUrl.'/admin/categories' => Http::response(['data' => [$this->categoryResource()]], 200),
+            $this->apiBaseUrl.'/admin/tags' => Http::response(['data' => [$this->tagResource()]], 200),
+            $this->apiBaseUrl.'/admin/templates' => Http::response(['data' => [$this->templateResource()]], 200),
+            $this->apiBaseUrl.'/admin/media*' => Http::response(['data' => [$this->mediaResource()]], 200),
+        ]);
+
+        $component = Livewire::test(Editor::class);
+
+        $initialBlocks = $component->get('blocks');
+        $firstBlockKey = $initialBlocks[0]['key'];
+
+        $this->assertSame([$firstBlockKey], $component->get('expandedBlockKeys'));
+
+        $component->call('addBlock');
+
+        $blocksAfterAdd = $component->get('blocks');
+        $secondBlockKey = $blocksAfterAdd[1]['key'];
+
+        $this->assertCount(2, $blocksAfterAdd);
+        $this->assertSame([$secondBlockKey], $component->get('expandedBlockKeys'));
+
+        $component->call('expandAllBlocks');
+
+        $this->assertSame([$firstBlockKey, $secondBlockKey], $component->get('expandedBlockKeys'));
+
+        $component->call('collapseAllBlocks');
+        $this->assertSame([], $component->get('expandedBlockKeys'));
+
+        $component->call('toggleBlock', $firstBlockKey);
+        $this->assertSame([$firstBlockKey], $component->get('expandedBlockKeys'));
+
+        $component->set('blocks.0.contentText', "Lead paragraph\nSecond paragraph");
+        $this->assertSame("Lead paragraph\nSecond paragraph", $component->get('blocks')[0]['contentText']);
     }
 
     public function test_post_can_be_created_from_editor_and_redirects_to_edit_route(): void

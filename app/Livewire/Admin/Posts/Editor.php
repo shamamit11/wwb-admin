@@ -114,6 +114,8 @@ class Editor extends Component
 
     public array $blocks = [];
 
+    public array $expandedBlockKeys = [];
+
     public string $metaTitle = '';
 
     public string $metaDescription = '';
@@ -155,6 +157,12 @@ class Editor extends Component
     public ?string $seoScoreLoadError = null;
 
     public ?string $seoSchemaLoadError = null;
+
+    public bool $seoAdvancedExpanded = false;
+
+    public bool $seoDiagnosticsExpanded = false;
+
+    public bool $metaJsonExpanded = false;
 
     public bool $mediaPickerOpen = false;
 
@@ -349,8 +357,10 @@ class Editor extends Component
 
     public function addBlock(): void
     {
-        $this->blocks[] = PostBlockData::blank(count($this->blocks) + 1)->toEditorState();
+        $block = PostBlockData::blank(count($this->blocks) + 1)->toEditorState();
+        $this->blocks[] = $block;
         $this->syncBlockOrder();
+        $this->expandedBlockKeys = [(string) $block['key']];
     }
 
     public function removeBlock(int $index): void
@@ -367,6 +377,7 @@ class Editor extends Component
         }
 
         $this->syncBlockOrder();
+        $this->syncExpandedBlockKeys($this->expandedBlockKeys === []);
     }
 
     public function moveBlockUp(int $index): void
@@ -377,6 +388,7 @@ class Editor extends Component
 
         [$this->blocks[$index - 1], $this->blocks[$index]] = [$this->blocks[$index], $this->blocks[$index - 1]];
         $this->syncBlockOrder();
+        $this->syncExpandedBlockKeys($this->expandedBlockKeys === []);
     }
 
     public function moveBlockDown(int $index): void
@@ -387,6 +399,69 @@ class Editor extends Component
 
         [$this->blocks[$index], $this->blocks[$index + 1]] = [$this->blocks[$index + 1], $this->blocks[$index]];
         $this->syncBlockOrder();
+        $this->syncExpandedBlockKeys($this->expandedBlockKeys === []);
+    }
+
+    public function expandBlock(string $blockKey): void
+    {
+        if (! $this->hasBlockKey($blockKey)) {
+            return;
+        }
+
+        if (! in_array($blockKey, $this->expandedBlockKeys, true)) {
+            $this->expandedBlockKeys[] = $blockKey;
+        }
+
+        $this->syncExpandedBlockKeys();
+    }
+
+    public function collapseBlock(string $blockKey): void
+    {
+        $this->expandedBlockKeys = array_values(array_filter(
+            $this->expandedBlockKeys,
+            fn (string $key): bool => $key !== $blockKey,
+        ));
+    }
+
+    public function toggleBlock(string $blockKey): void
+    {
+        if (in_array($blockKey, $this->expandedBlockKeys, true)) {
+            $this->collapseBlock($blockKey);
+
+            return;
+        }
+
+        $this->expandBlock($blockKey);
+    }
+
+    public function expandAllBlocks(): void
+    {
+        $this->expandedBlockKeys = collect($this->blocks)
+            ->pluck('key')
+            ->map(fn (mixed $key): string => (string) $key)
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    public function collapseAllBlocks(): void
+    {
+        $this->expandedBlockKeys = [];
+    }
+
+    public function toggleSeoAdvanced(): void
+    {
+        $this->seoAdvancedExpanded = ! $this->seoAdvancedExpanded;
+    }
+
+    public function toggleSeoDiagnostics(): void
+    {
+        $this->seoDiagnosticsExpanded = ! $this->seoDiagnosticsExpanded;
+    }
+
+    public function toggleMetaJson(): void
+    {
+        $this->metaJsonExpanded = ! $this->metaJsonExpanded;
     }
 
     public function insertBlockSnippet(int $index, string $snippet): void
@@ -723,6 +798,7 @@ class Editor extends Component
             'blockUi' => collect($this->blocks)
                 ->map(fn (array $block): array => $this->blockUi($block))
                 ->all(),
+            'expandedBlockLookup' => array_fill_keys($this->expandedBlockKeys, true),
             'actionConfig' => $this->actionConfig(),
             'selectedFeaturedMedia' => $this->selectedFeaturedMedia(),
             'visibleMediaOptions' => $this->visibleMediaOptions(),
@@ -921,6 +997,7 @@ class Editor extends Component
         $this->tagIds = $data->tagIds;
         $this->blocks = $data->blocks;
         $this->canonicalUrl = $data->canonicalUrl ?? '';
+        $this->syncExpandedBlockKeys();
     }
 
     protected function fillFromSeoMetadata(array $seo): void
@@ -1366,6 +1443,30 @@ class Editor extends Component
             ->all();
     }
 
+    protected function syncExpandedBlockKeys(bool $allowEmpty = false): void
+    {
+        $availableKeys = collect($this->blocks)
+            ->pluck('key')
+            ->map(fn (mixed $key): string => (string) $key)
+            ->filter()
+            ->values()
+            ->all();
+
+        $expandedKeys = array_values(array_intersect($this->expandedBlockKeys, $availableKeys));
+
+        if (! $allowEmpty && $expandedKeys === [] && $availableKeys !== []) {
+            $expandedKeys = [$availableKeys[0]];
+        }
+
+        $this->expandedBlockKeys = array_values(array_unique($expandedKeys));
+    }
+
+    protected function hasBlockKey(string $blockKey): bool
+    {
+        return collect($this->blocks)
+            ->contains(fn (array $block): bool => (string) ($block['key'] ?? '') === $blockKey);
+    }
+
     protected function selectedFeaturedMedia(): ?array
     {
         if (! filled($this->featuredMediaId)) {
@@ -1397,8 +1498,12 @@ class Editor extends Component
     {
         $blockType = (string) ($block['blockType'] ?? 'paragraph');
         $sourceTemplateBlockId = (string) ($block['sourceTemplateBlockId'] ?? '');
+        $contentText = (string) ($block['contentText'] ?? '');
 
         return [
+            'label' => str($blockType)->headline()->value(),
+            'preview' => $this->blockPreview($contentText, $blockType),
+            'contentLineCount' => $this->blockContentLineCount($contentText),
             'contentLabel' => $this->blockContentLabel($blockType),
             'contentHint' => $this->blockContentHint($blockType),
             'placeholder' => $this->blockPlaceholder($blockType),
@@ -1409,6 +1514,35 @@ class Editor extends Component
                 ? 'This block keeps its linkage to the template block it was seeded from.'
                 : null,
         ];
+    }
+
+    protected function blockPreview(string $contentText, string $blockType): string
+    {
+        $content = trim($contentText);
+
+        if ($content === '') {
+            return match ($blockType) {
+                'image' => 'No image reference or caption has been added yet.',
+                'code' => 'No code sample has been added yet.',
+                'faq' => 'No FAQ items have been added yet.',
+                default => 'No content preview available yet.',
+            };
+        }
+
+        $normalized = preg_replace('/[`*_>#\[\]\(\)\-|]+/u', ' ', $content) ?? $content;
+        $normalized = preg_replace('/\s+/u', ' ', trim($normalized)) ?? trim($normalized);
+
+        return str($normalized)->limit(140)->value();
+    }
+
+    protected function blockContentLineCount(string $contentText): int
+    {
+        $lines = preg_split('/\R/u', trim($contentText)) ?: [];
+
+        return count(array_filter(
+            array_map(fn (string $line): string => trim($line), $lines),
+            fn (string $line): bool => $line !== '',
+        ));
     }
 
     protected function blockContentLabel(string $blockType): string

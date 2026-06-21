@@ -8,7 +8,7 @@
         <x-ui.button as="a" :href="$aiReviewMode ? route('draft-review.index') : route('posts.index')" variant="secondary">
             {{ $aiReviewMode ? 'Back to Draft Review' : 'Back to Posts' }}
         </x-ui.button>
-        <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+        <x-ui.button type="button" class="whitespace-nowrap" wire:click="save" wire:loading.attr="disabled" wire:target="save">
             <span wire:loading.remove wire:target="save">{{ $aiReviewMode ? 'Save Review Changes' : ($editingPostId ? 'Save Post' : 'Create Post') }}</span>
             <span wire:loading wire:target="save">Saving…</span>
         </x-ui.button>
@@ -56,7 +56,7 @@
                 </section>
             @endif
 
-            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+            <section id="editor-core-content" class="scroll-mt-24 space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
                     <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Core Content</h2>
                     <p class="text-sm text-[var(--color-muted)]">The editor is structured rather than drag-heavy. Save explicitly now; the layout is ready for future autosave work.</p>
@@ -86,14 +86,18 @@
                 </x-ui.field>
             </section>
 
-            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+            <section id="editor-blocks" class="scroll-mt-24 space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div class="space-y-1">
-                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Blocks</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Each block turns into the documented `blocks[*]` payload. Non-empty lines in content become content items on save.</p>
+                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Content Blocks</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Keep long posts compact by expanding only the blocks you are actively editing. Non-empty lines still save as ordered content items.</p>
                     </div>
 
-                    <x-ui.button type="button" variant="secondary" class="whitespace-nowrap" wire:click="addBlock">Add Block</x-ui.button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <x-ui.button type="button" size="sm" variant="secondary" class="whitespace-nowrap" wire:click="addBlock">Add Block</x-ui.button>
+                        <x-ui.button type="button" size="sm" variant="secondary" class="whitespace-nowrap" wire:click="expandAllBlocks">Expand All</x-ui.button>
+                        <x-ui.button type="button" size="sm" variant="secondary" class="whitespace-nowrap" wire:click="collapseAllBlocks">Collapse All</x-ui.button>
+                    </div>
                 </div>
 
                 @error('blocks')
@@ -102,23 +106,45 @@
 
                 <div class="space-y-4">
                     @foreach ($blocks as $index => $block)
-                        <div wire:key="post-block-{{ $block['key'] }}" class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-5 py-5">
-                            <div class="flex flex-col gap-3 border-b border-[var(--color-line)] pb-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div class="flex items-center gap-3">
-                                    <span class="inline-flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-button)] bg-[var(--color-panel)] px-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                        @php
+                            $isExpanded = (bool) ($expandedBlockLookup[$block['key']] ?? false);
+                        @endphp
+                        <div id="post-block-{{ $block['key'] }}" wire:key="post-block-{{ $block['key'] }}" @class([
+                            'scroll-mt-24 rounded-[var(--radius-button)] border bg-[var(--color-panel-soft)] px-4 py-4 transition-colors sm:px-5',
+                            'border-[color-mix(in_srgb,var(--color-accent)_22%,white)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-accent)_12%,white)]' => $isExpanded,
+                            'border-[var(--color-line)]' => ! $isExpanded,
+                        ])>
+                            <div @class([
+                                'flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between',
+                                'border-b border-[var(--color-line)] pb-4' => $isExpanded,
+                            ])>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="inline-flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-button)] bg-[var(--color-panel)] px-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                                         {{ $block['sortOrder'] }}
                                     </span>
-                                    <div>
                                         <p class="text-sm font-semibold text-[var(--color-ink)]">Block {{ $block['sortOrder'] }}</p>
-                                        <p class="text-xs text-[var(--color-muted)]">Ordered output is preserved directly in the API payload.</p>
+                                        <span class="inline-flex rounded-full bg-[var(--color-panel)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">{{ $blockUi[$index]['label'] }}</span>
+                                        @if ($blockUi[$index]['sourceTemplateBlockId'] !== '')
+                                            <span class="inline-flex rounded-full bg-[color-mix(in_srgb,var(--color-accent)_10%,white)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent-strong)]">Template linked</span>
+                                        @endif
+                                        <span class="inline-flex rounded-full bg-[var(--color-panel)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">
+                                            {{ $blockUi[$index]['contentLineCount'] }} {{ \Illuminate\Support\Str::plural('line', $blockUi[$index]['contentLineCount']) }}
+                                        </span>
                                     </div>
+
+                                    <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">{{ $blockUi[$index]['preview'] }}</p>
+
+                                    @if ($isExpanded)
+                                        <p class="mt-2 text-xs text-[var(--color-muted)]">Ordered output is preserved directly in the API payload.</p>
+                                    @endif
                                 </div>
 
-                                <div class="flex items-center gap-2">
+                                <div class="flex shrink-0 flex-wrap items-center gap-2">
                                     <button
                                         type="button"
                                         wire:click="moveBlockUp({{ $index }})"
-                                        class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)] disabled:cursor-not-allowed disabled:opacity-40"
+                                        class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)] disabled:cursor-not-allowed disabled:opacity-40"
                                         @disabled($index === 0)
                                         title="Move up"
                                     >
@@ -127,18 +153,22 @@
                                     <button
                                         type="button"
                                         wire:click="moveBlockDown({{ $index }})"
-                                        class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)] disabled:cursor-not-allowed disabled:opacity-40"
+                                        class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)] disabled:cursor-not-allowed disabled:opacity-40"
                                         @disabled($index === count($blocks) - 1)
                                         title="Move down"
                                     >
                                         ↓
                                     </button>
-                                    <x-ui.button type="button" variant="ghost" class="text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="removeBlock({{ $index }})">
+                                    <x-ui.button type="button" size="sm" variant="secondary" class="whitespace-nowrap" wire:click="toggleBlock('{{ $block['key'] }}')">
+                                        {{ $isExpanded ? 'Collapse' : 'Edit' }}
+                                    </x-ui.button>
+                                    <x-ui.button type="button" size="sm" variant="ghost" class="whitespace-nowrap text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="removeBlock({{ $index }})">
                                         Remove
                                     </x-ui.button>
                                 </div>
                             </div>
 
+                            @if ($isExpanded)
                             <div class="mt-4 grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
                                 <div class="space-y-5">
                                     <x-ui.field label="Block Type" for="post-block-type-{{ $index }}" :error="$errors->first('blocks.'.$index.'.blockType')" required>
@@ -167,12 +197,12 @@
                                     @if ($blockUi[$index]['showsToolbar'])
                                         <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-3">
                                             <div class="flex flex-wrap items-center gap-2">
-                                                <span class="mr-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Markdown tools</span>
+                                                <span class="mr-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Markdown tools</span>
                                                 @foreach ($blockUi[$index]['toolbar'] as $tool)
                                                     <button
                                                         type="button"
                                                         wire:click="insertBlockSnippet({{ $index }}, '{{ $tool['action'] }}')"
-                                                        class="inline-flex min-h-9 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]"
+                                                        class="inline-flex min-h-8 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-2.5 text-xs font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]"
                                                     >
                                                         {{ $tool['label'] }}
                                                     </button>
@@ -198,15 +228,25 @@
                                     </x-ui.field>
                                 </div>
                             </div>
+                            @endif
                         </div>
                     @endforeach
                 </div>
             </section>
 
-            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
-                <div class="space-y-1">
-                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO & Metadata</h2>
-                    <p class="text-sm text-[var(--color-muted)]">This panel edits per-entity SEO metadata only. Sitewide defaults are not shown because the service does not expose them here.</p>
+            <section id="editor-seo" class="scroll-mt-24 space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="space-y-1">
+                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO & Metadata</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Keep search basics visible and tuck the heavy diagnostics behind expandable sections.</p>
+                    </div>
+
+                    @if ($editingPostId)
+                        <x-ui.button type="button" size="sm" class="whitespace-nowrap" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
+                            <span wire:loading.remove wire:target="saveSeo">Update SEO</span>
+                            <span wire:loading wire:target="saveSeo">Saving…</span>
+                        </x-ui.button>
+                    @endif
                 </div>
 
                 @if ($seoLoadError)
@@ -240,46 +280,7 @@
                                 <p class="mt-3 text-sm text-[var(--color-muted)]">No score recommendations were returned for this post.</p>
                             @endif
                         </div>
-
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Schema Output</p>
-                            @if ($seoSchemaLoadError)
-                                <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoSchemaLoadError }}</p>
-                            @elseif ($seoSchemaSummary['graph_count'] > 0 || $seoSchemaSummary['context'])
-                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ $seoSchemaSummary['graph_count'] }} graph {{ str('item')->plural($seoSchemaSummary['graph_count']) }}</p>
-                                <p class="mt-2 text-sm text-[var(--color-muted)]">
-                                    {{ $seoSchemaSummary['graph_types'] !== [] ? implode(', ', $seoSchemaSummary['graph_types']) : 'Schema types are present but could not be summarized.' }}
-                                </p>
-                            @else
-                                <p class="mt-3 text-sm text-[var(--color-muted)]">No generated schema payload is currently available.</p>
-                            @endif
-                        </div>
                     </div>
-
-                    @if ($seoScoreSubscores !== [])
-                        <div class="grid gap-3 sm:grid-cols-2">
-                            @foreach ($seoScoreSubscores as $subscore)
-                                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $subscore['label'] }}</p>
-                                    <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">
-                                        {{ $subscore['score'] ?? 'TBC' }}
-                                        @if ($subscore['max_score'] !== null)
-                                            <span class="font-medium text-[var(--color-muted)]">/ {{ $subscore['max_score'] }}</span>
-                                        @endif
-                                    </p>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    @if ($seoSchemaJson !== '')
-                        <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
-                            <div class="border-b border-[var(--color-line)] px-4 py-3">
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Generated JSON-LD</p>
-                            </div>
-                            <pre class="max-h-[18rem] overflow-auto px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ $seoSchemaJson }}</pre>
-                        </div>
-                    @endif
                 @endif
 
                 <div class="grid gap-3 lg:grid-cols-2">
@@ -312,13 +313,6 @@
                 </div>
 
                 @if ($editingPostId)
-                    <div class="flex items-center justify-end">
-                        <x-ui.button type="button" size="sm" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
-                            <span wire:loading.remove wire:target="saveSeo">Update SEO</span>
-                            <span wire:loading wire:target="saveSeo">Saving…</span>
-                        </x-ui.button>
-                    </div>
-
                     <div class="grid gap-5 lg:grid-cols-2">
                         <x-ui.field label="Meta Title" for="post-meta-title" :error="$errors->first('metaTitle')" hint="Keep it concise and specific to the post.">
                             <x-ui.input id="post-meta-title" wire:model.blur="metaTitle" placeholder="SEO title" :invalid="$errors->has('metaTitle')" />
@@ -337,46 +331,113 @@
                         <x-ui.input id="post-canonical-url" wire:model.blur="canonicalUrl" placeholder="https://example.com/posts/post-slug" :invalid="$errors->has('canonicalUrl')" />
                     </x-ui.field>
 
-                    <div class="grid gap-3 lg:grid-cols-2">
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <label class="flex items-start gap-3">
-                                <input wire:model.live="robotsIndex" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                                <span>
-                                    <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow indexing</span>
-                                    <span class="mt-1 block text-sm text-[var(--color-muted)]">Turn this off only when the post should not appear in search indexes.</span>
-                                </span>
-                            </label>
-                        </div>
+                    <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
+                        <button type="button" class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left" wire:click="toggleSeoAdvanced">
+                            <span>
+                                <span class="block text-sm font-semibold text-[var(--color-ink)]">Advanced SEO Settings</span>
+                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Robots directives and OpenGraph overrides stay available without dominating the default editing flow.</span>
+                            </span>
+                            <span class="text-sm font-medium text-[var(--color-accent)]">{{ $seoAdvancedExpanded ? 'Hide' : 'Show' }}</span>
+                        </button>
 
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <label class="flex items-start gap-3">
-                                <input wire:model.live="robotsFollow" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                                <span>
-                                    <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow link following</span>
-                                    <span class="mt-1 block text-sm text-[var(--color-muted)]">Keep this on unless the service should mark outbound link crawling as disallowed.</span>
-                                </span>
-                            </label>
-                        </div>
+                        @if ($seoAdvancedExpanded)
+                            <div class="space-y-5 border-t border-[var(--color-line)] px-4 py-4">
+                                <div class="grid gap-3 lg:grid-cols-2">
+                                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
+                                        <label class="flex items-start gap-3">
+                                            <input wire:model.live="robotsIndex" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
+                                            <span>
+                                                <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow indexing</span>
+                                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Turn this off only when the post should not appear in search indexes.</span>
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
+                                        <label class="flex items-start gap-3">
+                                            <input wire:model.live="robotsFollow" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
+                                            <span>
+                                                <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow link following</span>
+                                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Keep this on unless the service should mark outbound link crawling as disallowed.</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-5 lg:grid-cols-2">
+                                    <x-ui.field label="OpenGraph Title" for="post-og-title" :error="$errors->first('ogTitle')" hint="Optional override for social share cards.">
+                                        <x-ui.input id="post-og-title" wire:model.blur="ogTitle" placeholder="Social share title" :invalid="$errors->has('ogTitle')" />
+                                    </x-ui.field>
+
+                                    <x-ui.field label="OpenGraph Image" for="post-og-image" :error="$errors->first('ogImageMediaId')" hint="Choose a media asset to use for social previews.">
+                                        <x-ui.select id="post-og-image" wire:model.live="ogImageMediaId" :invalid="$errors->has('ogImageMediaId')">
+                                            <option value="">No OpenGraph image override</option>
+                                            @foreach ($mediaOptions as $asset)
+                                                <option value="{{ $asset['id'] }}">{{ $asset['name'] }}</option>
+                                            @endforeach
+                                        </x-ui.select>
+                                    </x-ui.field>
+                                </div>
+
+                                <x-ui.field label="OpenGraph Description" for="post-og-description" :error="$errors->first('ogDescription')" hint="Optional override for social share descriptions.">
+                                    <x-ui.textarea id="post-og-description" rows="4" wire:model.blur="ogDescription" placeholder="Social share description" :invalid="$errors->has('ogDescription')" />
+                                </x-ui.field>
+                            </div>
+                        @endif
                     </div>
 
-                    <div class="grid gap-5 lg:grid-cols-2">
-                        <x-ui.field label="OpenGraph Title" for="post-og-title" :error="$errors->first('ogTitle')" hint="Optional override for social share cards.">
-                            <x-ui.input id="post-og-title" wire:model.blur="ogTitle" placeholder="Social share title" :invalid="$errors->has('ogTitle')" />
-                        </x-ui.field>
+                    <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
+                        <button type="button" class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left" wire:click="toggleSeoDiagnostics">
+                            <span>
+                                <span class="block text-sm font-semibold text-[var(--color-ink)]">SEO Diagnostics</span>
+                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Schema output and score breakdown are still available when you need to inspect them closely.</span>
+                            </span>
+                            <span class="text-sm font-medium text-[var(--color-accent)]">{{ $seoDiagnosticsExpanded ? 'Hide' : 'Show' }}</span>
+                        </button>
 
-                        <x-ui.field label="OpenGraph Image" for="post-og-image" :error="$errors->first('ogImageMediaId')" hint="Choose a media asset to use for social previews.">
-                            <x-ui.select id="post-og-image" wire:model.live="ogImageMediaId" :invalid="$errors->has('ogImageMediaId')">
-                                <option value="">No OpenGraph image override</option>
-                                @foreach ($mediaOptions as $asset)
-                                    <option value="{{ $asset['id'] }}">{{ $asset['name'] }}</option>
-                                @endforeach
-                            </x-ui.select>
-                        </x-ui.field>
+                        @if ($seoDiagnosticsExpanded)
+                            <div class="space-y-4 border-t border-[var(--color-line)] px-4 py-4">
+                                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Schema Output</p>
+                                    @if ($seoSchemaLoadError)
+                                        <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoSchemaLoadError }}</p>
+                                    @elseif ($seoSchemaSummary['graph_count'] > 0 || $seoSchemaSummary['context'])
+                                        <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ $seoSchemaSummary['graph_count'] }} graph {{ str('item')->plural($seoSchemaSummary['graph_count']) }}</p>
+                                        <p class="mt-2 text-sm text-[var(--color-muted)]">
+                                            {{ $seoSchemaSummary['graph_types'] !== [] ? implode(', ', $seoSchemaSummary['graph_types']) : 'Schema types are present but could not be summarized.' }}
+                                        </p>
+                                    @else
+                                        <p class="mt-3 text-sm text-[var(--color-muted)]">No generated schema payload is currently available.</p>
+                                    @endif
+                                </div>
+
+                                @if ($seoScoreSubscores !== [])
+                                    <div class="grid gap-3 sm:grid-cols-2">
+                                        @foreach ($seoScoreSubscores as $subscore)
+                                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3">
+                                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $subscore['label'] }}</p>
+                                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">
+                                                    {{ $subscore['score'] ?? 'TBC' }}
+                                                    @if ($subscore['max_score'] !== null)
+                                                        <span class="font-medium text-[var(--color-muted)]">/ {{ $subscore['max_score'] }}</span>
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                @if ($seoSchemaJson !== '')
+                                    <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)]">
+                                        <div class="border-b border-[var(--color-line)] px-4 py-3">
+                                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Generated JSON-LD</p>
+                                        </div>
+                                        <pre class="max-h-[18rem] overflow-auto px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ $seoSchemaJson }}</pre>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
                     </div>
-
-                    <x-ui.field label="OpenGraph Description" for="post-og-description" :error="$errors->first('ogDescription')" hint="Optional override for social share descriptions.">
-                        <x-ui.textarea id="post-og-description" rows="4" wire:model.blur="ogDescription" placeholder="Social share description" :invalid="$errors->has('ogDescription')" />
-                    </x-ui.field>
                 @else
                     <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line-strong)] bg-[var(--color-panel-soft)] px-4 py-4">
                         <p class="text-sm font-semibold text-[var(--color-ink)]">SEO editing starts after the post exists.</p>
@@ -384,13 +445,90 @@
                     </div>
                 @endif
 
-                <x-ui.field label="Meta JSON" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional JSON object or array stored in the post meta payload. AI provenance and suggestion data are preserved here.">
-                    <x-ui.textarea id="post-meta-json" rows="5" wire:model.blur="metaJson" placeholder='{"campaign":"summer","notes":["editorial-note"]}' :invalid="$errors->has('metaJson')" />
-                </x-ui.field>
+                <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
+                    <button type="button" class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left" wire:click="toggleMetaJson">
+                        <span>
+                            <span class="block text-sm font-semibold text-[var(--color-ink)]">Meta JSON</span>
+                            <span class="mt-1 block text-sm text-[var(--color-muted)]">Keep AI provenance and extra payload metadata available without leaving the editor permanently expanded.</span>
+                        </span>
+                        <span class="text-sm font-medium text-[var(--color-accent)]">{{ $metaJsonExpanded ? 'Hide' : 'Show' }}</span>
+                    </button>
+
+                    @if ($metaJsonExpanded)
+                        <div class="border-t border-[var(--color-line)] px-4 py-4">
+                            <x-ui.field label="Meta JSON" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional JSON object or array stored in the post meta payload. AI provenance and suggestion data are preserved here.">
+                                <x-ui.textarea id="post-meta-json" rows="5" wire:model.blur="metaJson" placeholder='{"campaign":"summer","notes":["editorial-note"]}' :invalid="$errors->has('metaJson')" />
+                            </x-ui.field>
+                        </div>
+                    @endif
+                </div>
             </section>
         </div>
 
         <aside class="space-y-6 xl:sticky xl:top-6 xl:self-start">
+            <section class="space-y-4 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                <div class="space-y-1">
+                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Editor Actions</h2>
+                    <p class="text-sm text-[var(--color-muted)]">Keep primary save controls and quick jumps visible while working through long drafts.</p>
+                </div>
+
+                <div class="grid gap-2">
+                    <x-ui.button type="button" class="justify-center whitespace-nowrap" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+                        <span wire:loading.remove wire:target="save">{{ $aiReviewMode ? 'Save Review Changes' : ($editingPostId ? 'Save Post' : 'Create Post') }}</span>
+                        <span wire:loading wire:target="save">Saving…</span>
+                    </x-ui.button>
+
+                    @if ($editingPostId)
+                        <x-ui.button type="button" variant="secondary" class="justify-center whitespace-nowrap" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
+                            <span wire:loading.remove wire:target="saveSeo">Update SEO</span>
+                            <span wire:loading wire:target="saveSeo">Saving…</span>
+                        </x-ui.button>
+                    @endif
+                </div>
+
+                <div class="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
+                    <a href="#editor-core-content" class="inline-flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]">
+                        <span>Core Content</span>
+                        <span class="text-[var(--color-muted)]">Jump</span>
+                    </a>
+                    <a href="#editor-blocks" class="inline-flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]">
+                        <span>Blocks</span>
+                        <span class="text-[var(--color-muted)]">Jump</span>
+                    </a>
+                    <a href="#editor-seo" class="inline-flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]">
+                        <span>SEO</span>
+                        <span class="text-[var(--color-muted)]">Jump</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="space-y-4 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                <div class="space-y-1">
+                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Post Outline</h2>
+                    <p class="text-sm text-[var(--color-muted)]">Jump directly to a block and expand it from the navigator.</p>
+                </div>
+
+                <div class="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
+                    @foreach ($blocks as $index => $block)
+                        @php
+                            $isExpanded = (bool) ($expandedBlockLookup[$block['key']] ?? false);
+                        @endphp
+                        <a
+                            href="#post-block-{{ $block['key'] }}"
+                            wire:click="expandBlock('{{ $block['key'] }}')"
+                            @class([
+                                'block rounded-[var(--radius-button)] border px-3 py-3 text-left transition-colors',
+                                'border-[color-mix(in_srgb,var(--color-accent)_24%,white)] bg-[color-mix(in_srgb,var(--color-accent)_8%,white)]' => $isExpanded,
+                                'border-[var(--color-line)] bg-[var(--color-panel-soft)] hover:bg-[var(--color-panel)]' => ! $isExpanded,
+                            ])
+                        >
+                            <span class="block text-sm font-semibold text-[var(--color-ink)]">Block {{ $block['sortOrder'] }} · {{ $blockUi[$index]['label'] }}</span>
+                            <span class="mt-1 block text-sm text-[var(--color-muted)]">{{ $blockUi[$index]['preview'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </section>
+
             @if ($aiReviewMode && $isAiGenerated)
                 <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                     <div class="space-y-1">
