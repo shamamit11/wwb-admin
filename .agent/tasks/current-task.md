@@ -1,14 +1,14 @@
-# Task: Final Dashboard Visual Refinements
+# Task: Optimize About And Contact CMS Editor UI
 
 Status: Completed
 
 ## Goal
 
-Polish the existing admin dashboard UI with small visual refinements, including less cramped top cards, a slightly lighter pipeline section, clearer action hierarchy, improved AI job scanability, and non-wrapping button labels.
+Apply the same structured, compact CMS editor pattern used on Homepage to the About Page and Contact Page singleton editors without changing backend behavior.
 
 ## Background
 
-The dashboard redesign is already in place. This pass is limited to small UI refinements on the dashboard surface and the button styling needed to keep labels on a single line.
+The About and Contact editors are functional but still use the older always-expanded layout. This task focuses on bringing them in line with the improved Homepage editing experience: collapsible sections, sticky sidebars, clearer summaries/navigation, and stronger save/editing confidence.
 
 ## Required Context
 
@@ -27,50 +27,46 @@ The dashboard redesign is already in place. This pass is limited to small UI ref
 
 ## Files To Inspect
 
-- `app/Livewire/Admin/Dashboard/Index.php`
-- `resources/views/livewire/admin/dashboard/index.blade.php`
-- `resources/views/components/admin/stat-card.blade.php`
-- `resources/views/components/ui/button.blade.php`
+- `app/Livewire/Admin/AboutPage/Index.php`
+- `resources/views/livewire/admin/about-page/index.blade.php`
+- `app/Livewire/Admin/ContactPage/Index.php`
+- `resources/views/livewire/admin/contact-page/index.blade.php`
 
 ## Files To Change
 
 - `.agent/tasks/current-task.md`
-- `app/Livewire/Admin/Dashboard/Index.php`
-- `resources/views/livewire/admin/dashboard/index.blade.php`
-- `resources/views/components/ui/button.blade.php`
+- `resources/views/livewire/admin/about-page/index.blade.php`
+- `resources/views/livewire/admin/contact-page/index.blade.php`
 
 ## Implementation Steps
 
-1. Refine dashboard card tones and layout spacing while keeping existing routes and data bindings.
-2. Make the top stat grid a stable 3-per-row desktop layout and lighten the pipeline card density.
-3. Improve AI jobs readability and ensure button labels stay on one line.
-4. Run narrow validation for dashboard syntax and tests.
+1. Restructure About and Contact editors into collapsible sections while preserving all bindings and fields.
+2. Improve section headers, sidebar summary/navigation, sticky behavior, and top actions to match Homepage UX.
+3. Add lightweight save-state feedback and clearer section summaries on both singleton editors.
+4. Run narrow validation for About and Contact syntax and tests.
 5. Update task notes with validation and residual risk.
 
 ## Acceptance Criteria
 
-- Top stat cards read cleanly in a 3-per-row desktop layout.
-- AI pipeline health remains visible but visually lighter.
-- Human-action cards receive slightly stronger visual priority than operational cards.
-- `Open AI Jobs` reads as a proper button.
-- Dashboard buttons keep their text on a single line.
+- About and Contact sections are no longer visually overwhelming because non-primary sections can collapse.
+- Both pages gain a more useful sticky sidebar and section navigation.
+- Preview actions become page-specific and clearer.
+- Existing About and Contact save behavior and bindings continue to work.
 
 ## Validation Commands
 
-- `php artisan test --filter=Dashboard`
-- `php -l app/Livewire/Admin/Dashboard/Index.php`
+- `php artisan test --filter=AboutPageIndexTest`
+- `php artisan test --filter=ContactPageIndexTest`
 - `php artisan view:cache`
 
 ## Risks
 
-- The service payload still limits how much job and post metadata can be surfaced, so refinements must keep graceful fallbacks.
+- The service payload does not expose rich per-section completion metadata, so section summaries and status chips must reflect only the currently available fields.
 
 ## Completion Notes
 
-- Refined the dashboard stat grid to keep a stable 3-per-row desktop layout and reduce label crowding.
-- Tightened the AI pipeline card density and shortened hardcoded descriptive copy.
-- Increased subtle visual emphasis for human-action cards by adjusting dashboard card tones.
-- Updated the snapshot `Open AI Jobs` control to use a proper secondary button style.
-- Made recent AI job rows more scannable by surfacing status and time together near the title.
-- Added `whitespace-nowrap` to the shared UI button primitive so button labels stay on one line.
-- Validation passed with `php -l app/Livewire/Admin/Dashboard/Index.php`, `php artisan test --filter=Dashboard`, and `php artisan view:cache`.
+- Reworked the About Page and Contact Page editors into collapsible section cards with Hero expanded by default.
+- Added saved/unsaved change indicators, page-specific preview labels, sticky desktop sidebars, and clickable section navigation on both pages.
+- Improved sidebar summaries and section header context so singleton page state is easier to scan before expanding sections.
+- Preserved all existing Livewire bindings, ordered list controls, save behavior, fields, and routes.
+- Validation passed with `php artisan test --filter=AboutPageIndexTest`, `php artisan test --filter=ContactPageIndexTest`, and `php artisan view:cache`.
