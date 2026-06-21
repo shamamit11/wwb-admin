@@ -24,6 +24,14 @@ class Index extends Component
 
     public array $aiWorkflowCards = [];
 
+    public array $pipelineSteps = [];
+
+    public array $quickActions = [];
+
+    public array $editorialQueues = [];
+
+    public array $jobStatusSummary = [];
+
     public ?string $dashboardError = null;
 
     public function mount(
@@ -85,15 +93,39 @@ class Index extends Component
             ]), 'data', []);
 
             $this->aiWorkflowCards = [
-                $this->makeCard('Suggested Topics', count($suggestedTopics), route('topic-queue.index', ['status' => 'suggested']), 'Review topic suggestions awaiting editorial triage.', 'warning'),
-                $this->makeCard('Approved Topics', count($approvedTopics), route('topic-queue.index', ['status' => 'approved']), 'Open approved topics ready for downstream AI workflow steps.', 'success'),
-                $this->makeCard('Draft Briefs', count($draftBriefs), route('content-briefs.index', ['status' => 'draft']), 'Review and approve generated briefs before draft creation.', 'warning'),
-                $this->makeCard('Approved Briefs', count($approvedBriefs), route('content-briefs.index', ['status' => 'approved']), 'Approved briefs are ready to generate draft posts.', 'success'),
-                $this->makeCard('Draft Posts Pending Review', count($this->draftPosts), route('posts.index', ['status' => 'draft']), 'Current contract exposes draft posts but not AI-only provenance filters.', 'muted'),
-                $this->makeCard('Failed AI Jobs', count($failedJobs), route('ai-jobs.index', ['status' => 'failed']), 'Investigate failed AI jobs and trigger retry from the job detail screen.', 'danger'),
+                $this->makeCard('Suggested Topics', count($suggestedTopics), route('topic-queue.index', ['status' => 'suggested']), 'Editorial triage queue for topic ideas.', 'warning'),
+                $this->makeCard('Approved Topics', count($approvedTopics), route('topic-queue.index', ['status' => 'approved']), 'Ready for downstream SEO and brief work.', 'success'),
+                $this->makeCard('Draft Briefs', count($draftBriefs), route('content-briefs.index', ['status' => 'draft']), 'Briefs waiting for approval before drafting.', 'warning'),
+                $this->makeCard('Approved Briefs', count($approvedBriefs), route('content-briefs.index', ['status' => 'approved']), 'Approved briefs ready for draft generation.', 'success'),
+                $this->makeCard('Draft Posts Pending Review', count($this->draftPosts), route('posts.index', ['status' => 'draft']), 'Draft posts currently in editorial review.', 'warning'),
+                $this->makeCard('Failed AI Jobs', count($failedJobs), route('ai-jobs.index', ['status' => 'failed']), 'Failures that need investigation or retry.', count($failedJobs) > 0 ? 'danger' : 'muted'),
+            ];
+
+            $this->pipelineSteps = [
+                $this->makePipelineStep('Topic Discovery', count($suggestedTopics), 'Waiting review', route('topic-queue.index', ['status' => 'suggested']), 'Suggestions needing triage.', 'warning'),
+                $this->makePipelineStep('SEO Research', count($approvedTopics), 'Ready', route('topic-queue.index', ['status' => 'approved']), 'Approved topics in queue.', 'success'),
+                $this->makePipelineStep('Content Brief', count($draftBriefs), 'Waiting review', route('content-briefs.index', ['status' => 'draft']), 'Briefs awaiting approval.', 'warning'),
+                $this->makePipelineStep('Blog Writer', count($approvedBriefs), 'Ready', route('content-briefs.index', ['status' => 'approved']), 'Approved briefs ready.', 'default'),
+                $this->makePipelineStep('Editor', count($this->draftPosts), 'Needs review', route('draft-review.index'), 'Drafts queued for review.', 'warning'),
+                $this->makePipelineStep('Publish', count($this->publishedPosts), 'Live', route('posts.index', ['status' => 'published']), 'Recent posts now live.', 'success'),
+            ];
+
+            $this->editorialQueues = [
+                $this->makeQueueItem('Suggested Topics', count($suggestedTopics), route('topic-queue.index', ['status' => 'suggested']), 'Topic ideas waiting for review.', 'warning'),
+                $this->makeQueueItem('Draft Briefs', count($draftBriefs), route('content-briefs.index', ['status' => 'draft']), 'Briefs that still need approval.', 'warning'),
+                $this->makeQueueItem('Approved Briefs', count($approvedBriefs), route('content-briefs.index', ['status' => 'approved']), 'Briefs ready for draft generation.', 'success'),
+            ];
+
+            $this->quickActions = [
+                $this->makeQuickAction('Create Post', 'Open the editor and start a new article.', route('posts.create'), 'primary'),
+                $this->makeQuickAction('Review Topics', 'Triage suggested ideas and approve what should move forward.', route('topic-queue.index', ['status' => 'suggested']), 'secondary'),
+                $this->makeQuickAction('Review Briefs', 'Approve or refine generated content briefs.', route('content-briefs.index', ['status' => 'draft']), 'secondary'),
+                $this->makeQuickAction('Open AI Jobs', 'Inspect current automation activity and job details.', route('ai-jobs.index'), 'secondary'),
+                $this->makeQuickAction('View Failed Jobs', 'Jump directly into failures that need intervention.', route('ai-jobs.index', ['status' => 'failed']), 'secondary'),
             ];
 
             $this->recentAiJobs = $this->mapJobs($recentJobs);
+            $this->jobStatusSummary = $this->summarizeJobStatuses($recentJobs);
         } catch (WideWebBlogApiException) {
             $this->dashboardError = 'Dashboard data could not be loaded from the service API. You can still continue into the module screens.';
         }
@@ -105,7 +137,11 @@ class Index extends Component
             'recentDrafts' => collect($this->draftPosts)->take(5)->values()->all(),
             'recentPublishedPosts' => collect($this->publishedPosts)->take(5)->values()->all(),
             'aiWorkflowCards' => $this->aiWorkflowCards,
-            'recentAiJobs' => collect($this->recentAiJobs)->take(5)->values()->all(),
+            'recentAiJobs' => collect($this->recentAiJobs)->take(6)->values()->all(),
+            'pipelineSteps' => $this->pipelineSteps,
+            'quickActions' => $this->quickActions,
+            'editorialQueues' => $this->editorialQueues,
+            'jobStatusSummary' => $this->jobStatusSummary,
         ])
             ->layout('layouts.admin', [
                 'title' => 'Dashboard',
@@ -128,10 +164,12 @@ class Index extends Component
                     'status' => Arr::get($post, 'status', 'draft'),
                     'category' => Arr::get($post, 'category.name'),
                     'author' => Arr::get($post, 'author.name'),
+                    'created_at' => $this->formatTimestamp(Arr::get($post, 'created_at')),
                     'updated_at' => $this->formatTimestamp($updatedAt),
                     'published_at' => $this->formatTimestamp($publishedAt),
                     'word_count' => Arr::get($post, 'word_count'),
                     'visibility' => Arr::get($post, 'visibility'),
+                    'seo_score' => Arr::get($post, 'seo_score', Arr::get($post, 'seo.score')),
                 ];
             })
             ->values()
@@ -153,6 +191,7 @@ class Index extends Component
                     'created_at' => $this->formatTimestamp(Arr::get($job, 'created_at')),
                     'failed_at' => $this->formatTimestamp(Arr::get($job, 'failed_at')),
                     'completed_at' => $this->formatTimestamp(Arr::get($job, 'completed_at')),
+                    'updated_at' => $this->formatTimestamp(Arr::get($job, 'updated_at')),
                 ];
             })
             ->values()
@@ -168,6 +207,71 @@ class Index extends Component
             'description' => $description,
             'tone' => $tone,
         ];
+    }
+
+    protected function makePipelineStep(string $label, int $value, string $state, string $href, string $description, string $tone): array
+    {
+        return [
+            'label' => $label,
+            'value' => $value,
+            'state' => $state,
+            'href' => $href,
+            'description' => $description,
+            'tone' => $tone,
+        ];
+    }
+
+    protected function makeQueueItem(string $label, int $value, string $href, string $description, string $tone): array
+    {
+        return [
+            'label' => $label,
+            'value' => $value,
+            'href' => $href,
+            'description' => $description,
+            'tone' => $tone,
+        ];
+    }
+
+    protected function makeQuickAction(string $label, string $description, string $href, string $variant): array
+    {
+        return [
+            'label' => $label,
+            'description' => $description,
+            'href' => $href,
+            'variant' => $variant,
+        ];
+    }
+
+    protected function summarizeJobStatuses(array $jobs): array
+    {
+        $summary = [
+            'completed' => 0,
+            'in_progress' => 0,
+            'failed' => 0,
+        ];
+
+        foreach ($jobs as $job) {
+            $status = str((string) Arr::get($job, 'status', 'pending'))
+                ->lower()
+                ->replace([' ', '-'], '_')
+                ->value();
+
+            if ($status === 'failed') {
+                $summary['failed']++;
+
+                continue;
+            }
+
+            if (in_array($status, ['completed', 'published'], true)) {
+                $summary['completed']++;
+
+                continue;
+            }
+
+            $summary['in_progress']++;
+        }
+
+        return $summary;
     }
 
     protected function formatTimestamp(mixed $value): ?string

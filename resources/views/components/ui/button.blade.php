@@ -9,7 +9,7 @@
 @php
     $isLink = $as === 'a' || $href;
     $isDisabled = $attributes->has('disabled') || $loading;
-    $base = 'inline-flex items-center justify-center gap-2 rounded-[var(--radius-button)] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-page)] disabled:pointer-events-none disabled:opacity-50';
+    $base = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-button)] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-page)] disabled:pointer-events-none disabled:opacity-50';
 
     $variants = [
         'primary' => 'bg-[var(--color-accent)] text-[var(--color-accent-contrast)] shadow-[0_12px_24px_rgba(249,115,22,0.22)] hover:bg-[var(--color-accent-strong)] hover:shadow-[0_16px_28px_rgba(200,90,13,0.24)] active:scale-[0.98]',
