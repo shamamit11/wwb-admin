@@ -258,6 +258,9 @@ class Index extends Component
         $scheduledForRaw = Arr::get($post, 'scheduled_for');
         $updatedAtRaw = Arr::get($post, 'updated_at');
         $createdAtRaw = Arr::get($post, 'created_at');
+        $publishedAtParts = $this->formatTimestampParts($publishedAtRaw);
+        $scheduledForParts = $this->formatTimestampParts($scheduledForRaw);
+        $updatedAtParts = $this->formatTimestampParts($updatedAtRaw);
 
         return [
             'id' => Arr::get($post, 'id'),
@@ -271,10 +274,16 @@ class Index extends Component
             'is_featured' => (bool) Arr::get($post, 'is_featured', false),
             'published_at' => $this->formatTimestamp($publishedAtRaw),
             'published_at_raw' => $publishedAtRaw,
+            'published_date' => $publishedAtParts['date'],
+            'published_time' => $publishedAtParts['time'],
             'scheduled_for' => $this->formatTimestamp($scheduledForRaw),
             'scheduled_for_raw' => $scheduledForRaw,
+            'scheduled_for_date' => $scheduledForParts['date'],
+            'scheduled_for_time' => $scheduledForParts['time'],
             'updated_at' => $this->formatTimestamp($updatedAtRaw),
             'updated_at_raw' => $updatedAtRaw,
+            'updated_date' => $updatedAtParts['date'],
+            'updated_time' => $updatedAtParts['time'],
             'created_at' => $this->formatTimestamp($createdAtRaw),
             'created_at_raw' => $createdAtRaw,
             'reading_time_minutes' => Arr::get($post, 'reading_time_minutes'),
@@ -446,6 +455,30 @@ class Index extends Component
             return Carbon::parse($value)->format('M j, Y g:i A');
         } catch (\Throwable) {
             return null;
+        }
+    }
+
+    protected function formatTimestampParts(mixed $value): array
+    {
+        if (! is_string($value) || $value === '') {
+            return [
+                'date' => null,
+                'time' => null,
+            ];
+        }
+
+        try {
+            $timestamp = Carbon::parse($value);
+
+            return [
+                'date' => $timestamp->format('M j, Y'),
+                'time' => $timestamp->format('g:i A'),
+            ];
+        } catch (\Throwable) {
+            return [
+                'date' => null,
+                'time' => null,
+            ];
         }
     }
 
