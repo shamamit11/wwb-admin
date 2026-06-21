@@ -55,7 +55,37 @@ class MediaIndexTest extends TestCase
             ->assertOk()
             ->assertSee('architecture.webp')
             ->assertSee('Media Library')
-            ->assertSee('Copy URL');
+            ->assertSee('Copy URL')
+            ->assertSee('Total Assets')
+            ->assertSee('Table')
+            ->assertSee('Grid')
+            ->assertSee('2 usages');
+    }
+
+    public function test_media_index_can_switch_to_grid_view_and_preserves_media_context(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake([
+            $this->apiBaseUrl.'/admin/media' => Http::response([
+                'data' => [
+                    $this->mediaResource([
+                        'id' => 1,
+                        'original_filename' => 'architecture.webp',
+                        'source_type' => 'ai_generated',
+                        'usage_count' => 1,
+                    ]),
+                ],
+            ], 200),
+        ]);
+
+        Livewire::test(Index::class)
+            ->assertSet('viewMode', 'table')
+            ->call('setViewMode', 'grid')
+            ->assertSet('viewMode', 'grid')
+            ->assertSee('architecture.webp')
+            ->assertSee('AI Generated')
+            ->assertSee('Used once');
     }
 
     public function test_single_media_upload_uses_the_screen_flow_and_refreshes_the_list(): void

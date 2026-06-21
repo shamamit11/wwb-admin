@@ -42,6 +42,9 @@ class Index extends Component
     #[Url(as: 'dir', except: 'desc')]
     public string $sortDirection = 'desc';
 
+    #[Url(as: 'view', except: 'table')]
+    public string $viewMode = 'table';
+
     public array $media = [];
 
     public bool $uploadDrawerOpen = false;
@@ -137,6 +140,12 @@ class Index extends Component
 
     public function updated(string $property): void
     {
+        if ($property === 'viewMode' && ! in_array($this->viewMode, ['table', 'grid'], true)) {
+            $this->viewMode = 'table';
+
+            return;
+        }
+
         if (in_array($property, ['altText', 'caption', 'sourceType', 'sourceUrl', 'attributionText'], true)) {
             $this->validateOnly($property);
 
@@ -197,6 +206,15 @@ class Index extends Component
 
         $this->sortColumn = $column;
         $this->sortDirection = $column === 'created_at' ? 'desc' : 'asc';
+    }
+
+    public function setViewMode(string $mode): void
+    {
+        if (! in_array($mode, ['table', 'grid'], true)) {
+            return;
+        }
+
+        $this->viewMode = $mode;
     }
 
     public function openDetailDrawer(int $mediaId, MediaClient $media, AdminSessionManager $session): mixed
@@ -401,6 +419,7 @@ class Index extends Component
     {
         return view('livewire.admin.media.index', [
             'mediaItems' => $this->visibleMedia(),
+            'summaryCards' => $this->summaryCards(),
         ])->layout('layouts.admin', [
             'title' => 'Media Library',
         ]);
@@ -480,6 +499,8 @@ class Index extends Component
             'id' => Arr::get($media, 'id'),
             'original_filename' => $filename,
             'source_type' => Arr::get($media, 'source_type', 'uploaded'),
+            'source_label' => $this->sourceLabel((string) Arr::get($media, 'source_type', 'uploaded')),
+            'source_badge_tone' => $this->sourceBadgeTone((string) Arr::get($media, 'source_type', 'uploaded')),
             'source_url' => Arr::get($media, 'source_url'),
             'attribution_text' => Arr::get($media, 'attribution_text'),
             'mime_type' => $mimeType,
@@ -491,6 +512,8 @@ class Index extends Component
             'url' => $this->mediaUrl()->resolve(Arr::get($media, 'url')),
             'status' => Arr::get($media, 'status', 'ready'),
             'usage_count' => (int) Arr::get($media, 'usage_count', 0),
+            'usage_label' => $this->usageLabel((int) Arr::get($media, 'usage_count', 0)),
+            'usage_badge_tone' => $this->usageBadgeTone((int) Arr::get($media, 'usage_count', 0)),
             'usage' => Arr::get($media, 'usage', []),
             'is_image' => str_starts_with($mimeType, 'image/'),
             'extension' => strtolower((string) pathinfo($filename, PATHINFO_EXTENSION)),
@@ -500,6 +523,69 @@ class Index extends Component
             'updated_at_raw' => $updatedAtRaw,
             'file_size_label' => $this->formatBytes((int) Arr::get($media, 'file_size_bytes', 0)),
         ];
+    }
+
+    protected function summaryCards(): array
+    {
+        $total = count($this->media);
+        $uploaded = collect($this->media)->where('source_type', 'uploaded')->count();
+        $aiGenerated = collect($this->media)->where('source_type', 'ai_generated')->count();
+        $inUse = collect($this->media)->filter(fn (array $item): bool => $item['usage_count'] > 0)->count();
+
+        return [
+            [
+                'label' => 'Total Assets',
+                'value' => $total,
+                'hint' => $total === 1 ? '1 asset in this view' : $total.' assets in this view',
+            ],
+            [
+                'label' => 'Uploaded',
+                'value' => $uploaded,
+                'hint' => 'Directly uploaded assets',
+            ],
+            [
+                'label' => 'AI Generated',
+                'value' => $aiGenerated,
+                'hint' => 'Generated assets in this view',
+            ],
+            [
+                'label' => 'In Use',
+                'value' => $inUse,
+                'hint' => 'Referenced by existing content',
+            ],
+        ];
+    }
+
+    protected function sourceLabel(string $sourceType): string
+    {
+        return str($sourceType)->replace('_', ' ')->headline()->value();
+    }
+
+    protected function sourceBadgeTone(string $sourceType): string
+    {
+        return match ($sourceType) {
+            'ai_generated' => 'warning',
+            'stock' => 'muted',
+            default => 'default',
+        };
+    }
+
+    protected function usageLabel(int $usageCount): string
+    {
+        return match (true) {
+            $usageCount <= 0 => 'Unused',
+            $usageCount === 1 => 'Used once',
+            default => $usageCount.' usages',
+        };
+    }
+
+    protected function usageBadgeTone(int $usageCount): string
+    {
+        return match (true) {
+            $usageCount <= 0 => 'muted',
+            $usageCount === 1 => 'warning',
+            default => 'success',
+        };
     }
 
     protected function mediaUrl(): MediaUrl
