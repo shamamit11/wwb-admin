@@ -1,14 +1,14 @@
-# Task: Optimize About And Contact CMS Editor UI
+# Task: Refine Legal Pages Shortcut Section UI
 
 Status: Completed
 
 ## Goal
 
-Apply the same structured, compact CMS editor pattern used on Homepage to the About Page and Contact Page singleton editors without changing backend behavior.
+Refine the Legal Pages shortcut section on the Pages admin screen so it feels more compact, practical, and secondary to the main page actions without changing backend behavior.
 
 ## Background
 
-The About and Contact editors are functional but still use the older always-expanded layout. This task focuses on bringing them in line with the improved Homepage editing experience: collapsible sections, sticky sidebars, clearer summaries/navigation, and stronger save/editing confidence.
+The Pages screen already works functionally, but the Legal Pages utility block feels oversized and overly button-heavy for a compact admin shortcut surface.
 
 ## Required Context
 
@@ -27,46 +27,41 @@ The About and Contact editors are functional but still use the older always-expa
 
 ## Files To Inspect
 
-- `app/Livewire/Admin/AboutPage/Index.php`
-- `resources/views/livewire/admin/about-page/index.blade.php`
-- `app/Livewire/Admin/ContactPage/Index.php`
-- `resources/views/livewire/admin/contact-page/index.blade.php`
+- `resources/views/livewire/admin/pages/index.blade.php`
 
 ## Files To Change
 
 - `.agent/tasks/current-task.md`
-- `resources/views/livewire/admin/about-page/index.blade.php`
-- `resources/views/livewire/admin/contact-page/index.blade.php`
+- `resources/views/livewire/admin/pages/index.blade.php`
 
 ## Implementation Steps
 
-1. Restructure About and Contact editors into collapsible sections while preserving all bindings and fields.
-2. Improve section headers, sidebar summary/navigation, sticky behavior, and top actions to match Homepage UX.
-3. Add lightweight save-state feedback and clearer section summaries on both singleton editors.
-4. Run narrow validation for About and Contact syntax and tests.
+1. Tighten the Legal Pages section layout, spacing, and card density.
+2. Move the legal filter actions inline in the header and reduce their visual weight.
+3. Simplify the legal shortcut cards while preserving status and actions.
+4. Run narrow validation for the Pages screen.
 5. Update task notes with validation and residual risk.
 
 ## Acceptance Criteria
 
-- About and Contact sections are no longer visually overwhelming because non-primary sections can collapse.
-- Both pages gain a more useful sticky sidebar and section navigation.
-- Preview actions become page-specific and clearer.
-- Existing About and Contact save behavior and bindings continue to work.
+- The Legal Pages section feels more compact and admin-friendly.
+- Filter buttons sit inline in the header and read as secondary controls.
+- Legal shortcut cards are smaller and easier to scan without losing status or actions.
+- Existing Pages routes, actions, and filtering behavior continue to work.
 
 ## Validation Commands
 
-- `php artisan test --filter=AboutPageIndexTest`
-- `php artisan test --filter=ContactPageIndexTest`
+- `php artisan test --filter=PageIndexTest`
 - `php artisan view:cache`
 
 ## Risks
 
-- The service payload does not expose rich per-section completion metadata, so section summaries and status chips must reflect only the currently available fields.
+- The legal shortcut cards still depend on the page summary data currently exposed by the service, so this pass should stay presentational only.
 
 ## Completion Notes
 
-- Reworked the About Page and Contact Page editors into collapsible section cards with Hero expanded by default.
-- Added saved/unsaved change indicators, page-specific preview labels, sticky desktop sidebars, and clickable section navigation on both pages.
-- Improved sidebar summaries and section header context so singleton page state is easier to scan before expanding sections.
-- Preserved all existing Livewire bindings, ordered list controls, save behavior, fields, and routes.
-- Validation passed with `php artisan test --filter=AboutPageIndexTest`, `php artisan test --filter=ContactPageIndexTest`, and `php artisan view:cache`.
+- Reduced the Legal Pages section padding and internal spacing so it reads as a compact admin utility block instead of a large content section.
+- Moved `Show Legal Only` and `Show All Pages` into the header area as small secondary controls and removed primary-orange competition with `Create Page`.
+- Tightened the legal shortcut cards, kept the two-card desktop layout, and simplified each card to title, status, slug, one summary line, and a small item action.
+- Preserved all existing filtering, edit/create actions, routes, and data bindings.
+- Validation passed with `php artisan test --filter=PageIndexTest` and `php artisan view:cache`.
