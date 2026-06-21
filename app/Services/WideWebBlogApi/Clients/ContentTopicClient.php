@@ -58,10 +58,10 @@ class ContentTopicClient
         );
     }
 
-    public function generateBrief(string $token, ?string $tokenType = 'Bearer', int $topicId = 0): array
+    public function generateDraft(string $token, ?string $tokenType = 'Bearer', int $topicId = 0): array
     {
         return $this->api->handle(
-            $this->api->authenticated($token, $tokenType)->post("/admin/content-topics/{$topicId}/generate-brief")
+            $this->api->authenticated($token, $tokenType)->post("/admin/content-topics/{$topicId}/generate-draft")
         );
     }
 }

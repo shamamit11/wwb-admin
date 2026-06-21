@@ -25,7 +25,7 @@ class AiJobScreensTest extends TestCase
             $this->apiBaseUrl.'/admin/ai-jobs*' => Http::response([
                 'data' => [
                     $this->jobResource(['id' => 11, 'type' => 'topic_discovery', 'status' => 'failed']),
-                    $this->jobResource(['id' => 12, 'type' => 'content_brief', 'status' => 'completed']),
+                    $this->jobResource(['id' => 12, 'type' => 'blog_writer', 'status' => 'completed']),
                 ],
             ], 200),
         ]);
@@ -38,7 +38,7 @@ class AiJobScreensTest extends TestCase
             ->assertSee('AI Jobs')
             ->assertSee('#11')
             ->assertSee('Topic Discovery')
-            ->assertSee('Content Brief')
+            ->assertSee('Blog Writer')
             ->assertSee('Failed Jobs');
     }
 
@@ -93,6 +93,52 @@ class AiJobScreensTest extends TestCase
             ->call('retry')
             ->assertHasNoErrors()
             ->assertSet('job.status', 'queued');
+    }
+
+    public function test_ai_job_detail_screen_renders_summary_first_operational_sections(): void
+    {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/ai-jobs/15' => Http::response([
+                'data' => $this->jobResource([
+                    'id' => 15,
+                    'type' => 'blog_writer',
+                    'status' => 'completed',
+                    'steps' => [
+                        [
+                            'id' => 71,
+                            'ai_job_id' => 15,
+                            'agent_name' => 'BlogWriterAgent',
+                            'status' => 'completed',
+                            'input_payload' => ['content_topic_id' => 52, 'prompt_key' => 'blog_standard'],
+                            'output_payload' => ['post_id' => 15, 'title' => 'AI Code Generation for Developers'],
+                            'usage_payload' => ['total_tokens' => 4190],
+                            'error_message' => null,
+                            'costs' => [],
+                            'started_at' => now()->subMinutes(3)->toISOString(),
+                            'completed_at' => now()->subMinutes(2)->toISOString(),
+                            'failed_at' => null,
+                            'created_at' => now()->subMinutes(3)->toISOString(),
+                            'updated_at' => now()->subMinutes(2)->toISOString(),
+                        ],
+                    ],
+                ]),
+            ], 200),
+        ]);
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('ai-jobs.show', ['aiJob' => 15]));
+
+        $response
+            ->assertOk()
+            ->assertSee('Job Summary')
+            ->assertSee('Queued')
+            ->assertSee('Completed')
+            ->assertSee('Generation Steps')
+            ->assertSee('Input Summary')
+            ->assertSee('Output Summary')
+            ->assertSee('View JSON')
+            ->assertSee('Copy')
+            ->assertSeeText('Token & Cost Usage');
     }
 
     protected function authenticatedSession(): array

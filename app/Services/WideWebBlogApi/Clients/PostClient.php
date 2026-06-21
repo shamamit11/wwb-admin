@@ -58,13 +58,6 @@ class PostClient
         );
     }
 
-    public function schedule(string $token, ?string $tokenType = 'Bearer', int $postId = 0, array $payload = []): array
-    {
-        return $this->api->handle(
-            $this->api->authenticated($token, $tokenType)->post("/admin/posts/{$postId}/schedule", $payload)
-        );
-    }
-
     public function unpublish(string $token, ?string $tokenType = 'Bearer', int $postId = 0): array
     {
         return $this->api->handle(

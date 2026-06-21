@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\TopicQueue;
 
 use App\Services\WideWebBlogApi\Clients\AiJobClient;
+use App\Services\WideWebBlogApi\Clients\CategoryClient;
 use App\Services\WideWebBlogApi\Clients\ContentTopicClient;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiAuthenticationException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiAuthorizationException;
@@ -17,26 +18,11 @@ use Livewire\Component;
 
 class Index extends Component
 {
-    private const TOPIC_STATUSES = [
-        'suggested',
-        'approved',
-        'rejected',
-        'used',
-    ];
+    private const TOPIC_STATUSES = ['suggested', 'approved', 'rejected', 'used'];
 
-    private const TOPIC_CLUSTERS = [
-        'ai_tools',
-        'ai_for_blogging',
-        'seo',
-        'content_marketing',
-        'productivity_automation',
-        'developer_ai',
-    ];
+    private const TOPIC_CLUSTERS = ['ai_tools', 'ai_for_blogging', 'seo', 'content_marketing', 'productivity_automation', 'developer_ai'];
 
-    private const TOPIC_SOURCES = [
-        'manual',
-        'ai_suggested',
-    ];
+    private const TOPIC_SOURCES = ['manual', 'ai_suggested'];
 
     private const PER_PAGE = 10;
 
@@ -48,6 +34,9 @@ class Index extends Component
 
     #[Url(as: 'cluster', except: 'all')]
     public string $clusterFilter = 'all';
+
+    #[Url(as: 'category', except: 'all')]
+    public string $categoryFilter = 'all';
 
     #[Url(as: 'source', except: 'all')]
     public string $sourceFilter = 'all';
@@ -62,34 +51,42 @@ class Index extends Component
 
     public bool $discoveryDialogOpen = false;
 
-    public string $discoveryCluster = 'ai_tools';
+    public string $discoveryCategoryId = '';
 
     public string $discoveryCount = '10';
 
     public string $discoveryAudience = '';
 
-    public string $discoveryPromptTemplateKey = '';
-
     public string $discoveryMetadata = '';
+
+    public array $categoryOptions = [];
 
     public ?string $pageError = null;
 
+    public ?string $categoryLoadError = null;
+
     public ?string $discoveryError = null;
 
-    public function mount(AdminSessionManager $session, ContentTopicClient $topics): mixed
+    public function mount(AdminSessionManager $session, ContentTopicClient $topics, CategoryClient $categories): mixed
     {
+        $categoryResult = $this->loadCategories($categories, $session);
+
+        if ($categoryResult !== null) {
+            return $categoryResult;
+        }
+
         return $this->loadTopics($topics, $session);
     }
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['discoveryCluster', 'discoveryCount', 'discoveryAudience', 'discoveryPromptTemplateKey', 'discoveryMetadata'], true)) {
+        if (in_array($property, ['discoveryCategoryId', 'discoveryCount', 'discoveryAudience', 'discoveryMetadata'], true)) {
             $this->validateOnly($property, $this->discoveryRules());
 
             return;
         }
 
-        if (in_array($property, ['search', 'statusFilter', 'clusterFilter', 'sourceFilter'], true)) {
+        if (in_array($property, ['search', 'statusFilter', 'categoryFilter', 'clusterFilter', 'sourceFilter'], true)) {
             $this->page = 1;
             $this->refreshTopics();
         }
@@ -97,7 +94,7 @@ class Index extends Component
 
     public function sortBy(string $sort): void
     {
-        if (! in_array($sort, ['created_at', '-created_at', 'updated_at', '-updated_at', 'approved_at', '-approved_at', 'used_at', '-used_at', 'priority_score', '-priority_score', 'title', '-title'], true)) {
+        if (! in_array($sort, ['created_at', '-created_at', 'updated_at', '-updated_at', 'priority_score', '-priority_score', 'title', '-title'], true)) {
             return;
         }
 
@@ -124,10 +121,9 @@ class Index extends Component
     {
         $this->resetValidation();
         $this->discoveryDialogOpen = true;
-        $this->discoveryCluster = $this->clusterFilter !== 'all' ? $this->clusterFilter : 'ai_tools';
+        $this->discoveryCategoryId = $this->categoryFilter !== 'all' ? $this->categoryFilter : $this->defaultDiscoveryCategoryId();
         $this->discoveryCount = '10';
         $this->discoveryAudience = '';
-        $this->discoveryPromptTemplateKey = '';
         $this->discoveryMetadata = '';
         $this->discoveryError = null;
     }
@@ -149,7 +145,7 @@ class Index extends Component
             $jobId = Arr::get($response, 'data.id');
 
             $this->closeDiscoveryDialog();
-            $this->flashJobAlert('Topic discovery job created.', $jobId);
+            session()->flash('status', 'Topic discovery job created.');
 
             if (is_int($jobId) || ctype_digit((string) $jobId)) {
                 return $this->redirectRoute('ai-jobs.show', ['aiJob' => (int) $jobId], navigate: true);
@@ -177,12 +173,43 @@ class Index extends Component
             'topics' => $this->paginatedTopics(),
             'statusOptions' => self::TOPIC_STATUSES,
             'clusterOptions' => self::TOPIC_CLUSTERS,
+            'categoryOptions' => $this->categoryOptions,
             'sourceOptions' => self::TOPIC_SOURCES,
             'pagination' => $this->paginationSummary(),
             'stats' => $this->stats(),
         ])->layout('layouts.admin', [
             'title' => 'Topic Queue',
         ]);
+    }
+
+    protected function loadCategories(CategoryClient $categories, AdminSessionManager $session): mixed
+    {
+        $this->categoryLoadError = null;
+
+        try {
+            $response = $categories->index($this->token($session), $session->tokenType());
+
+            $this->categoryOptions = collect(Arr::get($response, 'data', []))
+                ->map(fn (array $category): array => [
+                    'id' => (int) Arr::get($category, 'id'),
+                    'name' => (string) Arr::get($category, 'name', 'Category'),
+                    'slug' => (string) Arr::get($category, 'slug', ''),
+                    'is_active' => (bool) Arr::get($category, 'is_active', true),
+                ])
+                ->values()
+                ->all();
+
+            return null;
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiException $exception) {
+            $this->categoryOptions = [];
+            $this->categoryLoadError = $exception->getMessage() ?: 'Categories could not be loaded for topic discovery.';
+
+            return null;
+        }
     }
 
     protected function loadTopics(ContentTopicClient $topics, AdminSessionManager $session): mixed
@@ -217,29 +244,27 @@ class Index extends Component
         $this->loadTopics(app(ContentTopicClient::class), app(AdminSessionManager::class));
     }
 
-    protected function flashJobAlert(string $message, mixed $jobId): void
-    {
-        if (is_int($jobId) || ctype_digit((string) $jobId)) {
-            session()->flash('status', [
-                'message' => $message,
-                'link_href' => route('ai-jobs.show', ['aiJob' => (int) $jobId]),
-                'link_label' => 'Open AI Job',
-            ]);
-
-            return;
-        }
-
-        session()->flash('status', $message);
-    }
-
     protected function discoveryRules(): array
     {
         return [
-            'discoveryCluster' => ['required', 'in:'.implode(',', self::TOPIC_CLUSTERS)],
+            'discoveryCategoryId' => ['required', 'integer'],
             'discoveryCount' => ['nullable', 'integer', 'min:1', 'max:25'],
             'discoveryAudience' => ['nullable', 'string', 'max:255'],
-            'discoveryPromptTemplateKey' => ['nullable', 'string', 'max:190'],
             'discoveryMetadata' => ['nullable', 'string'],
+        ];
+    }
+
+    protected function topicDiscoveryPayload(array $validated): array
+    {
+        return [
+            'category_id' => (int) $validated['discoveryCategoryId'],
+            'count' => filled($validated['discoveryCount']) ? (int) $validated['discoveryCount'] : null,
+            'audience' => filled($validated['discoveryAudience']) ? trim($validated['discoveryAudience']) : null,
+            'metadata' => collect(explode(',', (string) ($validated['discoveryMetadata'] ?? '')))
+                ->map(fn (string $item): string => trim($item))
+                ->filter()
+                ->values()
+                ->all(),
         ];
     }
 
@@ -248,6 +273,7 @@ class Index extends Component
         return [
             'search' => trim($this->search) !== '' ? trim($this->search) : null,
             'status' => $this->statusFilter !== 'all' ? $this->statusFilter : null,
+            'category_id' => $this->categoryFilter !== 'all' ? (int) $this->categoryFilter : null,
             'cluster' => $this->clusterFilter !== 'all' ? $this->clusterFilter : null,
             'source' => $this->sourceFilter !== 'all' ? $this->sourceFilter : null,
             'sort' => $this->sort,
@@ -256,57 +282,38 @@ class Index extends Component
 
     protected function mapTopic(array $topic): array
     {
-        $priorityScore = Arr::get($topic, 'priority_score');
+        $rawScore = Arr::get($topic, 'priority_score', Arr::get($topic, 'score'));
+        $score = is_numeric($rawScore) ? (float) $rawScore : null;
+        $scoreBreakdown = $this->normalizeScoreBreakdown(Arr::get($topic, 'score_breakdown'));
 
         return [
-            'id' => Arr::get($topic, 'id'),
-            'title' => Arr::get($topic, 'title', 'Untitled topic'),
-            'slug' => Arr::get($topic, 'slug', ''),
+            'id' => (int) Arr::get($topic, 'id'),
+            'category_id' => Arr::get($topic, 'category_id'),
+            'category_name' => (string) Arr::get($topic, 'category.name', 'Unassigned'),
+            'category_slug' => (string) Arr::get($topic, 'category.slug', ''),
+            'title' => (string) Arr::get($topic, 'title', 'Untitled topic'),
+            'slug' => (string) Arr::get($topic, 'slug', ''),
             'cluster' => (string) Arr::get($topic, 'cluster', ''),
-            'primary_keyword' => Arr::get($topic, 'primary_keyword'),
-            'secondary_keywords' => Arr::get($topic, 'secondary_keywords', []),
-            'search_intent' => Arr::get($topic, 'search_intent'),
-            'priority_score' => $priorityScore,
-            'priority_score_label' => is_numeric($priorityScore) ? number_format((float) $priorityScore, 2) : 'TBC',
-            'difficulty_note' => Arr::get($topic, 'difficulty_note'),
+            'primary_keyword' => (string) Arr::get($topic, 'primary_keyword', ''),
+            'search_intent' => (string) Arr::get($topic, 'search_intent', ''),
+            'priority_score' => $score,
+            'priority_score_label' => $score !== null ? number_format($score, $score === floor($score) ? 0 : 2) : 'Not scored',
+            'score_breakdown' => $scoreBreakdown,
+            'score_breakdown_summary' => $this->scoreBreakdownSummary($scoreBreakdown),
             'source' => (string) Arr::get($topic, 'source', 'manual'),
             'status' => (string) Arr::get($topic, 'status', 'suggested'),
-            'notes' => Arr::get($topic, 'notes'),
-            'can_generate_content_brief' => (bool) Arr::get($topic, 'can_generate_content_brief', false),
-            'approved_at' => $this->formatTimestamp(Arr::get($topic, 'approved_at')),
-            'rejected_at' => $this->formatTimestamp(Arr::get($topic, 'rejected_at')),
-            'used_at' => $this->formatTimestamp(Arr::get($topic, 'used_at')),
             'created_at' => $this->formatTimestamp(Arr::get($topic, 'created_at')),
-            'created_at_raw' => Arr::get($topic, 'created_at'),
+            'updated_at' => $this->formatTimestamp(Arr::get($topic, 'updated_at')),
+            'automation_state' => $score === null
+                ? 'Score pending'
+                : ($score >= 90 ? 'Auto-queues draft generation' : 'Auto-pruned below 90'),
+            'automation_tone' => $score === null ? 'muted' : ($score >= 90 ? 'success' : 'warning'),
         ];
-    }
-
-    protected function topicDiscoveryPayload(array $validated): array
-    {
-        return array_filter([
-            'cluster' => $validated['discoveryCluster'],
-            'count' => filled($validated['discoveryCount']) ? (int) $validated['discoveryCount'] : null,
-            'audience' => filled($validated['discoveryAudience']) ? trim($validated['discoveryAudience']) : null,
-            'prompt_template_key' => filled($validated['discoveryPromptTemplateKey']) ? trim($validated['discoveryPromptTemplateKey']) : null,
-            'metadata' => $this->metadataList($validated['discoveryMetadata'] ?? ''),
-        ], fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []);
-    }
-
-    protected function metadataList(string $metadata): array
-    {
-        return collect(explode(',', $metadata))
-            ->map(fn (string $item): string => trim($item))
-            ->filter()
-            ->values()
-            ->all();
     }
 
     protected function paginatedTopics(): array
     {
-        return collect($this->topics)
-            ->forPage($this->page, self::PER_PAGE)
-            ->values()
-            ->all();
+        return collect($this->topics)->forPage($this->page, self::PER_PAGE)->values()->all();
     }
 
     protected function paginationSummary(): array
@@ -318,7 +325,6 @@ class Index extends Component
         return [
             'page' => $this->page,
             'last_page' => $this->lastPage(),
-            'per_page' => self::PER_PAGE,
             'total' => $total,
             'first_item' => $first,
             'last_item' => $last,
@@ -335,21 +341,74 @@ class Index extends Component
     {
         return [
             [
-                'label' => 'Suggested Topics',
-                'value' => collect($this->topics)->where('status', 'suggested')->count(),
-                'tone' => 'warning',
-            ],
-            [
-                'label' => 'Approved Topics',
-                'value' => collect($this->topics)->where('status', 'approved')->count(),
+                'label' => 'Topics At 90+',
+                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) >= 90)->count(),
                 'tone' => 'success',
             ],
             [
-                'label' => 'Used Topics',
-                'value' => collect($this->topics)->where('status', 'used')->count(),
-                'tone' => 'info',
+                'label' => 'Below 90',
+                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) < 90)->count(),
+                'tone' => 'warning',
+            ],
+            [
+                'label' => 'Categories In Queue',
+                'value' => collect($this->topics)->pluck('category_id')->filter()->unique()->count(),
+                'tone' => 'default',
             ],
         ];
+    }
+
+    protected function normalizeScoreBreakdown(mixed $scoreBreakdown): array
+    {
+        if (is_array($scoreBreakdown)) {
+            return $scoreBreakdown;
+        }
+
+        if (is_string($scoreBreakdown) && $scoreBreakdown !== '') {
+            $decoded = json_decode($scoreBreakdown, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
+
+    protected function scoreBreakdownSummary(array $scoreBreakdown): ?string
+    {
+        $labels = [
+            'trend_score' => 'Trend',
+            'knowledge_base_fit' => 'KB Fit',
+            'business_value' => 'Value',
+            'originality_gap' => 'Gap',
+            'execution_confidence' => 'Confidence',
+        ];
+
+        $parts = collect($labels)
+            ->map(function (string $label, string $key) use ($scoreBreakdown): ?string {
+                $value = Arr::get($scoreBreakdown, $key);
+
+                return is_numeric($value) ? $label.' '.$value : null;
+            })
+            ->filter()
+            ->values()
+            ->take(3)
+            ->all();
+
+        return $parts === [] ? null : implode(' · ', $parts);
+    }
+
+    protected function defaultDiscoveryCategoryId(): string
+    {
+        $activeCategory = collect($this->categoryOptions)->firstWhere('is_active', true);
+        $activeCategoryId = is_array($activeCategory) ? ($activeCategory['id'] ?? null) : null;
+
+        if (is_int($activeCategoryId)) {
+            return (string) $activeCategoryId;
+        }
+
+        $firstCategoryId = $this->categoryOptions[0]['id'] ?? null;
+
+        return is_int($firstCategoryId) ? (string) $firstCategoryId : '';
     }
 
     protected function formatTimestamp(mixed $value): ?string
@@ -367,22 +426,17 @@ class Index extends Component
 
     protected function normalizeApiErrors(array $errors): array
     {
-        $mapped = [];
-
-        foreach ($errors as $field => $messages) {
-            $property = match ($field) {
-                'cluster' => 'discoveryCluster',
-                'count' => 'discoveryCount',
-                'audience' => 'discoveryAudience',
-                'prompt_template_key' => 'discoveryPromptTemplateKey',
-                'metadata' => 'discoveryMetadata',
-                default => $field,
-            };
-
-            $mapped[$property] = $messages;
-        }
-
-        return $mapped;
+        return collect($errors)
+            ->mapWithKeys(fn (array $messages, string $key): array => [
+                match ($key) {
+                    'category_id' => 'discoveryCategoryId',
+                    'count' => 'discoveryCount',
+                    'audience' => 'discoveryAudience',
+                    'metadata' => 'discoveryMetadata',
+                    default => $key,
+                } => $messages,
+            ])
+            ->all();
     }
 
     protected function token(AdminSessionManager $session): string
@@ -403,7 +457,7 @@ class Index extends Component
     protected function forbidden(AdminSessionManager $session): mixed
     {
         $session->clear();
-        session()->flash('auth.error', 'Your account is not authorized for the admin panel.');
+        session()->flash('auth.error', 'You no longer have access to the admin.');
 
         return $this->redirectRoute('auth.forbidden', navigate: true);
     }

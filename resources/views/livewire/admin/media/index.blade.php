@@ -12,6 +12,16 @@
         </div>
     @endif
 
+    <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        @foreach ($summaryCards as $card)
+            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)]">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $card['label'] }}</p>
+                <p class="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">{{ number_format($card['value']) }}</p>
+                <p class="mt-2 text-sm text-[var(--color-muted)]">{{ $card['hint'] }}</p>
+            </div>
+        @endforeach
+    </section>
+
     <x-admin.filter-bar>
         <x-slot:search>
             <label class="block">
@@ -56,9 +66,30 @@
             </div>
         </x-slot:filters>
 
-        <x-slot:results>{{ count($mediaItems) }} {{ str('asset')->plural(count($mediaItems)) }}</x-slot:results>
+        <x-slot:results>
+            <div class="flex flex-wrap items-center gap-2">
+                <span>{{ count($mediaItems) }} {{ str('asset')->plural(count($mediaItems)) }}</span>
+                <div class="inline-flex rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-1">
+                    <button
+                        type="button"
+                        wire:click="setViewMode('table')"
+                        class="{{ $viewMode === 'table' ? 'bg-[var(--color-panel)] text-[var(--color-ink)] shadow-sm' : 'text-[var(--color-muted)]' }} rounded-[calc(var(--radius-button)-1px)] px-3 py-1.5 text-xs font-medium transition-colors"
+                    >
+                        Table
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="setViewMode('grid')"
+                        class="{{ $viewMode === 'grid' ? 'bg-[var(--color-panel)] text-[var(--color-ink)] shadow-sm' : 'text-[var(--color-muted)]' }} rounded-[calc(var(--radius-button)-1px)] px-3 py-1.5 text-xs font-medium transition-colors"
+                    >
+                        Grid
+                    </button>
+                </div>
+            </div>
+        </x-slot:results>
     </x-admin.filter-bar>
 
+    @if ($viewMode === 'table')
     <x-ui.table caption="Media library" density="compact">
         <x-ui.table-head>
             <tr>
@@ -76,33 +107,43 @@
             @forelse ($mediaItems as $item)
                 <x-ui.table-row interactive wire:key="media-{{ $item['id'] }}">
                     <x-ui.table-cell width="asset-preview">
-                        <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
+                        <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="group flex h-[4.5rem] w-[4.5rem] items-center justify-center overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-accent)]">
                             @if ($item['is_image'] && $item['url'])
-                                <img src="{{ $item['url'] }}" alt="{{ $item['alt_text'] ?: $item['original_filename'] }}" class="h-full w-full object-cover">
+                                <img src="{{ $item['url'] }}" alt="{{ $item['alt_text'] ?: $item['original_filename'] }}" class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]">
                             @else
                                 <span class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $item['extension'] ?: 'FILE' }}</span>
                             @endif
                         </button>
                     </x-ui.table-cell>
                     <x-ui.table-cell width="content-primary">
-                        <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="min-w-0 text-left">
-                            <p class="truncate font-semibold text-[var(--color-ink)]">{{ $item['original_filename'] }}</p>
-                            <p class="mt-1 text-sm text-[var(--color-muted)]">
+                        <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="min-w-0 max-w-full text-left">
+                            <p class="truncate text-sm font-semibold text-[var(--color-ink)] sm:text-[15px]">{{ $item['original_filename'] }}</p>
+                            <p class="mt-1 truncate text-sm text-[var(--color-muted)]">
                                 {{ $item['mime_type'] }} · {{ $item['file_size_label'] }}
                                 @if ($item['width'] && $item['height'])
                                     · {{ $item['width'] }}×{{ $item['height'] }}
                                 @endif
                             </p>
+                            @if ($item['alt_text'])
+                                <p class="mt-1 truncate text-sm text-[var(--color-ink)]">{{ $item['alt_text'] }}</p>
+                            @elseif ($item['caption'])
+                                <p class="mt-1 truncate text-sm text-[var(--color-muted)]">{{ $item['caption'] }}</p>
+                            @endif
                         </button>
                     </x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ str($item['source_type'])->replace('_', ' ')->headline() }}</x-ui.table-cell>
+                    <x-ui.table-cell>
+                        <x-ui.badge :tone="$item['source_badge_tone']" class="whitespace-nowrap">{{ $item['source_label'] }}</x-ui.badge>
+                    </x-ui.table-cell>
                     <x-ui.table-cell>
                         <x-admin.status-badge :status="$item['status']" />
                     </x-ui.table-cell>
                     <x-ui.table-cell align="center">
-                        <x-ui.badge :tone="$item['usage_count'] > 0 ? 'warning' : 'muted'">
-                            {{ $item['usage_count'] }}
-                        </x-ui.badge>
+                        <div class="space-y-1">
+                            <div class="flex justify-center">
+                                <x-ui.badge :tone="$item['usage_badge_tone']">{{ $item['usage_count'] }}</x-ui.badge>
+                            </div>
+                            <p class="text-xs font-medium text-[var(--color-muted)]">{{ $item['usage_label'] }}</p>
+                        </div>
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $item['created_at'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
@@ -136,6 +177,74 @@
             @endforelse
         </x-ui.table-body>
     </x-ui.table>
+    @else
+        @if ($mediaItems !== [])
+            <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                @foreach ($mediaItems as $item)
+                    <article wire:key="media-grid-{{ $item['id'] }}" class="overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)]">
+                        <button type="button" wire:click="openDetailDrawer({{ $item['id'] }})" class="block w-full text-left">
+                            <div class="aspect-[16/10] overflow-hidden bg-[var(--color-panel-soft)]">
+                                @if ($item['is_image'] && $item['url'])
+                                    <img src="{{ $item['url'] }}" alt="{{ $item['alt_text'] ?: $item['original_filename'] }}" class="h-full w-full object-cover transition-transform duration-200 hover:scale-[1.02]">
+                                @else
+                                    <div class="flex h-full items-center justify-center text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $item['extension'] ?: 'FILE' }}</div>
+                                @endif
+                            </div>
+
+                            <div class="space-y-3 px-4 py-4">
+                                <div>
+                                    <p class="truncate text-sm font-semibold text-[var(--color-ink)]">{{ $item['original_filename'] }}</p>
+                                    <p class="mt-1 truncate text-sm text-[var(--color-muted)]">{{ $item['mime_type'] }} · {{ $item['file_size_label'] }}</p>
+                                    @if ($item['alt_text'])
+                                        <p class="mt-1 truncate text-sm text-[var(--color-ink)]">{{ $item['alt_text'] }}</p>
+                                    @elseif ($item['caption'])
+                                        <p class="mt-1 truncate text-sm text-[var(--color-muted)]">{{ $item['caption'] }}</p>
+                                    @endif
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <x-ui.badge :tone="$item['source_badge_tone']" class="whitespace-nowrap">{{ $item['source_label'] }}</x-ui.badge>
+                                    <x-admin.status-badge :status="$item['status']" />
+                                </div>
+
+                                <div class="flex items-center justify-between gap-3 text-sm">
+                                    <span class="text-[var(--color-muted)]">{{ $item['usage_label'] }}</span>
+                                    <x-ui.badge :tone="$item['usage_badge_tone']">{{ $item['usage_count'] }}</x-ui.badge>
+                                </div>
+                            </div>
+                        </button>
+
+                        <div class="border-t border-[var(--color-line)] px-4 py-3">
+                            <div
+                                x-data="{ copied: false, async copyUrl() { const url = @js($item['url'] ?? ''); if (! url) { return; } if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(url); } else { const input = document.createElement('input'); input.value = url; document.body.appendChild(input); input.select(); document.execCommand('copy'); input.remove(); } this.copied = true; setTimeout(() => this.copied = false, 1600); } }"
+                                class="flex justify-end"
+                            >
+                                <x-admin.row-actions>
+                                    <x-admin.row-action
+                                        type="button"
+                                        class="text-[var(--color-muted)]"
+                                        x-on:click="copyUrl()"
+                                        x-bind:aria-label="copied ? 'Copied media URL for {{ $item['original_filename'] }}' : 'Copy media URL for {{ $item['original_filename'] }}'"
+                                        x-bind:title="copied ? 'Copied' : 'Copy URL'"
+                                    >
+                                        <span x-show="! copied">Copy URL</span>
+                                        <span x-cloak x-show="copied">Copied</span>
+                                    </x-admin.row-action>
+                                    <x-admin.row-action type="button" wire:click="openDetailDrawer({{ $item['id'] }})">Edit</x-admin.row-action>
+                                    <x-admin.row-action type="button" tone="danger" wire:click="confirmDelete({{ $item['id'] }})">Delete</x-admin.row-action>
+                                </x-admin.row-actions>
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+            </section>
+        @else
+            <div class="rounded-[var(--radius-card)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-14 text-center shadow-[var(--shadow-card)]">
+                <p class="text-sm font-semibold text-[var(--color-ink)]">No media matches the current view</p>
+                <p class="mt-2 text-sm text-[var(--color-muted)]">Adjust the search or filters to find an existing asset.</p>
+            </div>
+        @endif
+    @endif
 
     <x-ui.drawer
         :open="$uploadDrawerOpen"

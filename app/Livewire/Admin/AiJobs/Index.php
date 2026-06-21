@@ -26,7 +26,6 @@ class Index extends Component
 
     private const COMMON_JOB_TYPES = [
         'topic_discovery',
-        'content_brief',
         'blog_writer',
     ];
 

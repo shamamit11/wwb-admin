@@ -16,20 +16,20 @@ use Livewire\Component;
 
 class Show extends Component
 {
-    private const PROMPT_TYPES = [
-        'topic_discovery',
-        'content_brief',
-        'blog_writer',
-        'editor',
-        'seo_optimizer',
-        'publishing',
+    private const PROMPT_FAMILIES = [
+        'topic_standard' => [
+            'label' => 'Topic Standard',
+            'type' => 'topic_discovery',
+            'description' => 'Used for topic discovery from categories and knowledge base context.',
+        ],
+        'blog_standard' => [
+            'label' => 'Blog Standard',
+            'type' => 'blog_writer',
+            'description' => 'Used for full article draft generation once a topic passes the score threshold.',
+        ],
     ];
 
-    private const PROMPT_STATUSES = [
-        'draft',
-        'active',
-        'archived',
-    ];
+    private const PROMPT_STATUSES = ['draft', 'active', 'archived'];
 
     public ?int $promptId = null;
 
@@ -47,7 +47,7 @@ class Show extends Component
 
     public string $name = '';
 
-    public string $key = '';
+    public string $key = 'topic_standard';
 
     public string $type = 'topic_discovery';
 
@@ -81,6 +81,7 @@ class Show extends Component
     {
         $this->promptId = $aiPrompt;
         $this->creating = $aiPrompt === null;
+        $this->applyFamilyDefaults($this->key);
 
         if ($this->creating) {
             return null;
@@ -93,8 +94,8 @@ class Show extends Component
     {
         return [
             'name' => ['required', 'string', 'max:160'],
-            'key' => ['required', 'string', 'max:180'],
-            'type' => ['required', Rule::in(self::PROMPT_TYPES)],
+            'key' => ['required', Rule::in(array_keys(self::PROMPT_FAMILIES))],
+            'type' => ['required', Rule::in(array_column(self::PROMPT_FAMILIES, 'type'))],
             'description' => ['nullable', 'string'],
             'status' => ['required', Rule::in(self::PROMPT_STATUSES)],
             'initialSystemPrompt' => [Rule::requiredIf($this->creating), 'nullable', 'string'],
@@ -116,6 +117,10 @@ class Show extends Component
 
     public function updated(string $property): void
     {
+        if ($property === 'key') {
+            $this->applyFamilyDefaults($this->key);
+        }
+
         $validatable = [
             'name', 'key', 'type', 'description', 'status',
             'initialSystemPrompt', 'initialUserPrompt', 'initialOutputSchemaJson', 'initialVariablesText', 'initialVersionStatus',
@@ -129,20 +134,16 @@ class Show extends Component
 
     public function save(AiPromptClient $prompts, AdminSessionManager $session): mixed
     {
+        $this->applyFamilyDefaults($this->key);
         $validated = $this->validate();
         $this->formError = null;
 
         try {
             if ($this->creating) {
-                $response = $prompts->store(
-                    $this->token($session),
-                    $session->tokenType(),
-                    $this->storePayload($validated),
-                );
-
+                $response = $prompts->store($this->token($session), $session->tokenType(), $this->storePayload($validated));
                 $id = Arr::get($response, 'data.id');
 
-                session()->flash('status', 'Prompt template created.');
+                session()->flash('status', 'Standard prompt created.');
 
                 if (is_numeric($id)) {
                     return $this->redirect(route('ai-prompts.show', ['aiPrompt' => $id]), navigate: true);
@@ -151,15 +152,9 @@ class Show extends Component
                 return null;
             }
 
-            $response = $prompts->update(
-                $this->token($session),
-                $session->tokenType(),
-                $this->promptId ?? 0,
-                $this->updatePayload($validated),
-            );
-
+            $response = $prompts->update($this->token($session), $session->tokenType(), $this->promptId ?? 0, $this->updatePayload($validated));
             $this->fillFromPrompt(Arr::get($response, 'data', []));
-            session()->flash('status', 'Prompt template updated.');
+            session()->flash('status', 'Prompt metadata updated.');
 
             return null;
         } catch (WideWebBlogApiValidationException $exception) {
@@ -171,7 +166,7 @@ class Show extends Component
         } catch (WideWebBlogApiAuthorizationException) {
             return $this->forbidden($session);
         } catch (WideWebBlogApiException $exception) {
-            $this->formError = $exception->getMessage() ?: 'The prompt template could not be saved.';
+            $this->formError = $exception->getMessage() ?: 'The prompt could not be saved.';
 
             return null;
         }
@@ -196,18 +191,10 @@ class Show extends Component
         $this->versionError = null;
 
         try {
-            $prompts->storeVersion(
-                $this->token($session),
-                $session->tokenType(),
-                $this->promptId,
-                $this->versionPayload($validated),
-            );
+            $prompts->storeVersion($this->token($session), $session->tokenType(), $this->promptId, $this->versionPayload($validated));
+            $this->resetVersionDraft();
 
-            $this->resetVersionForm();
-            $this->loadPrompt($prompts, $session);
-            session()->flash('status', 'Prompt version created.');
-
-            return null;
+            return $this->loadPrompt($prompts, $session);
         } catch (WideWebBlogApiValidationException $exception) {
             $this->versionError = $exception->getMessage();
 
@@ -217,13 +204,13 @@ class Show extends Component
         } catch (WideWebBlogApiAuthorizationException) {
             return $this->forbidden($session);
         } catch (WideWebBlogApiException $exception) {
-            $this->versionError = $exception->getMessage() ?: 'The prompt version could not be created.';
+            $this->versionError = $exception->getMessage() ?: 'A new prompt version could not be created.';
 
             return null;
         }
     }
 
-    public function activateVersion(int $versionId, AiPromptClient $prompts, AdminSessionManager $session): mixed
+    public function activateVersion(AiPromptClient $prompts, AdminSessionManager $session, int $versionId): mixed
     {
         if ($this->creating || ! $this->promptId) {
             return null;
@@ -232,13 +219,7 @@ class Show extends Component
         $this->actionError = null;
 
         try {
-            $response = $prompts->activateVersion(
-                $this->token($session),
-                $session->tokenType(),
-                $this->promptId,
-                $versionId,
-            );
-
+            $response = $prompts->activateVersion($this->token($session), $session->tokenType(), $this->promptId, $versionId);
             $this->fillFromPrompt(Arr::get($response, 'data', []));
             session()->flash('status', 'Prompt version activated.');
 
@@ -256,27 +237,26 @@ class Show extends Component
 
     public function render()
     {
+        $family = self::PROMPT_FAMILIES[$this->key] ?? null;
+
         return view('livewire.admin.ai-prompts.show', [
-            'typeOptions' => self::PROMPT_TYPES,
+            'familyOptions' => self::PROMPT_FAMILIES,
             'statusOptions' => self::PROMPT_STATUSES,
-            'activeVersion' => $this->prompt['active_version'] ?? null,
-            'versions' => $this->prompt['versions'] ?? [],
+            'activeVersion' => $this->activeVersion(),
+            'versions' => $this->versions(),
+            'family' => $family,
         ])->layout('layouts.admin', [
-            'title' => $this->creating ? 'Create Prompt Template' : 'Prompt Template Detail',
+            'title' => $this->creating ? 'Create Standard Prompt' : 'Edit Standard Prompt',
         ]);
     }
 
     protected function loadPrompt(AiPromptClient $prompts, AdminSessionManager $session): mixed
     {
-        if (! $this->promptId) {
-            return null;
-        }
-
         $this->pageError = null;
         $this->notFound = false;
 
         try {
-            $response = $prompts->show($this->token($session), $session->tokenType(), $this->promptId);
+            $response = $prompts->show($this->token($session), $session->tokenType(), $this->promptId ?? 0);
             $this->fillFromPrompt(Arr::get($response, 'data', []));
 
             return null;
@@ -287,12 +267,12 @@ class Show extends Component
         } catch (WideWebBlogApiException $exception) {
             if ($exception->status() === 404) {
                 $this->notFound = true;
-                $this->pageError = 'This prompt template could not be found in the service API.';
+                $this->pageError = 'This prompt could not be found in the service API.';
 
                 return null;
             }
 
-            $this->pageError = $exception->getMessage() ?: 'Prompt template details could not be loaded.';
+            $this->pageError = $exception->getMessage() ?: 'Prompt details could not be loaded.';
 
             return null;
         }
@@ -300,72 +280,69 @@ class Show extends Component
 
     protected function fillFromPrompt(array $prompt): void
     {
-        $this->prompt = $this->mapPrompt($prompt);
-        $this->name = (string) ($this->prompt['name'] ?? '');
-        $this->key = (string) ($this->prompt['key'] ?? '');
-        $this->type = (string) ($this->prompt['type'] ?? 'topic_discovery');
-        $this->description = (string) ($this->prompt['description'] ?? '');
-        $this->status = (string) ($this->prompt['status'] ?? 'draft');
+        $this->prompt = $prompt;
+        $this->name = (string) Arr::get($prompt, 'name', '');
+        $this->key = (string) Arr::get($prompt, 'key', 'topic_standard');
+        $this->applyFamilyDefaults($this->key);
+        $this->description = (string) Arr::get($prompt, 'description', '');
+        $this->status = (string) Arr::get($prompt, 'status', 'draft');
     }
 
-    protected function mapPrompt(array $prompt): array
+    protected function activeVersion(): ?array
     {
-        return [
-            'id' => Arr::get($prompt, 'id'),
-            'name' => Arr::get($prompt, 'name', 'Untitled prompt'),
-            'key' => Arr::get($prompt, 'key', ''),
-            'type' => Arr::get($prompt, 'type', ''),
-            'description' => Arr::get($prompt, 'description'),
-            'status' => Arr::get($prompt, 'status', 'draft'),
-            'active_version_id' => Arr::get($prompt, 'active_version_id'),
-            'versions_count' => (int) Arr::get($prompt, 'versions_count', count(Arr::get($prompt, 'versions', []))),
-            'created_at' => $this->formatTimestamp(Arr::get($prompt, 'created_at')),
-            'updated_at' => $this->formatTimestamp(Arr::get($prompt, 'updated_at')),
-            'active_version' => $this->mapVersion(Arr::get($prompt, 'active_version')),
-            'versions' => collect(Arr::get($prompt, 'versions', []))
-                ->map(fn (array $version): array => $this->mapVersion($version))
-                ->sortByDesc('version')
-                ->values()
-                ->all(),
-        ];
+        $version = Arr::get($this->prompt, 'active_version');
+
+        return is_array($version) ? $this->mapVersion($version) : null;
     }
 
-    protected function mapVersion(mixed $version): ?array
+    protected function versions(): array
     {
-        if (! is_array($version)) {
-            return null;
-        }
+        return collect(Arr::get($this->prompt, 'versions', []))
+            ->filter(fn (mixed $version): bool => is_array($version))
+            ->map(fn (array $version): array => $this->mapVersion($version))
+            ->sortByDesc('version')
+            ->values()
+            ->all();
+    }
 
+    protected function mapVersion(array $version): array
+    {
         return [
-            'id' => Arr::get($version, 'id'),
-            'prompt_template_id' => Arr::get($version, 'prompt_template_id'),
-            'version' => Arr::get($version, 'version'),
-            'system_prompt' => Arr::get($version, 'system_prompt', ''),
-            'user_prompt' => Arr::get($version, 'user_prompt', ''),
-            'output_schema' => Arr::get($version, 'output_schema'),
+            'id' => (int) Arr::get($version, 'id'),
+            'version' => (int) Arr::get($version, 'version', 1),
+            'system_prompt' => (string) Arr::get($version, 'system_prompt', ''),
+            'user_prompt' => (string) Arr::get($version, 'user_prompt', ''),
             'output_schema_json' => $this->prettyJson(Arr::get($version, 'output_schema')),
-            'variables' => Arr::get($version, 'variables', []),
-            'variables_text' => collect(Arr::get($version, 'variables', []))
-                ->filter(fn (mixed $variable): bool => is_string($variable) && $variable !== '')
-                ->implode("\n"),
-            'status' => Arr::get($version, 'status', 'draft'),
+            'variables_text' => collect(Arr::get($version, 'variables', []))->join("\n"),
+            'status' => (string) Arr::get($version, 'status', 'draft'),
             'created_at' => $this->formatTimestamp(Arr::get($version, 'created_at')),
             'updated_at' => $this->formatTimestamp(Arr::get($version, 'updated_at')),
         ];
     }
 
+    protected function applyFamilyDefaults(string $key): void
+    {
+        $family = self::PROMPT_FAMILIES[$key] ?? self::PROMPT_FAMILIES['topic_standard'];
+        $this->key = array_key_exists($key, self::PROMPT_FAMILIES) ? $key : 'topic_standard';
+        $this->type = $family['type'];
+
+        if (trim($this->description) === '' && $this->creating) {
+            $this->description = $family['description'];
+        }
+    }
+
     protected function storePayload(array $validated): array
     {
         return [
-            'name' => $validated['name'],
+            'name' => trim($validated['name']),
             'key' => $validated['key'],
-            'type' => $validated['type'],
-            'description' => $validated['description'] !== '' ? $validated['description'] : null,
+            'type' => $this->type,
+            'description' => filled($validated['description']) ? trim($validated['description']) : null,
             'status' => $validated['status'],
             'initial_version' => [
-                'system_prompt' => $validated['initialSystemPrompt'],
-                'user_prompt' => $validated['initialUserPrompt'],
-                'output_schema' => $this->decodeJsonArray($validated['initialOutputSchemaJson'] ?? null),
+                'system_prompt' => trim((string) $validated['initialSystemPrompt']),
+                'user_prompt' => trim((string) $validated['initialUserPrompt']),
+                'output_schema' => $this->decodedJsonArrayPayload($validated['initialOutputSchemaJson'] ?? ''),
                 'variables' => $this->variablesPayload($validated['initialVariablesText'] ?? ''),
                 'status' => $validated['initialVersionStatus'],
             ],
@@ -375,10 +352,10 @@ class Show extends Component
     protected function updatePayload(array $validated): array
     {
         return [
-            'name' => $validated['name'],
+            'name' => trim($validated['name']),
             'key' => $validated['key'],
-            'type' => $validated['type'],
-            'description' => $validated['description'] !== '' ? $validated['description'] : null,
+            'type' => $this->type,
+            'description' => filled($validated['description']) ? trim($validated['description']) : null,
             'status' => $validated['status'],
         ];
     }
@@ -386,118 +363,92 @@ class Show extends Component
     protected function versionPayload(array $validated): array
     {
         return [
-            'system_prompt' => $validated['versionSystemPrompt'],
-            'user_prompt' => $validated['versionUserPrompt'],
-            'output_schema' => $this->decodeJsonArray($validated['versionOutputSchemaJson'] ?? null),
+            'system_prompt' => trim((string) $validated['versionSystemPrompt']),
+            'user_prompt' => trim((string) $validated['versionUserPrompt']),
+            'output_schema' => $this->decodedJsonArrayPayload($validated['versionOutputSchemaJson'] ?? ''),
             'variables' => $this->variablesPayload($validated['versionVariablesText'] ?? ''),
             'status' => $validated['versionStatus'],
         ];
     }
 
-    protected function variablesPayload(string $value): ?array
+    protected function variablesPayload(string $value): array
     {
-        $variables = collect(preg_split('/\r\n|\r|\n/', $value) ?: [])
+        return collect(preg_split("/\r\n|\n|\r/", $value) ?: [])
             ->map(fn (string $line): string => trim($line))
             ->filter()
             ->values()
             ->all();
-
-        return $variables !== [] ? $variables : null;
     }
 
     protected function validateJsonArrayPayload(string $attribute, mixed $value, \Closure $fail): void
     {
-        if ($value === null || trim((string) $value) === '') {
+        if (! is_string($value) || trim($value) === '') {
             return;
         }
 
         try {
-            $decoded = json_decode((string) $value, true, flags: JSON_THROW_ON_ERROR);
+            $decoded = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            $fail('The '.$this->attributeLabel($attribute).' field must be valid JSON.');
+            $fail('The field must contain valid JSON.');
 
             return;
         }
 
-        if (! is_array($decoded) || array_is_list($decoded) === false) {
-            $fail('The '.$this->attributeLabel($attribute).' field must be a JSON array.');
+        if (! is_array($decoded)) {
+            $fail('The field must decode to a JSON array.');
         }
     }
 
-    protected function decodeJsonArray(?string $value): ?array
+    protected function decodedJsonArrayPayload(string $value): ?array
     {
-        if ($value === null || trim($value) === '') {
+        if (trim($value) === '') {
             return null;
         }
 
-        $decoded = json_decode($value, true);
+        try {
+            $decoded = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
 
-        return is_array($decoded) ? $decoded : null;
-    }
-
-    protected function prettyJson(mixed $payload): string
-    {
-        if ($payload === null) {
-            return '[]';
+            return is_array($decoded) ? array_values($decoded) : null;
+        } catch (\JsonException) {
+            return null;
         }
-
-        $encoded = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-        return $encoded !== false ? $encoded : '[]';
     }
 
-    protected function resetVersionForm(): void
+    protected function normalizeApiErrors(array $errors): array
     {
-        $this->resetValidation([
-            'versionSystemPrompt',
-            'versionUserPrompt',
-            'versionOutputSchemaJson',
-            'versionVariablesText',
-            'versionStatus',
-        ]);
+        return collect($errors)
+            ->mapWithKeys(fn (array $messages, string $key): array => [
+                match ($key) {
+                    'initial_version.system_prompt' => 'initialSystemPrompt',
+                    'initial_version.user_prompt' => 'initialUserPrompt',
+                    'initial_version.output_schema' => 'initialOutputSchemaJson',
+                    'initial_version.variables' => 'initialVariablesText',
+                    'initial_version.status' => 'initialVersionStatus',
+                    'output_schema' => 'versionOutputSchemaJson',
+                    default => str($key)->replace('.', ' ')->camel()->value(),
+                } => $messages,
+            ])
+            ->all();
+    }
 
+    protected function resetVersionDraft(): void
+    {
         $this->versionSystemPrompt = '';
         $this->versionUserPrompt = '';
         $this->versionOutputSchemaJson = '';
         $this->versionVariablesText = '';
         $this->versionStatus = 'draft';
-        $this->versionError = null;
     }
 
-    protected function normalizeApiErrors(array $errors): array
+    protected function prettyJson(mixed $value): string
     {
-        $normalized = [];
-
-        foreach ($errors as $key => $messages) {
-            $normalized[$this->normalizeApiErrorKey((string) $key)] = $messages;
+        if (! is_array($value) || $value === []) {
+            return '';
         }
 
-        return $normalized;
-    }
+        $encoded = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-    protected function normalizeApiErrorKey(string $key): string
-    {
-        return match ($key) {
-            'initial_version.system_prompt' => 'initialSystemPrompt',
-            'initial_version.user_prompt' => 'initialUserPrompt',
-            'initial_version.output_schema' => 'initialOutputSchemaJson',
-            'initial_version.variables' => 'initialVariablesText',
-            'initial_version.status' => 'initialVersionStatus',
-            'output_schema' => 'versionOutputSchemaJson',
-            'variables' => 'versionVariablesText',
-            'system_prompt' => 'versionSystemPrompt',
-            'user_prompt' => 'versionUserPrompt',
-            default => $key,
-        };
-    }
-
-    protected function attributeLabel(string $attribute): string
-    {
-        return match ($attribute) {
-            'initialOutputSchemaJson' => 'initial output schema',
-            'versionOutputSchemaJson' => 'version output schema',
-            default => str($attribute)->snake(' ')->toString(),
-        };
+        return is_string($encoded) ? $encoded : '';
     }
 
     protected function formatTimestamp(mixed $value): ?string
@@ -531,7 +482,7 @@ class Show extends Component
     protected function forbidden(AdminSessionManager $session): mixed
     {
         $session->clear();
-        session()->flash('auth.error', 'Your account is not authorized for the admin panel.');
+        session()->flash('auth.error', 'You no longer have access to the admin.');
 
         return $this->redirectRoute('auth.forbidden', navigate: true);
     }

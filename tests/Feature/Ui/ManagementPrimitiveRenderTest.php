@@ -68,7 +68,7 @@ class ManagementPrimitiveRenderTest extends TestCase
                 <x-ui.tabs>
                     <x-ui.tabs-list>
                         <x-ui.tabs-trigger active href="/posts">Posts</x-ui.tabs-trigger>
-                        <x-ui.tabs-trigger href="/templates">Templates</x-ui.tabs-trigger>
+                        <x-ui.tabs-trigger href="/topic-queue">Topic Queue</x-ui.tabs-trigger>
                     </x-ui.tabs-list>
                     <x-ui.tabs-panel>Panel</x-ui.tabs-panel>
                 </x-ui.tabs>
@@ -100,7 +100,7 @@ class ManagementPrimitiveRenderTest extends TestCase
 
         $this->assertStringContainsString('role="tablist"', $html);
         $this->assertStringContainsString('Search posts', $html);
-        $this->assertStringContainsString('Actions', $html);
+        $this->assertStringContainsString('Open row actions', $html);
         $this->assertStringContainsString('Published', $html);
         $this->assertStringContainsString('SEO 91 · Excellent', $html);
         $this->assertStringContainsString('animate-pulse', $html);

@@ -1,15 +1,14 @@
 <div class="space-y-6">
     <x-admin.page-header
-        eyebrow="Editorial Workflow"
+        eyebrow="AI Content"
         title="Topic Queue"
-        description="Review service-generated topic suggestions, filter editorial opportunities, and move approved topics toward the briefing workflow."
+        description="Monitor category-owned topics, their scores, and the automation threshold that decides whether the backend prunes a topic or queues draft generation."
     >
         <div class="flex max-w-sm flex-col gap-2 lg:items-end">
             <x-ui.button type="button" wire:click="openDiscoveryDialog" wire:loading.attr="disabled" wire:target="openDiscoveryDialog">
-                <span wire:loading.remove wire:target="openDiscoveryDialog">Run Topic Discovery</span>
-                <span wire:loading wire:target="openDiscoveryDialog">Opening…</span>
+                Run Topic Discovery
             </x-ui.button>
-            <p class="text-sm text-[var(--color-muted)] lg:text-right">Generate new service-side topic suggestions without leaving the current editorial review queue.</p>
+            <p class="text-sm text-[var(--color-muted)] lg:text-right">Discovery now starts from a category selection. Cluster context is derived by the backend from that category.</p>
         </div>
     </x-admin.page-header>
 
@@ -19,56 +18,59 @@
         </div>
     @endif
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    @if ($categoryLoadError)
+        <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_22%,white)] bg-[color-mix(in_srgb,var(--color-warning)_8%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
+            {{ $categoryLoadError }}
+        </div>
+    @endif
+
+    <div class="grid gap-4 md:grid-cols-3">
         @foreach ($stats as $stat)
             <x-admin.stat-card :label="$stat['label']" :value="$stat['value']" :tone="$stat['tone'] ?? 'default'" />
         @endforeach
     </div>
 
-    <x-admin.callout title="Review Flow">
-        Suggested topics stay in this queue until an editor approves, rejects, or advances them into brief generation.
+    <x-admin.callout title="Automation Model">
+        Topics scoring below <span class="font-medium text-[var(--color-ink)]">90</span> are auto-deleted by backend automation. Topics scoring <span class="font-medium text-[var(--color-ink)]">90 or above</span> auto-queue blog draft generation. Editors review the generated draft, not an intermediate brief.
     </x-admin.callout>
 
     <x-admin.filter-bar>
         <x-slot:search>
             <label class="block">
                 <span class="sr-only">Search topics</span>
-                <x-ui.input
-                    type="search"
-                    wire:model.live.debounce.300ms="search"
-                    placeholder="Search topics by title or primary keyword"
-                />
+                <x-ui.input type="search" wire:model.live.debounce.300ms="search" placeholder="Search topics by title or primary keyword" />
             </label>
         </x-slot:search>
 
         <x-slot:filters>
-            <div class="grid w-full gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                <div class="min-w-0">
-                    <x-ui.select wire:model.live="statusFilter">
-                        <option value="all">All statuses</option>
-                        @foreach ($statusOptions as $statusOption)
-                            <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
+            <div class="grid w-full gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <x-ui.select wire:model.live="statusFilter">
+                    <option value="all">All statuses</option>
+                    @foreach ($statusOptions as $statusOption)
+                        <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
+                    @endforeach
+                </x-ui.select>
 
-                <div class="min-w-0">
-                    <x-ui.select wire:model.live="clusterFilter">
-                        <option value="all">All clusters</option>
-                        @foreach ($clusterOptions as $clusterOption)
-                            <option value="{{ $clusterOption }}">{{ str($clusterOption)->headline() }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
+                <x-ui.select wire:model.live="categoryFilter">
+                    <option value="all">All categories</option>
+                    @foreach ($categoryOptions as $categoryOption)
+                        <option value="{{ $categoryOption['id'] }}">{{ $categoryOption['name'] }}</option>
+                    @endforeach
+                </x-ui.select>
 
-                <div class="min-w-0">
-                    <x-ui.select wire:model.live="sourceFilter">
-                        <option value="all">All sources</option>
-                        @foreach ($sourceOptions as $sourceOption)
-                            <option value="{{ $sourceOption }}">{{ $sourceOption === 'ai_suggested' ? 'AI Suggested' : 'Manual' }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </div>
+                <x-ui.select wire:model.live="clusterFilter">
+                    <option value="all">All clusters</option>
+                    @foreach ($clusterOptions as $clusterOption)
+                        <option value="{{ $clusterOption }}">{{ str($clusterOption)->headline() }}</option>
+                    @endforeach
+                </x-ui.select>
+
+                <x-ui.select wire:model.live="sourceFilter">
+                    <option value="all">All sources</option>
+                    @foreach ($sourceOptions as $sourceOption)
+                        <option value="{{ $sourceOption }}">{{ $sourceOption === 'ai_suggested' ? 'AI Suggested' : 'Manual' }}</option>
+                    @endforeach
+                </x-ui.select>
             </div>
         </x-slot:filters>
 
@@ -78,15 +80,15 @@
     <x-ui.table caption="Topic queue" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading width="workflow-primary" sortable sort-key="title" :sort-state="$sort">TITLE</x-ui.table-heading>
-                <x-ui.table-heading>CLUSTER</x-ui.table-heading>
-                <x-ui.table-heading>PRIMARY KEYWORD</x-ui.table-heading>
-                <x-ui.table-heading>SEARCH INTENT</x-ui.table-heading>
-                <x-ui.table-heading sortable sort-key="priority_score" :sort-state="$sort">PRIORITY</x-ui.table-heading>
-                <x-ui.table-heading>STATUS</x-ui.table-heading>
-                <x-ui.table-heading>SOURCE</x-ui.table-heading>
-                <x-ui.table-heading sortable sort-key="created_at" :sort-state="$sort">CREATED</x-ui.table-heading>
-                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
+                <x-ui.table-heading width="workflow-primary" sortable sort-key="title" :sort-state="$sort">Title</x-ui.table-heading>
+                <x-ui.table-heading>Category</x-ui.table-heading>
+                <x-ui.table-heading>Cluster</x-ui.table-heading>
+                <x-ui.table-heading>Primary Keyword</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="priority_score" :sort-state="$sort">Score</x-ui.table-heading>
+                <x-ui.table-heading>Automation</x-ui.table-heading>
+                <x-ui.table-heading>Status</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="created_at" :sort-state="$sort">Created</x-ui.table-heading>
+                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 
@@ -99,25 +101,37 @@
                             <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $topic['slug'] ?: 'Slug pending' }}</p>
                         </div>
                     </x-ui.table-cell>
+                    <x-ui.table-cell subdued>
+                        <div class="space-y-1">
+                            <p>{{ $topic['category_name'] }}</p>
+                            <p class="text-xs text-[var(--color-muted)]">{{ $topic['category_slug'] ?: 'Category slug unavailable' }}</p>
+                        </div>
+                    </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ str($topic['cluster'])->headline() }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $topic['primary_keyword'] ?: 'Not set' }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $topic['search_intent'] ?: 'Not set' }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $topic['priority_score_label'] }}</x-ui.table-cell>
+                    <x-ui.table-cell>
+                        <div class="space-y-1">
+                            <x-ui.badge :tone="$topic['priority_score'] !== null && $topic['priority_score'] >= 90 ? 'success' : 'warning'">
+                                {{ $topic['priority_score_label'] }}
+                            </x-ui.badge>
+                            @if ($topic['score_breakdown_summary'])
+                                <p class="text-xs text-[var(--color-muted)]">{{ $topic['score_breakdown_summary'] }}</p>
+                            @endif
+                        </div>
+                    </x-ui.table-cell>
+                    <x-ui.table-cell>
+                        <x-ui.badge :tone="$topic['automation_tone']">{{ $topic['automation_state'] }}</x-ui.badge>
+                    </x-ui.table-cell>
                     <x-ui.table-cell><x-admin.status-badge :status="$topic['status']" /></x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $topic['source'] === 'ai_suggested' ? 'AI Suggested' : 'Manual' }}</x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ $topic['created_at'] ?: 'Unknown' }}</x-ui.table-cell>
                     <x-ui.table-cell align="right">
                         <x-admin.row-actions>
-                            <x-admin.row-action as="a" :href="route('topic-queue.show', ['topic' => $topic['id']])">Review</x-admin.row-action>
+                            <x-admin.row-action as="a" :href="route('topic-queue.show', ['topic' => $topic['id']])">Details</x-admin.row-action>
                         </x-admin.row-actions>
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty
-                <x-ui.table-empty
-                    colspan="9"
-                    title="No topics match the current view"
-                    message="Adjust the filters or search terms to broaden the editorial queue."
-                />
+                <x-ui.table-empty colspan="9" title="No topics match the current view" message="Adjust the filters or run discovery to generate new candidate topics." />
             @endforelse
         </x-ui.table-body>
     </x-ui.table>
@@ -127,7 +141,7 @@
     <x-admin.confirm-dialog
         :open="$discoveryDialogOpen"
         title="Run Topic Discovery"
-        description="Create a service-side AI job that generates suggested topics only. Review and approval still stay in the Admin workflow."
+        description="Create a service-side discovery job from a real category. The backend resolves cluster context from that category and handles scoring, pruning, and draft queueing after discovery completes."
     >
         <div class="space-y-4">
             @if ($discoveryError)
@@ -137,10 +151,13 @@
             @endif
 
             <div class="grid gap-4 md:grid-cols-2">
-                <x-ui.field label="Cluster" for="discovery-cluster" :error="$errors->first('discoveryCluster')">
-                    <x-ui.select id="discovery-cluster" wire:model.live="discoveryCluster">
-                        @foreach ($clusterOptions as $clusterOption)
-                            <option value="{{ $clusterOption }}">{{ str($clusterOption)->headline() }}</option>
+                <x-ui.field label="Category" for="discovery-category" :error="$errors->first('discoveryCategoryId')">
+                    <x-ui.select id="discovery-category" wire:model.live="discoveryCategoryId">
+                        <option value="">Select category</option>
+                        @foreach ($categoryOptions as $categoryOption)
+                            <option value="{{ $categoryOption['id'] }}" @disabled(! $categoryOption['is_active'])>
+                                {{ $categoryOption['name'] }}{{ $categoryOption['is_active'] ? '' : ' (Inactive)' }}
+                            </option>
                         @endforeach
                     </x-ui.select>
                 </x-ui.field>
@@ -150,21 +167,17 @@
                 </x-ui.field>
             </div>
 
+            <x-admin.callout title="Derived Cluster">
+                The backend resolves cluster context from the selected category, so cluster is no longer the primary discovery input here.
+            </x-admin.callout>
+
             <x-ui.field label="Audience" for="discovery-audience" :error="$errors->first('discoveryAudience')">
                 <x-ui.input id="discovery-audience" wire:model.blur="discoveryAudience" :invalid="$errors->has('discoveryAudience')" placeholder="Founders, editors, technical marketers..." />
             </x-ui.field>
 
-            <x-ui.field label="Prompt Template Key" for="discovery-template-key" :error="$errors->first('discoveryPromptTemplateKey')" hint="Optional override when the Service should use a non-default prompt template.">
-                <x-ui.input id="discovery-template-key" wire:model.blur="discoveryPromptTemplateKey" :invalid="$errors->has('discoveryPromptTemplateKey')" placeholder="topic-discovery-editorial" />
-            </x-ui.field>
-
-            <x-ui.field label="Metadata" for="discovery-metadata" :error="$errors->first('discoveryMetadata')" hint="Optional comma-separated tags passed to the Service job payload.">
+            <x-ui.field label="Metadata" for="discovery-metadata" :error="$errors->first('discoveryMetadata')" hint="Optional comma-separated metadata passed to the discovery job payload.">
                 <x-ui.textarea id="discovery-metadata" rows="4" wire:model.blur="discoveryMetadata" :invalid="$errors->has('discoveryMetadata')" placeholder="newsletter, q3-campaign, editorial-focus" />
             </x-ui.field>
-
-            <x-admin.callout title="Workflow Note">
-                Topic discovery creates suggested topics only. Approval and downstream workflow decisions still require human review in Admin.
-            </x-admin.callout>
         </div>
 
         <x-slot:cancel>
@@ -175,8 +188,7 @@
 
         <x-slot:confirm>
             <x-ui.button type="button" wire:click="runTopicDiscovery" wire:loading.attr="disabled" wire:target="runTopicDiscovery">
-                <span wire:loading.remove wire:target="runTopicDiscovery">Run Topic Discovery</span>
-                <span wire:loading wire:target="runTopicDiscovery">Creating…</span>
+                Run Topic Discovery
             </x-ui.button>
         </x-slot:confirm>
     </x-admin.confirm-dialog>

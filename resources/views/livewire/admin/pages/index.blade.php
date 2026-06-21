@@ -12,48 +12,50 @@
         </div>
     @endif
 
-    <section class="space-y-4 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+    <section class="space-y-3 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
         <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div class="space-y-1">
                 <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Legal Pages</h2>
                 <p class="text-sm text-[var(--color-muted)]">Use the existing Pages API flow for Privacy Policy and Terms and Conditions. Filter the list to legal pages or jump straight into one of the recommended public legal entries.</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2 lg:justify-end">
                 <x-ui.button
                     type="button"
-                    variant="{{ $typeFilter === 'legal' ? 'default' : 'secondary' }}"
+                    variant="{{ $typeFilter === 'legal' ? 'outline' : 'secondary' }}"
+                    size="sm"
                     wire:click="$set('typeFilter', 'legal')"
                 >
                     Show Legal Only
                 </x-ui.button>
                 @if ($typeFilter === 'legal')
-                    <x-ui.button type="button" variant="secondary" wire:click="$set('typeFilter', 'all')">Show All Pages</x-ui.button>
+                    <x-ui.button type="button" variant="ghost" size="sm" wire:click="$set('typeFilter', 'all')">Show All Pages</x-ui.button>
                 @endif
             </div>
         </div>
 
-        <div class="grid gap-4 lg:grid-cols-2">
+        <div class="grid gap-3 lg:grid-cols-2">
             @foreach ($legalPageCards as $card)
-                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-5 py-5">
-                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div class="space-y-2">
                             <div class="flex flex-wrap items-center gap-2">
-                                <h3 class="text-base font-semibold text-[var(--color-ink)]">{{ $card['title'] }}</h3>
+                                <h3 class="text-sm font-semibold text-[var(--color-ink)] sm:text-base">{{ $card['title'] }}</h3>
                                 @if (is_array($card['page']))
                                     <x-admin.status-badge :status="$card['page']['status']" />
                                 @else
                                     <span class="inline-flex items-center rounded-full bg-[var(--color-panel)] px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)] ring-1 ring-[var(--color-line)]">Missing</span>
                                 @endif
                             </div>
-                            <p class="text-sm text-[var(--color-muted)]">/{{ $card['slug'] }}</p>
-                            <p class="text-sm text-[var(--color-muted)]">{{ $card['description'] }}</p>
+                            <p class="text-sm leading-5 text-[var(--color-muted)]">/{{ $card['slug'] }}</p>
                             @if (is_array($card['page']) && $card['page']['summary'])
-                                <p class="text-sm text-[var(--color-muted)]">{{ $card['page']['summary'] }}</p>
+                                <p class="text-sm leading-6 text-[var(--color-muted)]">{{ $card['page']['summary'] }}</p>
+                            @else
+                                <p class="text-sm leading-6 text-[var(--color-muted)]">{{ $card['description'] }}</p>
                             @endif
                         </div>
 
-                        <div class="flex shrink-0 flex-wrap items-center gap-2">
+                        <div class="flex shrink-0 flex-wrap items-center gap-2 self-start">
                             @if (is_array($card['page']))
                                 <x-ui.button as="a" :href="route('pages.edit', ['page' => $card['page']['id']])" size="sm">Edit</x-ui.button>
                             @else
@@ -130,10 +132,10 @@
                 <x-ui.table-row interactive wire:key="page-{{ $page['id'] }}">
                     <x-ui.table-cell width="content-primary">
                         <div class="min-w-0">
-                            <p class="truncate font-semibold text-[var(--color-ink)]">{{ $page['title'] }}</p>
-                            <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $page['slug'] !== '' ? '/'.$page['slug'] : 'Auto-generated slug' }}</p>
+                            <p class="truncate text-[15px] font-semibold leading-6 text-[var(--color-ink)]">{{ $page['title'] }}</p>
+                            <p class="mt-1 text-sm leading-5 text-[var(--color-muted)]">{{ $page['slug'] !== '' ? '/'.$page['slug'] : 'Auto-generated slug' }}</p>
                             @if ($page['summary'])
-                                <p class="mt-2 text-sm text-[var(--color-muted)]">{{ $page['summary'] }}</p>
+                                <p class="mt-2 text-sm leading-6 text-[var(--color-muted)]">{{ $page['summary'] }}</p>
                             @endif
                         </div>
                     </x-ui.table-cell>
@@ -142,9 +144,23 @@
                         <x-admin.status-badge :status="$page['status']" />
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>{{ str($page['visibility'])->headline() }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $page['published_at'] ?: 'Not published' }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $page['updated_at'] ?: 'Unknown' }}</x-ui.table-cell>
-                    <x-ui.table-cell align="right">
+                    <x-ui.table-cell subdued>
+                        @if ($page['published_at'])
+                            <span class="block">{{ str($page['published_at'])->before(' ') }}</span>
+                            <span class="mt-0.5 block text-xs text-[var(--color-muted)]">{{ str($page['published_at'])->after(' ') }}</span>
+                        @else
+                            Not published
+                        @endif
+                    </x-ui.table-cell>
+                    <x-ui.table-cell subdued>
+                        @if ($page['updated_at'])
+                            <span class="block">{{ str($page['updated_at'])->before(' ') }}</span>
+                            <span class="mt-0.5 block text-xs text-[var(--color-muted)]">{{ str($page['updated_at'])->after(' ') }}</span>
+                        @else
+                            Unknown
+                        @endif
+                    </x-ui.table-cell>
+                    <x-ui.table-cell align="right" class="w-14 whitespace-nowrap">
                         <x-admin.row-actions>
                             <x-admin.row-action as="a" :href="route('pages.edit', ['page' => $page['id']])">Edit</x-admin.row-action>
                             <x-admin.row-action type="button" tone="danger" wire:click="confirmDelete({{ $page['id'] }})">Delete</x-admin.row-action>

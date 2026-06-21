@@ -34,7 +34,8 @@ class SettingsIndexTest extends TestCase
             ->assertOk()
             ->assertSee('AI settings are not service-backed yet')
             ->assertSee('Await Service Contract')
-            ->assertSee('Sensitive provider secrets should not appear in this admin until a dedicated secure flow exists.');
+            ->assertSee('Standard prompt content is managed in the dedicated prompt screens')
+            ->assertSee('sensitive provider secrets should not appear here');
     }
 
     protected function authenticatedSession(): array

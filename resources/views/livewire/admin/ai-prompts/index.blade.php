@@ -1,9 +1,9 @@
 <div class="space-y-6">
     <x-admin.page-header
-        title="Prompt Templates"
-        description="Manage the service-side prompts that shape future topic discovery, brief generation, and drafting behavior."
+        title="Standard Prompts"
+        description="Manage the two versioned prompt families the backend now treats as the source of truth for topic and blog generation."
     >
-        <x-ui.button as="a" :href="route('ai-prompts.create')">Create Prompt Template</x-ui.button>
+        <x-ui.button as="a" :href="route('ai-prompts.create')">Create Standard Prompt</x-ui.button>
     </x-admin.page-header>
 
     @if ($pageError)
@@ -18,25 +18,25 @@
         @endforeach
     </div>
 
+    <x-admin.callout title="Prompt Source Of Truth">
+        Prompt instructions no longer live in site settings. Only the <span class="font-medium text-[var(--color-ink)]">topic_standard</span> and <span class="font-medium text-[var(--color-ink)]">blog_standard</span> families should be managed here.
+    </x-admin.callout>
+
     <x-admin.filter-bar>
         <x-slot:search>
             <label class="block">
-                <span class="sr-only">Search prompt templates</span>
-                <x-ui.input
-                    type="search"
-                    wire:model.live.debounce.300ms="search"
-                    placeholder="Search prompts by name, key, type, or description"
-                />
+                <span class="sr-only">Search prompts</span>
+                <x-ui.input type="search" wire:model.live.debounce.300ms="search" placeholder="Search prompts by name, key, or description" />
             </label>
         </x-slot:search>
 
         <x-slot:filters>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
                 <div class="w-[12rem] shrink-0">
-                    <x-ui.select wire:model.live="typeFilter">
-                        <option value="all">All types</option>
-                        @foreach ($typeOptions as $typeOption)
-                            <option value="{{ $typeOption }}">{{ str($typeOption)->headline() }}</option>
+                    <x-ui.select wire:model.live="keyFilter">
+                        <option value="all">All families</option>
+                        @foreach ($keyOptions as $keyOption)
+                            <option value="{{ $keyOption }}">{{ str($keyOption)->replace('_', ' ')->headline() }}</option>
                         @endforeach
                     </x-ui.select>
                 </div>
@@ -55,16 +55,15 @@
         <x-slot:results>{{ $pagination['total'] }} {{ str('prompt')->plural($pagination['total']) }}</x-slot:results>
     </x-admin.filter-bar>
 
-    <x-ui.table caption="AI prompt templates" density="compact">
+    <x-ui.table caption="Standard prompts" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading sortable sort-key="name" :sort-state="$sort">NAME</x-ui.table-heading>
-                <x-ui.table-heading sortable sort-key="key" :sort-state="$sort">KEY</x-ui.table-heading>
-                <x-ui.table-heading sortable sort-key="type" :sort-state="$sort">TYPE</x-ui.table-heading>
-                <x-ui.table-heading>STATUS</x-ui.table-heading>
-                <x-ui.table-heading align="center">ACTIVE VERSION</x-ui.table-heading>
-                <x-ui.table-heading sortable sort-key="updated_at" :sort-state="$sort">UPDATED</x-ui.table-heading>
-                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="name" :sort-state="$sort">Name</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="key" :sort-state="$sort">Family</x-ui.table-heading>
+                <x-ui.table-heading>Status</x-ui.table-heading>
+                <x-ui.table-heading align="center">Active Version</x-ui.table-heading>
+                <x-ui.table-heading sortable sort-key="updated_at" :sort-state="$sort">Updated</x-ui.table-heading>
+                <x-ui.table-heading align="right">Actions</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 
@@ -79,11 +78,13 @@
                             @endif
                         </div>
                     </x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $prompt['key'] }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ str($prompt['type'])->headline() }}</x-ui.table-cell>
                     <x-ui.table-cell>
-                        <x-admin.status-badge :status="$prompt['status']" />
+                        <div class="space-y-1">
+                            <p class="font-medium text-[var(--color-ink)]">{{ $prompt['family_label'] }}</p>
+                            <p class="text-sm text-[var(--color-muted)]">{{ $prompt['key'] }}</p>
+                        </div>
                     </x-ui.table-cell>
+                    <x-ui.table-cell><x-admin.status-badge :status="$prompt['status']" /></x-ui.table-cell>
                     <x-ui.table-cell align="center">
                         <x-ui.badge :tone="$prompt['active_version_number'] ? 'success' : 'muted'">
                             {{ $prompt['active_version_number'] ? 'v'.$prompt['active_version_number'] : 'None' }}
@@ -97,14 +98,10 @@
                     </x-ui.table-cell>
                 </x-ui.table-row>
             @empty
-                <x-ui.table-empty
-                    colspan="7"
-                    title="No prompt templates match the current view"
-                    message="Adjust the filters or create a new prompt template for future AI generations."
-                />
+                <x-ui.table-empty colspan="6" title="No standard prompts match the current view" message="Create the missing prompt family or adjust the filters." />
             @endforelse
         </x-ui.table-body>
     </x-ui.table>
 
-    <x-ui.pagination :pagination="$pagination" item-label="prompt template" />
+    <x-ui.pagination :pagination="$pagination" item-label="prompt" />
 </div>

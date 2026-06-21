@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Auth\LogoutController;
+use App\Http\Controllers\Admin\Posts\InlineMediaUploadController;
 use App\Livewire\Admin\AiPrompts\Index as AiPromptIndex;
 use App\Livewire\Admin\AiPrompts\Show as AiPromptShow;
 use App\Livewire\Admin\AboutPage\Index as AboutPageIndex;
@@ -12,8 +13,6 @@ use App\Livewire\Admin\AiJobs\Index as AiJobIndex;
 use App\Livewire\Admin\AiJobs\Show as AiJobShow;
 use App\Livewire\Admin\Password\Index as PasswordIndex;
 use App\Livewire\Admin\Categories\Index as CategoryIndex;
-use App\Livewire\Admin\ContentBriefs\Index as ContentBriefIndex;
-use App\Livewire\Admin\ContentBriefs\Show as ContentBriefShow;
 use App\Livewire\Admin\Dashboard\Index as DashboardIndex;
 use App\Livewire\Admin\Homepage\Index as HomepageIndex;
 use App\Livewire\Admin\KnowledgeBase\Editor as KnowledgeBaseEditor;
@@ -27,7 +26,6 @@ use App\Livewire\Admin\Seo\Index as SeoIndex;
 use App\Livewire\Admin\Settings\Index as SettingsIndex;
 use App\Livewire\Admin\SiteSettings\Index as SiteSettingsIndex;
 use App\Livewire\Admin\Tags\Index as TagIndex;
-use App\Livewire\Admin\Templates\Index as TemplateIndex;
 use App\Livewire\Admin\TopicQueue\Index as TopicQueueIndex;
 use App\Livewire\Admin\TopicQueue\Show as TopicQueueShow;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +43,7 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/posts', PostIndex::class)->name('posts.index');
 
     Route::get('/posts/create', PostEditor::class)->name('posts.create');
+    Route::post('/posts/inline-media', InlineMediaUploadController::class)->name('posts.inline-media.store');
 
     Route::get('/posts/{post}/edit', PostEditor::class)->name('posts.edit');
 
@@ -70,8 +69,6 @@ Route::middleware('admin.auth')->group(function (): void {
 
     Route::get('/media', MediaIndex::class)->name('media.index');
 
-    Route::get('/templates', TemplateIndex::class)->name('templates.index');
-
     Route::get('/knowledge-base', KnowledgeBaseIndex::class)->name('knowledge-base.index');
 
     Route::get('/knowledge-base/create', KnowledgeBaseEditor::class)->name('knowledge-base.create');
@@ -89,10 +86,6 @@ Route::middleware('admin.auth')->group(function (): void {
     Route::get('/topic-queue', TopicQueueIndex::class)->name('topic-queue.index');
 
     Route::get('/topic-queue/{topic}', TopicQueueShow::class)->name('topic-queue.show');
-
-    Route::get('/content-briefs', ContentBriefIndex::class)->name('content-briefs.index');
-
-    Route::get('/content-briefs/{contentBrief}', ContentBriefShow::class)->name('content-briefs.show');
 
     Route::get('/draft-review', PostIndex::class)->name('draft-review.index');
 
