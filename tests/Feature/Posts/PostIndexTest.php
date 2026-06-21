@@ -79,11 +79,14 @@ class PostIndexTest extends TestCase
                         $this->postResource([
                             'id' => 41,
                             'title' => 'AI Editorial Review Checklist',
+                            'excerpt' => 'Review the AI draft for source accuracy, editorial structure, and publish readiness before moving it forward.',
                             'is_ai_generated' => true,
                             'source_content_brief_id' => 14,
                             'source_content_topic_id' => 8,
                             'generated_by_ai_job_id' => 22,
                             'generated_by' => 'BlogWriterAgent',
+                            'reading_time_minutes' => 8,
+                            'word_count' => 1438,
                             'meta' => [
                                 'source_content_brief_id' => 14,
                                 'source_content_topic_id' => 8,
@@ -105,9 +108,15 @@ class PostIndexTest extends TestCase
             ->assertOk()
             ->assertSee('Draft Review')
             ->assertSee('AI Editorial Review Checklist')
+            ->assertSee('Editorial Workflow')
+            ->assertSee('Manual review')
             ->assertSee('Brief #14')
             ->assertSee('Topic #8')
+            ->assertSee('Generated Via')
+            ->assertSee('BlogWriterAgent')
             ->assertSee('Job #22')
+            ->assertSee('8 min read')
+            ->assertSee('1,438 words')
             ->assertSee('Review');
     }
 
