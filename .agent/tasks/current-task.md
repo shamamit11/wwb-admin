@@ -1,14 +1,14 @@
-# Task: Improve Media Library Admin Page UI/UX
+# Task: Improve AI Job Detail Page UI/UX
 
 Status: Completed
 
 ## Goal
 
-Improve the Media Library screen so editors can scan previews, metadata, usage, source, and actions more comfortably without changing backend behavior, routes, or upload flows.
+Improve the AI Job Detail screen so admins can review lifecycle, status, steps, usage, and payload data quickly without changing routes, backend behavior, or removing any debugging payload information.
 
 ## Background
 
-The current Media Library is clean and functional, but it reads like a generic file table. The preview column is small, the file hierarchy is too flat for visual assets, and the page misses some stronger media-management affordances that can be derived from existing data.
+The current detail screen is serviceable for debugging but reads too much like a raw payload dump. Large JSON blocks dominate the page, the step section is hard to scan, and lifecycle state is not summarized clearly near the top.
 
 ## Required Context
 
@@ -20,58 +20,54 @@ The current Media Library is clean and functional, but it reads like a generic f
 - `.agent/COMPONENT-SYSTEM.md`
 - `.agent/TESTING.md`
 - `.agent/skills/laravel-livewire.md`
-- `.agent/skills/media-upload.md`
 - `.agent/skills/shadcn-inspired-ui.md`
 - `.agent/skills/testing.md`
 - `docs/UI_UX_GUIDELINES.md`
 
 ## Files To Inspect
 
-- `app/Livewire/Admin/Media/Index.php`
-- `resources/views/livewire/admin/media/index.blade.php`
-- `resources/views/components/ui/dropdown.blade.php`
-- `tests/Feature/Media/MediaIndexTest.php`
+- `app/Livewire/Admin/AiJobs/Show.php`
+- `resources/views/livewire/admin/ai-jobs/show.blade.php`
+- `tests/Feature/AiJobs/AiJobScreensTest.php`
 
 ## Files To Change
 
 - `.agent/tasks/current-task.md`
-- `app/Livewire/Admin/Media/Index.php`
-- `resources/views/livewire/admin/media/index.blade.php`
-- `tests/Feature/Media/MediaIndexTest.php` if focused regression coverage is needed
+- `app/Livewire/Admin/AiJobs/Show.php`
+- `resources/views/livewire/admin/ai-jobs/show.blade.php`
+- `tests/Feature/AiJobs/AiJobScreensTest.php` if focused regression coverage is needed
 
 ## Implementation Steps
 
-1. Refine the media mapper and view state only as needed for presentation improvements such as summary counts, usage labels, and optional view toggles.
-2. Improve the Media Library layout with stronger previews, clearer file hierarchy, calmer source/status treatment, and a more informative usage column.
-3. Add compact summary cards and a simple table/grid toggle only from existing in-memory data where the implementation stays lightweight.
-4. Preserve existing upload, filter, detail drawer, and delete flows while reusing the existing shared row-action dropdown behavior.
-5. Run narrow validation and record residual risk.
+1. Add minimal presenter-style helpers in the Livewire component for lifecycle states, compact payload summaries, and usage formatting.
+2. Rework the AI Job detail layout so the summary, lifecycle, token/cost data, and step cards are easy to scan before opening raw JSON.
+3. Make top-level and per-step payloads collapsible with simple copy actions while preserving full formatted JSON visibility on demand.
+4. Keep retry, refresh, related entity links, and existing payload data intact.
+5. Run narrow validation and record any residual risk.
 
 ## Acceptance Criteria
 
-- Preview thumbnails are more useful without making rows excessively tall.
-- The file column has stronger hierarchy and readable metadata.
-- Usage reads as meaningful editorial context, especially for unused assets.
-- Source and status remain easy to scan.
-- Shared row actions continue working without clipping or duplicate dropdown logic.
-- Existing filters, uploads, drawer editing, and delete flows continue to work.
+- Main payload sections are collapsed or summary-first by default.
+- Job summary and lifecycle are easy to scan near the top.
+- Generation steps surface status, timing, and compact summaries before raw payload dumps.
+- Token and cost usage remain visible but more structured.
+- Existing retry, refresh, related entity link, and payload data remain intact.
 
 ## Validation Commands
 
-- `php -l app/Livewire/Admin/Media/Index.php`
-- `php artisan test --filter=MediaIndexTest`
+- `php -l app/Livewire/Admin/AiJobs/Show.php`
+- `php artisan test --filter=AiJobScreensTest`
 - `php artisan view:cache`
 
 ## Risks
 
-- A view toggle must stay simple and client-safe enough not to complicate existing table workflows.
-- Summary cards must reflect only the currently loaded dataset so they do not imply backend-wide totals that are not actually available from the screen payload.
+- Payload summarization must stay generic enough to avoid hiding useful debugging fields or implying domain-specific meaning not present in the payload.
+- Collapsible sections should remain lightweight and client-side where possible so the detail screen does not gain unnecessary Livewire mutation complexity.
 
 ## Completion Notes
 
-- Added compact summary cards from the existing loaded dataset only: total assets, uploaded, AI generated, and in-use counts.
-- Added a lightweight `Table` and `Grid` view toggle backed by Livewire URL state, without changing any backend requests or upload flows.
-- Enlarged table thumbnails, strengthened file-column hierarchy, and surfaced alt text or caption context when available.
-- Reworked source and usage presentation with clearer labels and calmer badge treatment while keeping the shared status badge and row action dropdown behavior intact.
-- Reused the existing shared dropdown implementation for row actions, which already handles single-open behavior, outside click, escape close, and viewport-aware positioning.
-- Validation passed with `php -l app/Livewire/Admin/Media/Index.php`, `php artisan test --filter=MediaIndexTest`, and `php artisan view:cache`.
+- Added presenter helpers for lifecycle items, compact payload summaries, step summaries, duration labels, and structured token/cost metrics without changing any backend API behavior.
+- Reworked the AI Job detail view into an operations-style layout with a top lifecycle strip, a cleaner summary card, summary-first step cards, and structured cost usage cards.
+- Converted main payload sections and per-step payloads into collapsible cards with summary text, `View JSON`, and `Copy` actions while keeping full formatted JSON available on demand.
+- Removed the default side-by-side raw step payload dump in favor of scan-friendly summaries and expandable debugging detail.
+- Validation passed with `php -l app/Livewire/Admin/AiJobs/Show.php`, `php artisan test --filter=AiJobScreensTest`, and `php artisan view:cache`.

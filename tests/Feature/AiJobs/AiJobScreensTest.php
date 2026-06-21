@@ -95,6 +95,52 @@ class AiJobScreensTest extends TestCase
             ->assertSet('job.status', 'queued');
     }
 
+    public function test_ai_job_detail_screen_renders_summary_first_operational_sections(): void
+    {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/ai-jobs/15' => Http::response([
+                'data' => $this->jobResource([
+                    'id' => 15,
+                    'type' => 'content_brief',
+                    'status' => 'completed',
+                    'steps' => [
+                        [
+                            'id' => 71,
+                            'ai_job_id' => 15,
+                            'agent_name' => 'ContentBriefAgent',
+                            'status' => 'completed',
+                            'input_payload' => ['content_topic_id' => 52, 'prompt_template_key' => 'content_brief_default'],
+                            'output_payload' => ['brief_id' => 15, 'title' => 'AI Code Generation for Developers'],
+                            'usage_payload' => ['total_tokens' => 4190],
+                            'error_message' => null,
+                            'costs' => [],
+                            'started_at' => now()->subMinutes(3)->toISOString(),
+                            'completed_at' => now()->subMinutes(2)->toISOString(),
+                            'failed_at' => null,
+                            'created_at' => now()->subMinutes(3)->toISOString(),
+                            'updated_at' => now()->subMinutes(2)->toISOString(),
+                        ],
+                    ],
+                ]),
+            ], 200),
+        ]);
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('ai-jobs.show', ['aiJob' => 15]));
+
+        $response
+            ->assertOk()
+            ->assertSee('Job Summary')
+            ->assertSee('Queued')
+            ->assertSee('Completed')
+            ->assertSee('Generation Steps')
+            ->assertSee('Input Summary')
+            ->assertSee('Output Summary')
+            ->assertSee('View JSON')
+            ->assertSee('Copy')
+            ->assertSeeText('Token & Cost Usage');
+    }
+
     protected function authenticatedSession(): array
     {
         return [
