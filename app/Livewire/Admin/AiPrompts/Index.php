@@ -14,28 +14,17 @@ use Livewire\Component;
 
 class Index extends Component
 {
-    private const PROMPT_TYPES = [
-        'topic_discovery',
-        'content_brief',
-        'blog_writer',
-        'editor',
-        'seo_optimizer',
-        'publishing',
-    ];
+    private const PROMPT_KEYS = ['topic_standard', 'blog_standard'];
 
-    private const PROMPT_STATUSES = [
-        'draft',
-        'active',
-        'archived',
-    ];
+    private const PROMPT_STATUSES = ['draft', 'active', 'archived'];
 
     private const PER_PAGE = 10;
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
-    #[Url(as: 'type', except: 'all')]
-    public string $typeFilter = 'all';
+    #[Url(as: 'key', except: 'all')]
+    public string $keyFilter = 'all';
 
     #[Url(as: 'status', except: 'all')]
     public string $statusFilter = 'all';
@@ -57,7 +46,7 @@ class Index extends Component
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['search', 'typeFilter', 'statusFilter'], true)) {
+        if (in_array($property, ['search', 'keyFilter', 'statusFilter'], true)) {
             $this->page = 1;
             $this->refreshPrompts();
         }
@@ -65,7 +54,7 @@ class Index extends Component
 
     public function sortBy(string $sort): void
     {
-        if (! in_array($sort, ['name', '-name', 'key', '-key', 'type', '-type', 'created_at', '-created_at', 'updated_at', '-updated_at'], true)) {
+        if (! in_array($sort, ['name', '-name', 'key', '-key', 'created_at', '-created_at', 'updated_at', '-updated_at'], true)) {
             return;
         }
 
@@ -92,12 +81,12 @@ class Index extends Component
     {
         return view('livewire.admin.ai-prompts.index', [
             'prompts' => $this->paginatedPrompts(),
-            'typeOptions' => self::PROMPT_TYPES,
+            'keyOptions' => self::PROMPT_KEYS,
             'statusOptions' => self::PROMPT_STATUSES,
             'pagination' => $this->paginationSummary(),
             'stats' => $this->stats(),
         ])->layout('layouts.admin', [
-            'title' => 'Prompt Templates',
+            'title' => 'Standard Prompts',
         ]);
     }
 
@@ -122,7 +111,7 @@ class Index extends Component
             return $this->forbidden($session);
         } catch (WideWebBlogApiException $exception) {
             $this->prompts = [];
-            $this->pageError = $exception->getMessage() ?: 'AI prompt templates could not be loaded from the service API.';
+            $this->pageError = $exception->getMessage() ?: 'Standard prompts could not be loaded from the service API.';
 
             return null;
         }
@@ -137,7 +126,7 @@ class Index extends Component
     {
         return [
             'search' => trim($this->search) !== '' ? trim($this->search) : null,
-            'type' => $this->typeFilter !== 'all' ? $this->typeFilter : null,
+            'key' => $this->keyFilter !== 'all' ? $this->keyFilter : null,
             'status' => $this->statusFilter !== 'all' ? $this->statusFilter : null,
             'sort' => $this->sort,
         ];
@@ -146,11 +135,13 @@ class Index extends Component
     protected function mapPrompt(array $prompt): array
     {
         $activeVersion = Arr::get($prompt, 'active_version');
+        $key = (string) Arr::get($prompt, 'key', '');
 
         return [
             'id' => Arr::get($prompt, 'id'),
             'name' => Arr::get($prompt, 'name', 'Untitled prompt'),
-            'key' => Arr::get($prompt, 'key', ''),
+            'key' => $key,
+            'family_label' => $this->familyLabel($key),
             'type' => Arr::get($prompt, 'type', ''),
             'description' => Arr::get($prompt, 'description'),
             'status' => Arr::get($prompt, 'status', 'draft'),
@@ -162,12 +153,18 @@ class Index extends Component
         ];
     }
 
+    protected function familyLabel(string $key): string
+    {
+        return match ($key) {
+            'topic_standard' => 'Topic Standard',
+            'blog_standard' => 'Blog Standard',
+            default => str($key)->replace('_', ' ')->headline()->value(),
+        };
+    }
+
     protected function paginatedPrompts(): array
     {
-        return collect($this->prompts)
-            ->forPage($this->page, self::PER_PAGE)
-            ->values()
-            ->all();
+        return collect($this->prompts)->forPage($this->page, self::PER_PAGE)->values()->all();
     }
 
     protected function paginationSummary(): array
@@ -195,19 +192,19 @@ class Index extends Component
     {
         return [
             [
-                'label' => 'Active Prompts',
+                'label' => 'Active',
                 'value' => collect($this->prompts)->where('status', 'active')->count(),
                 'tone' => 'success',
             ],
             [
-                'label' => 'Draft Prompts',
+                'label' => 'Draft',
                 'value' => collect($this->prompts)->where('status', 'draft')->count(),
                 'tone' => 'warning',
             ],
             [
-                'label' => 'Archived Prompts',
-                'value' => collect($this->prompts)->where('status', 'archived')->count(),
-                'tone' => 'muted',
+                'label' => 'Families',
+                'value' => collect($this->prompts)->pluck('key')->unique()->count(),
+                'tone' => 'default',
             ],
         ];
     }
@@ -243,7 +240,7 @@ class Index extends Component
     protected function forbidden(AdminSessionManager $session): mixed
     {
         $session->clear();
-        session()->flash('auth.error', 'Your account is not authorized for the admin panel.');
+        session()->flash('auth.error', 'You no longer have access to the admin.');
 
         return $this->redirectRoute('auth.forbidden', navigate: true);
     }

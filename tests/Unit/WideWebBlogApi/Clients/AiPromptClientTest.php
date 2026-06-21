@@ -24,7 +24,7 @@ class AiPromptClientTest extends TestCase
             $this->assertSame('GET', $request->method());
             $this->assertStringStartsWith($this->apiBaseUrl.'/admin/ai-prompts', $request->url());
             $this->assertStringContainsString('search=agent', $request->url());
-            $this->assertStringContainsString('type=content_brief', $request->url());
+            $this->assertStringContainsString('key=topic_standard', $request->url());
             $this->assertStringContainsString('status=active', $request->url());
             $this->assertStringContainsString('sort=-updated_at', $request->url());
 
@@ -33,7 +33,7 @@ class AiPromptClientTest extends TestCase
 
         $response = app(AiPromptClient::class)->index('token', 'Bearer', [
             'search' => 'agent',
-            'type' => 'content_brief',
+            'key' => 'topic_standard',
             'status' => 'active',
             'sort' => '-updated_at',
         ]);
@@ -44,13 +44,13 @@ class AiPromptClientTest extends TestCase
     public function test_it_can_store_update_version_and_activate_ai_prompts(): void
     {
         $storePayload = [
-            'name' => 'Content Brief Prompt',
-            'key' => 'content-brief-main',
-            'type' => 'content_brief',
+            'name' => 'Topic Standard Prompt',
+            'key' => 'topic_standard',
+            'type' => 'topic_discovery',
             'status' => 'active',
             'initial_version' => [
-                'system_prompt' => 'You are a brief writer.',
-                'user_prompt' => 'Generate a content brief.',
+                'system_prompt' => 'You are a topic discovery agent.',
+                'user_prompt' => 'Generate scored topics.',
                 'output_schema' => ['title', 'sections'],
                 'variables' => ['topic', 'audience'],
                 'status' => 'active',
@@ -58,11 +58,11 @@ class AiPromptClientTest extends TestCase
         ];
 
         $updatePayload = [
-            'name' => 'Updated Content Brief Prompt',
-            'key' => 'content-brief-main',
-            'type' => 'content_brief',
+            'name' => 'Updated Topic Standard Prompt',
+            'key' => 'topic_standard',
+            'type' => 'topic_discovery',
             'status' => 'draft',
-            'description' => 'Editorial brief guidance.',
+            'description' => 'Topic discovery guidance.',
         ];
 
         $versionPayload = [

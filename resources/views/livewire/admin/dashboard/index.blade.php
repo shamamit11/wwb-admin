@@ -34,7 +34,7 @@
     <x-admin.page-header
         eyebrow="Dashboard"
         title="Admin Overview"
-        description="Welcome back. Monitor publishing operations, review editorial queues, and jump directly into the next high-signal workflow."
+        description="Monitor publishing operations, review generated article drafts, and jump directly into the next editorial action."
     >
         <x-ui.button as="a" :href="route('posts.create')">Create Post</x-ui.button>
         <x-ui.button as="a" :href="route('draft-review.index')" variant="secondary">Review Drafts</x-ui.button>
@@ -50,7 +50,7 @@
         </div>
 
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            @foreach ($aiWorkflowCards as $card)
+            @foreach ($overviewCards as $card)
                 <a href="{{ $card['href'] }}" class="block transition-transform duration-150 hover:-translate-y-0.5">
                     <x-ui.card class="h-full {{ $toneSurfaceClasses[$card['tone']] ?? $toneSurfaceClasses['default'] }} {{ $toneBorderClasses[$card['tone']] ?? $toneBorderClasses['default'] }}">
                         <div class="flex h-full flex-col justify-between gap-3">
@@ -204,8 +204,8 @@
                 <div class="flex items-start justify-between gap-4 border-b border-[var(--color-line)] pb-4">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Editorial Queues</p>
-                        <h3 class="mt-2 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Topics and briefs that still need action</h3>
-                        <p class="mt-2 text-sm leading-6 text-[var(--color-muted)]">Keep editorial review moving before the pipeline widens further.</p>
+                        <h3 class="mt-2 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Topics, drafts, and prompt controls that still need attention</h3>
+                        <p class="mt-2 text-sm leading-6 text-[var(--color-muted)]">Keep score-driven automation visible and move only the manual review steps.</p>
                     </div>
                 </div>
 
@@ -313,7 +313,7 @@
                     <div class="mt-5">
                         <x-ui.empty-state
                             title="No recent AI jobs returned"
-                            message="Run topic discovery, brief generation, or draft generation to populate recent workflow activity."
+                            message="Run topic discovery or blog draft generation to populate recent workflow activity."
                         >
                             <x-ui.button as="a" :href="route('ai-jobs.index')" variant="outline">Open AI Jobs</x-ui.button>
                         </x-ui.empty-state>

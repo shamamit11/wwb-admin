@@ -25,7 +25,7 @@ class AiJobScreensTest extends TestCase
             $this->apiBaseUrl.'/admin/ai-jobs*' => Http::response([
                 'data' => [
                     $this->jobResource(['id' => 11, 'type' => 'topic_discovery', 'status' => 'failed']),
-                    $this->jobResource(['id' => 12, 'type' => 'content_brief', 'status' => 'completed']),
+                    $this->jobResource(['id' => 12, 'type' => 'blog_writer', 'status' => 'completed']),
                 ],
             ], 200),
         ]);
@@ -38,7 +38,7 @@ class AiJobScreensTest extends TestCase
             ->assertSee('AI Jobs')
             ->assertSee('#11')
             ->assertSee('Topic Discovery')
-            ->assertSee('Content Brief')
+            ->assertSee('Blog Writer')
             ->assertSee('Failed Jobs');
     }
 
@@ -101,16 +101,16 @@ class AiJobScreensTest extends TestCase
             $this->apiBaseUrl.'/admin/ai-jobs/15' => Http::response([
                 'data' => $this->jobResource([
                     'id' => 15,
-                    'type' => 'content_brief',
+                    'type' => 'blog_writer',
                     'status' => 'completed',
                     'steps' => [
                         [
                             'id' => 71,
                             'ai_job_id' => 15,
-                            'agent_name' => 'ContentBriefAgent',
+                            'agent_name' => 'BlogWriterAgent',
                             'status' => 'completed',
-                            'input_payload' => ['content_topic_id' => 52, 'prompt_template_key' => 'content_brief_default'],
-                            'output_payload' => ['brief_id' => 15, 'title' => 'AI Code Generation for Developers'],
+                            'input_payload' => ['content_topic_id' => 52, 'prompt_key' => 'blog_standard'],
+                            'output_payload' => ['post_id' => 15, 'title' => 'AI Code Generation for Developers'],
                             'usage_payload' => ['total_tokens' => 4190],
                             'error_message' => null,
                             'costs' => [],

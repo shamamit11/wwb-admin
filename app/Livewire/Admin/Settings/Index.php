@@ -64,9 +64,9 @@ class Index extends Component
     {
         return [
             'operational' => [
-                'Post create, edit, publish, schedule, unpublish, and delete flows are service-backed.',
+                'Post create, edit, publish, unpublish, and delete flows are service-backed.',
                 'Per-entity SEO editing, score review, schema inspection, RSS, and sitemap utilities are available.',
-                'Templates, categories, tags, media, and knowledge base management are available in dedicated modules.',
+                'Categories, tags, media, knowledge base, topic queue, and standard prompt management are available in dedicated modules.',
             ],
             'unsupported' => [
                 'No sitewide publishing-defaults endpoint is currently defined in the service contract.',

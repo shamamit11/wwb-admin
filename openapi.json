@@ -634,12 +634,7 @@
               ],
               "enum": [
                 "topic_discovery",
-                "content_brief",
-                "blog_writer",
-                "editor",
-                "seo_optimizer",
-                "editorial_refiner",
-                "publishing"
+                "blog_writer"
               ]
             }
           },
@@ -1679,320 +1674,6 @@
         }
       }
     },
-    "/admin/content-briefs": {
-      "get": {
-        "operationId": "v1.admin.content-briefs.index",
-        "tags": [
-          "ContentBrief"
-        ],
-        "parameters": [
-          {
-            "name": "search",
-            "in": "query",
-            "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "maxLength": 255
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "enum": [
-                "draft",
-                "approved",
-                "rejected",
-                "used"
-              ]
-            }
-          },
-          {
-            "name": "content_topic_id",
-            "in": "query",
-            "schema": {
-              "type": [
-                "integer",
-                "null"
-              ]
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "enum": [
-                "created_at",
-                "-created_at",
-                "updated_at",
-                "-updated_at",
-                "approved_at",
-                "-approved_at",
-                "title",
-                "-title"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Array of `ContentBriefResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/ContentBriefResource"
-                      }
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
-          }
-        }
-      }
-    },
-    "/admin/content-briefs/{contentBrief}": {
-      "get": {
-        "operationId": "v1.admin.content-briefs.show",
-        "tags": [
-          "ContentBrief"
-        ],
-        "parameters": [
-          {
-            "name": "contentBrief",
-            "in": "path",
-            "required": true,
-            "description": "The content brief ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "`ContentBriefResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/ContentBriefResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          }
-        }
-      },
-      "patch": {
-        "operationId": "v1.admin.content-briefs.update",
-        "tags": [
-          "ContentBrief"
-        ],
-        "parameters": [
-          {
-            "name": "contentBrief",
-            "in": "path",
-            "required": true,
-            "description": "The content brief ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateContentBriefRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "`ContentBriefResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/ContentBriefResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
-          }
-        }
-      }
-    },
-    "/admin/content-briefs/{contentBrief}/approve": {
-      "post": {
-        "operationId": "v1.admin.content-briefs.approve",
-        "tags": [
-          "ContentBrief"
-        ],
-        "parameters": [
-          {
-            "name": "contentBrief",
-            "in": "path",
-            "required": true,
-            "description": "The content brief ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "`ContentBriefResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/ContentBriefResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          }
-        }
-      }
-    },
-    "/admin/content-briefs/{contentBrief}/generate-draft": {
-      "post": {
-        "operationId": "v1.admin.content-briefs.generate-draft",
-        "tags": [
-          "ContentBrief"
-        ],
-        "parameters": [
-          {
-            "name": "contentBrief",
-            "in": "path",
-            "required": true,
-            "description": "The content brief ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GenerateBlogDraftRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "`AiJobResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/AiJobResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
-          }
-        }
-      }
-    },
     "/admin/content-topics": {
       "get": {
         "operationId": "v1.admin.content-topics.index",
@@ -2024,6 +1705,16 @@
                 "approved",
                 "rejected",
                 "used"
+              ]
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "schema": {
+              "type": [
+                "integer",
+                "null"
               ]
             }
           },
@@ -2301,9 +1992,9 @@
         }
       }
     },
-    "/admin/content-topics/{contentTopic}/generate-brief": {
+    "/admin/content-topics/{contentTopic}/generate-draft": {
       "post": {
-        "operationId": "v1.admin.content-topics.generate-brief",
+        "operationId": "v1.admin.content-topics.generate-draft",
         "tags": [
           "ContentTopic"
         ],
@@ -2319,58 +2010,19 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "`ContentBriefResource`",
+          "202": {
+            "description": "`AiJobResource`",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/ContentBriefResource"
+                      "$ref": "#/components/schemas/AiJobResource"
                     }
                   },
                   "required": [
                     "data"
-                  ]
-                }
-              }
-            }
-          },
-          "202": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "const": "Content brief generation queued."
-                    },
-                    "data": {
-                      "type": "string"
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "ai_job_id": {
-                          "type": "integer"
-                        },
-                        "ai_job_status": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "ai_job_id",
-                        "ai_job_status"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "message",
-                    "data",
-                    "meta"
                   ]
                 }
               }
@@ -2384,6 +2036,46 @@
           },
           "404": {
             "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "No active category is available for automatic draft generation."
+                    },
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "category_id": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "string",
+                              "const": "No active category could be resolved for this topic."
+                            }
+                          ],
+                          "minItems": 1,
+                          "maxItems": 1,
+                          "additionalItems": false
+                        }
+                      },
+                      "required": [
+                        "category_id"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "errors"
+                  ]
+                }
+              }
+            }
           }
         }
       }
@@ -5201,16 +4893,6 @@
             }
           },
           {
-            "name": "source_content_brief_id",
-            "in": "query",
-            "schema": {
-              "type": [
-                "integer",
-                "null"
-              ]
-            }
-          },
-          {
             "name": "source_content_topic_id",
             "in": "query",
             "schema": {
@@ -5588,67 +5270,6 @@
         }
       }
     },
-    "/admin/posts/{post}/rewrite": {
-      "post": {
-        "operationId": "v1.admin.posts.rewrite",
-        "tags": [
-          "Post"
-        ],
-        "parameters": [
-          {
-            "name": "post",
-            "in": "path",
-            "required": true,
-            "description": "The post ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/QueuePostRewriteRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "`AiJobResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/AiJobResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
-          }
-        }
-      }
-    },
     "/admin/posts/{post}/publish": {
       "post": {
         "operationId": "v1.admin.posts.publish",
@@ -5666,67 +5287,6 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "`PostResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/PostResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
-          }
-        }
-      }
-    },
-    "/admin/posts/{post}/schedule": {
-      "post": {
-        "operationId": "v1.admin.posts.schedule",
-        "tags": [
-          "Post"
-        ],
-        "parameters": [
-          {
-            "name": "post",
-            "in": "path",
-            "required": true,
-            "description": "The post ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SchedulePostRequest"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "`PostResource`",
@@ -5885,7 +5445,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated set of `PublicPostSummaryResource`",
+            "description": "Array of `PublicPostSummaryResource`",
             "content": {
               "application/json": {
                 "schema": {
@@ -5896,128 +5456,10 @@
                       "items": {
                         "$ref": "#/components/schemas/PublicPostSummaryResource"
                       }
-                    },
-                    "links": {
-                      "type": "object",
-                      "properties": {
-                        "first": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "last": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "prev": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "next": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "first",
-                        "last",
-                        "prev",
-                        "next"
-                      ]
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "current_page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "from": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "minimum": 1
-                        },
-                        "last_page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "links": {
-                          "type": "array",
-                          "description": "Generated paginator links.",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "url": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              "label": {
-                                "type": "string"
-                              },
-                              "active": {
-                                "type": "boolean"
-                              }
-                            },
-                            "required": [
-                              "url",
-                              "label",
-                              "active"
-                            ]
-                          }
-                        },
-                        "path": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "description": "Base path for paginator generated URLs."
-                        },
-                        "per_page": {
-                          "type": "integer",
-                          "description": "Number of items shown per page.",
-                          "minimum": 0
-                        },
-                        "to": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "description": "Number of the last item in the slice.",
-                          "minimum": 1
-                        },
-                        "total": {
-                          "type": "integer",
-                          "description": "Total number of items being paginated.",
-                          "minimum": 0
-                        }
-                      },
-                      "required": [
-                        "current_page",
-                        "from",
-                        "last_page",
-                        "links",
-                        "path",
-                        "per_page",
-                        "to",
-                        "total"
-                      ]
                     }
                   },
                   "required": [
-                    "data",
-                    "links",
-                    "meta"
+                    "data"
                   ]
                 }
               }
@@ -6197,9 +5639,11 @@
           {
             "name": "q",
             "in": "query",
-            "required": true,
             "schema": {
-              "type": "string",
+              "type": [
+                "string",
+                "null"
+              ],
               "maxLength": 255
             }
           },
@@ -6236,7 +5680,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated set of `PublicPostSummaryResource`",
+            "description": "Array of `PublicPostSummaryResource`",
             "content": {
               "application/json": {
                 "schema": {
@@ -6247,128 +5691,10 @@
                       "items": {
                         "$ref": "#/components/schemas/PublicPostSummaryResource"
                       }
-                    },
-                    "links": {
-                      "type": "object",
-                      "properties": {
-                        "first": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "last": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "prev": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "next": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "first",
-                        "last",
-                        "prev",
-                        "next"
-                      ]
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "current_page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "from": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "minimum": 1
-                        },
-                        "last_page": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "links": {
-                          "type": "array",
-                          "description": "Generated paginator links.",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "url": {
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              "label": {
-                                "type": "string"
-                              },
-                              "active": {
-                                "type": "boolean"
-                              }
-                            },
-                            "required": [
-                              "url",
-                              "label",
-                              "active"
-                            ]
-                          }
-                        },
-                        "path": {
-                          "type": [
-                            "string",
-                            "null"
-                          ],
-                          "description": "Base path for paginator generated URLs."
-                        },
-                        "per_page": {
-                          "type": "integer",
-                          "description": "Number of items shown per page.",
-                          "minimum": 0
-                        },
-                        "to": {
-                          "type": [
-                            "integer",
-                            "null"
-                          ],
-                          "description": "Number of the last item in the slice.",
-                          "minimum": 1
-                        },
-                        "total": {
-                          "type": "integer",
-                          "description": "Total number of items being paginated.",
-                          "minimum": 0
-                        }
-                      },
-                      "required": [
-                        "current_page",
-                        "from",
-                        "last_page",
-                        "links",
-                        "path",
-                        "per_page",
-                        "to",
-                        "total"
-                      ]
                     }
                   },
                   "required": [
-                    "data",
-                    "links",
-                    "meta"
+                    "data"
                   ]
                 }
               }
@@ -6542,6 +5868,113 @@
           },
           "403": {
             "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      }
+    },
+    "/admin/site-settings": {
+      "get": {
+        "operationId": "v1.admin.site-settings.show",
+        "tags": [
+          "SiteSettings"
+        ],
+        "responses": {
+          "200": {
+            "description": "`SiteSettingsResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SiteSettingsResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "v1.admin.site-settings.update",
+        "tags": [
+          "SiteSettings"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSiteSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`SiteSettingsResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SiteSettingsResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/public/site-settings": {
+      "get": {
+        "operationId": "v1.public.site-settings",
+        "tags": [
+          "SiteSettings"
+        ],
+        "responses": {
+          "200": {
+            "description": "`PublicSiteSettingsResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PublicSiteSettingsResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
           }
         }
       }
@@ -6899,346 +6332,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/admin/templates": {
-      "get": {
-        "operationId": "v1.admin.templates.index",
-        "tags": [
-          "Template"
-        ],
-        "responses": {
-          "200": {
-            "description": "Array of `TemplateResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/TemplateResource"
-                      }
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          }
-        }
-      },
-      "post": {
-        "operationId": "v1.admin.templates.store",
-        "tags": [
-          "Template"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StoreTemplateRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "`TemplateResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/TemplateResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
-          }
-        }
-      }
-    },
-    "/admin/templates/{template}": {
-      "get": {
-        "operationId": "v1.admin.templates.show",
-        "tags": [
-          "Template"
-        ],
-        "parameters": [
-          {
-            "name": "template",
-            "in": "path",
-            "required": true,
-            "description": "The template ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "`TemplateResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/TemplateResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          }
-        }
-      },
-      "put": {
-        "operationId": "v1.admin.templates.update",
-        "tags": [
-          "Template"
-        ],
-        "parameters": [
-          {
-            "name": "template",
-            "in": "path",
-            "required": true,
-            "description": "The template ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateTemplateRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "`TemplateResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/TemplateResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
-          }
-        }
-      },
-      "delete": {
-        "operationId": "v1.admin.templates.destroy",
-        "tags": [
-          "Template"
-        ],
-        "parameters": [
-          {
-            "name": "template",
-            "in": "path",
-            "required": true,
-            "description": "The template ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No content"
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          }
-        }
-      }
-    },
-    "/admin/templates/{template}/preview": {
-      "post": {
-        "operationId": "v1.admin.templates.preview",
-        "tags": [
-          "Template"
-        ],
-        "parameters": [
-          {
-            "name": "template",
-            "in": "path",
-            "required": true,
-            "description": "The template ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BuildTemplatePreviewRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "`TemplatePreviewResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/TemplatePreviewResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
-          }
-        }
-      }
-    },
-    "/admin/templates/{template}/seed-post": {
-      "post": {
-        "operationId": "v1.admin.templates.seed-post",
-        "tags": [
-          "Template"
-        ],
-        "parameters": [
-          {
-            "name": "template",
-            "in": "path",
-            "required": true,
-            "description": "The template ID",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BuildTemplateSeedPostRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "`TemplateSeedPostPayloadResource`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/components/schemas/TemplateSeedPostPayloadResource"
-                    }
-                  },
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/AuthenticationException"
-          },
-          "403": {
-            "$ref": "#/components/responses/AuthorizationException"
-          },
-          "404": {
-            "$ref": "#/components/responses/ModelNotFoundException"
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationException"
           }
         }
       }
@@ -7913,46 +7006,6 @@
         ],
         "title": "BatchStoreMediaRequest"
       },
-      "BuildTemplatePreviewRequest": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 160
-          },
-          "topic": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 160
-          }
-        },
-        "title": "BuildTemplatePreviewRequest"
-      },
-      "BuildTemplateSeedPostRequest": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 160
-          },
-          "topic": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 160
-          }
-        },
-        "title": "BuildTemplateSeedPostRequest"
-      },
       "CategoryResource": {
         "type": "object",
         "properties": {
@@ -8035,16 +7088,20 @@
         "type": "object",
         "properties": {
           "hero": {
-            "type": "string"
+            "type": "array",
+            "items": {}
           },
           "contact_form": {
-            "type": "string"
+            "type": "array",
+            "items": {}
           },
           "contact_reasons": {
-            "type": "string"
+            "type": "array",
+            "items": {}
           },
           "seo": {
-            "type": "string"
+            "type": "array",
+            "items": {}
           },
           "updated_at": {
             "type": "string"
@@ -8106,7 +7163,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "integer"
           },
           "name": {
             "type": "string"
@@ -8124,23 +7181,14 @@
             "type": "string"
           },
           "admin_notes": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "metadata": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "minItems": 0,
-                "maxItems": 0,
-                "additionalItems": false
-              }
-            ]
+            "type": "array",
+            "items": {}
           },
           "submitted_at": {
             "type": "string"
@@ -8193,140 +7241,36 @@
         ],
         "title": "ContactSubmissionResource"
       },
-      "ContentBriefResource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "content_topic_id": {
-            "type": "integer"
-          },
-          "title": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "meta_title": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "meta_description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "primary_keyword": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "secondary_keywords": {
-            "type": "array",
-            "items": {}
-          },
-          "search_intent": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "outline": {
-            "type": "array",
-            "items": {}
-          },
-          "headings": {
-            "type": "array",
-            "items": {}
-          },
-          "faq_suggestions": {
-            "type": "array",
-            "items": {}
-          },
-          "internal_link_suggestions": {
-            "type": "array",
-            "items": {}
-          },
-          "image_suggestions": {
-            "type": "array",
-            "items": {}
-          },
-          "status": {
-            "type": "string"
-          },
-          "can_generate_draft": {
-            "type": "boolean"
-          },
-          "approved_at": {
-            "type": "string"
-          },
-          "topic": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "title": {
-                "type": "string"
-              },
-              "slug": {
-                "type": "string"
-              },
-              "cluster": {
-                "type": "string"
-              },
-              "status": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "title",
-              "slug",
-              "cluster",
-              "status"
-            ]
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "updated_at": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "content_topic_id",
-          "title",
-          "slug",
-          "meta_title",
-          "meta_description",
-          "primary_keyword",
-          "secondary_keywords",
-          "search_intent",
-          "outline",
-          "headings",
-          "faq_suggestions",
-          "internal_link_suggestions",
-          "image_suggestions",
-          "status",
-          "can_generate_draft",
-          "approved_at",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "ContentBriefResource"
-      },
       "ContentTopicResource": {
         "type": "object",
         "properties": {
           "id": {
             "type": "integer"
+          },
+          "category_id": {
+            "type": "integer"
+          },
+          "category": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "slug"
+            ]
           },
           "title": {
             "type": "string"
@@ -8359,6 +7303,12 @@
               "null"
             ]
           },
+          "score_breakdown": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "difficulty_note": {
             "type": [
               "string",
@@ -8377,7 +7327,7 @@
               "null"
             ]
           },
-          "can_generate_content_brief": {
+          "can_generate_draft": {
             "type": "boolean"
           },
           "approved_at": {
@@ -8398,6 +7348,7 @@
         },
         "required": [
           "id",
+          "category_id",
           "title",
           "slug",
           "cluster",
@@ -8405,11 +7356,12 @@
           "secondary_keywords",
           "search_intent",
           "priority_score",
+          "score_breakdown",
           "difficulty_note",
           "source",
           "status",
           "notes",
-          "can_generate_content_brief",
+          "can_generate_draft",
           "approved_at",
           "rejected_at",
           "used_at",
@@ -8448,16 +7400,8 @@
       "DiscoverContentTopicsRequest": {
         "type": "object",
         "properties": {
-          "cluster": {
-            "type": "string",
-            "enum": [
-              "ai_tools",
-              "ai_for_blogging",
-              "seo",
-              "content_marketing",
-              "productivity_automation",
-              "developer_ai"
-            ]
+          "category_id": {
+            "type": "integer"
           },
           "count": {
             "type": "integer",
@@ -8471,13 +7415,6 @@
             ],
             "maxLength": 255
           },
-          "prompt_template_key": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 190
-          },
           "metadata": {
             "type": "array",
             "items": {
@@ -8486,7 +7423,7 @@
           }
         },
         "required": [
-          "cluster"
+          "category_id"
         ],
         "title": "DiscoverContentTopicsRequest"
       },
@@ -8502,63 +7439,6 @@
           "message"
         ],
         "title": "EchoMessageRequest"
-      },
-      "GenerateBlogDraftRequest": {
-        "type": "object",
-        "properties": {
-          "author_user_id": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "category_id": {
-            "type": "integer"
-          },
-          "template_id": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "featured_media_id": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "public",
-              "private",
-              "internal"
-            ]
-          },
-          "prompt_template_key": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 190
-          },
-          "generation_mode": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "enum": [
-              "tutorial",
-              "comparison",
-              "opinionated_analysis",
-              "checklist"
-            ]
-          }
-        },
-        "required": [
-          "category_id"
-        ],
-        "title": "GenerateBlogDraftRequest"
       },
       "HealthCheckResource": {
         "type": "object",
@@ -9402,71 +8282,6 @@
         ],
         "title": "PageResource"
       },
-      "PostBlockResource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "block_key": {
-            "type": "string"
-          },
-          "block_type": {
-            "type": "string"
-          },
-          "sort_order": {
-            "type": "integer"
-          },
-          "content_markdown": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "content_html_cache": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "plain_text_cache": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "settings": {
-            "type": "array",
-            "items": {}
-          },
-          "source_template_block_id": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "updated_at": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "block_key",
-          "block_type",
-          "sort_order",
-          "content_markdown",
-          "content_html_cache",
-          "plain_text_cache",
-          "settings",
-          "source_template_block_id",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "PostBlockResource"
-      },
       "PostResource": {
         "type": "object",
         "properties": {
@@ -9482,11 +8297,34 @@
           "slug": {
             "type": "string"
           },
-          "excerpt": {
+          "short_description": {
             "type": [
               "string",
               "null"
             ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "full_article_html": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "full_article_delta": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "faq": {
+            "type": "array",
+            "items": {}
           },
           "status": {
             "type": "string"
@@ -9497,38 +8335,11 @@
           "published_at": {
             "type": "string"
           },
-          "scheduled_for": {
-            "type": "string"
-          },
           "canonical_url": {
             "type": "string"
           },
-          "content_version": {
-            "type": "integer"
-          },
-          "reading_time_minutes": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "word_count": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "is_featured": {
-            "type": "boolean"
-          },
           "is_ai_generated": {
             "type": "string"
-          },
-          "source_content_brief_id": {
-            "type": [
-              "integer",
-              "null"
-            ]
           },
           "source_content_topic_id": {
             "type": [
@@ -9591,32 +8402,6 @@
               "id",
               "name",
               "slug"
-            ]
-          },
-          "template": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "name": {
-                "type": "string"
-              },
-              "slug": {
-                "type": "string"
-              },
-              "template_type": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "name",
-              "slug",
-              "template_type"
             ]
           },
           "featured_media": {
@@ -9685,12 +8470,6 @@
               ]
             }
           },
-          "blocks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PostBlockResource"
-            }
-          },
           "created_at": {
             "type": "string"
           },
@@ -9703,18 +8482,16 @@
           "ulid",
           "title",
           "slug",
-          "excerpt",
+          "short_description",
+          "description",
+          "full_article_html",
+          "full_article_delta",
+          "faq",
           "status",
           "visibility",
           "published_at",
-          "scheduled_for",
           "canonical_url",
-          "content_version",
-          "reading_time_minutes",
-          "word_count",
-          "is_featured",
           "is_ai_generated",
-          "source_content_brief_id",
           "source_content_topic_id",
           "generated_by_ai_job_id",
           "generated_by",
@@ -10058,7 +8835,10 @@
           "slug": {
             "type": "string"
           },
-          "excerpt": {
+          "short_description": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "canonical_url": {
@@ -10069,6 +8849,73 @@
           },
           "updated_at": {
             "type": "string"
+          },
+          "reading_time_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "read_time": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "word_count": {
+            "type": "integer"
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "full_article_html": {
+            "type": "string"
+          },
+          "full_article_delta": {
+            "type": "string"
+          },
+          "faq": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 0,
+                "maxItems": 0,
+                "additionalItems": false
+              }
+            ]
+          },
+          "author": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          },
+          "featured_image": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "featured_media": {
             "type": [
@@ -10102,13 +8949,6 @@
           "tags": {
             "type": "string"
           },
-          "template": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {}
-          },
           "seo": {
             "type": [
               "array",
@@ -10116,29 +8956,38 @@
             ],
             "items": {}
           },
-          "schema": {
-            "type": "string"
-          },
-          "blocks": {
+          "related_posts": {
             "type": "array",
             "items": {}
+          },
+          "schema": {
+            "type": "string"
           }
         },
         "required": [
           "id",
           "title",
           "slug",
-          "excerpt",
+          "short_description",
+          "description",
           "canonical_url",
           "published_at",
           "updated_at",
+          "reading_time_minutes",
+          "read_time",
+          "word_count",
+          "content",
+          "full_article_html",
+          "full_article_delta",
+          "faq",
+          "author",
+          "featured_image",
           "featured_media",
           "category",
           "tags",
-          "template",
           "seo",
-          "schema",
-          "blocks"
+          "related_posts",
+          "schema"
         ],
         "title": "PublicPostDetailResource"
       },
@@ -10154,7 +9003,7 @@
           "slug": {
             "type": "string"
           },
-          "excerpt": {
+          "short_description": {
             "type": "string"
           },
           "canonical_url": {
@@ -10166,12 +9015,48 @@
           "updated_at": {
             "type": "string"
           },
+          "reading_time_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "read_time": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "featured_image": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "featured_media": {
             "type": [
               "array",
               "null"
             ],
             "items": {}
+          },
+          "author": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
           },
           "category": {
             "type": "object",
@@ -10204,12 +9089,27 @@
           "id",
           "title",
           "slug",
-          "excerpt",
+          "short_description",
           "canonical_url",
           "published_at",
-          "updated_at"
+          "updated_at",
+          "reading_time_minutes",
+          "read_time",
+          "featured_image"
         ],
         "title": "PublicPostSummaryResource"
+      },
+      "PublicSiteSettingsResource": {
+        "type": "object",
+        "properties": {
+          "footer": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "footer"
+        ],
+        "title": "PublicSiteSettingsResource"
       },
       "PublicTagDetailResource": {
         "type": "object",
@@ -10280,52 +9180,9 @@
               "string",
               "null"
             ]
-          },
-          "prompt_template_key": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 190
           }
         },
         "title": "QueuePostMetadataSuggestionRequest"
-      },
-      "QueuePostRewriteRequest": {
-        "type": "object",
-        "properties": {
-          "scope": {
-            "type": "string",
-            "enum": [
-              "full_draft",
-              "section",
-              "paragraph"
-            ]
-          },
-          "instructions": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "prompt_template_key": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 190
-          },
-          "target_block_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          }
-        },
-        "required": [
-          "scope"
-        ],
-        "title": "QueuePostRewriteRequest"
       },
       "QueuePostTitleExcerptRefinementRequest": {
         "type": "object",
@@ -10335,13 +9192,6 @@
               "string",
               "null"
             ]
-          },
-          "prompt_template_key": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 190
           }
         },
         "title": "QueuePostTitleExcerptRefinementRequest"
@@ -10423,19 +9273,6 @@
           "last_modified_at"
         ],
         "title": "RssFeedEntryResource"
-      },
-      "SchedulePostRequest": {
-        "type": "object",
-        "properties": {
-          "scheduled_for": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "scheduled_for"
-        ],
-        "title": "SchedulePostRequest"
       },
       "SchemaPayloadResource": {
         "type": "object",
@@ -10579,6 +9416,44 @@
         "additionalProperties": {},
         "title": "SeoScoreResource"
       },
+      "SiteSettingsResource": {
+        "type": "object",
+        "properties": {
+          "footer": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          }
+        },
+        "required": [
+          "footer",
+          "updated_at"
+        ],
+        "title": "SiteSettingsResource"
+      },
       "SitemapEntryResource": {
         "type": "object",
         "properties": {
@@ -10642,18 +9517,17 @@
           },
           "key": {
             "type": "string",
+            "enum": [
+              "topic_standard",
+              "blog_standard"
+            ],
             "maxLength": 180
           },
           "type": {
             "type": "string",
             "enum": [
               "topic_discovery",
-              "content_brief",
-              "blog_writer",
-              "editor",
-              "seo_optimizer",
-              "editorial_refiner",
-              "publishing"
+              "blog_writer"
             ]
           },
           "description": {
@@ -10810,6 +9684,9 @@
       "StoreContentTopicRequest": {
         "type": "object",
         "properties": {
+          "category_id": {
+            "type": "integer"
+          },
           "title": {
             "type": "string",
             "maxLength": 255
@@ -10897,9 +9774,55 @@
               "type": "string",
               "maxLength": 255
             }
+          },
+          "score_breakdown": {
+            "type": "object",
+            "properties": {
+              "trend_score": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 35
+              },
+              "knowledge_base_fit": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 20
+              },
+              "business_value": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 20
+              },
+              "originality_gap": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 15
+              },
+              "execution_confidence": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 10
+              }
+            }
           }
         },
         "required": [
+          "category_id",
           "title",
           "cluster"
         ],
@@ -11272,20 +10195,33 @@
             ],
             "maxLength": 190
           },
-          "excerpt": {
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "description": {
             "type": [
               "string",
               "null"
             ]
           },
+          "full_article_html": {
+            "type": "string"
+          },
+          "full_article_delta": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
           "category_id": {
             "type": "integer"
-          },
-          "template_id": {
-            "type": [
-              "integer",
-              "null"
-            ]
           },
           "featured_media_id": {
             "type": [
@@ -11318,37 +10254,6 @@
             ],
             "format": "date-time"
           },
-          "scheduled_for": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "content_version": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 1
-          },
-          "reading_time_minutes": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 0
-          },
-          "word_count": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 0
-          },
-          "is_featured": {
-            "type": "boolean"
-          },
           "meta": {
             "type": [
               "array",
@@ -11367,57 +10272,30 @@
               "type": "integer"
             }
           },
-          "blocks": {
-            "type": "array",
+          "faq": {
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "object",
               "properties": {
-                "block_type": {
-                  "type": "string",
-                  "enum": [
-                    "heading",
-                    "paragraph",
-                    "image",
-                    "quote",
-                    "list",
-                    "code",
-                    "faq",
-                    "callout"
-                  ]
+                "question": {
+                  "type": "string"
                 },
-                "sort_order": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "content": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "minItems": 1
-                },
-                "source_template_block_id": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ]
+                "answer": {
+                  "type": "string"
                 }
-              },
-              "required": [
-                "block_type",
-                "sort_order",
-                "content"
-              ]
-            },
-            "minItems": 1
+              }
+            }
           }
         },
         "required": [
           "title",
+          "full_article_html",
           "category_id",
           "status",
-          "visibility",
-          "blocks"
+          "visibility"
         ],
         "title": "StorePostRequest"
       },
@@ -11449,123 +10327,6 @@
           "name"
         ],
         "title": "StoreTagRequest"
-      },
-      "StoreTemplateRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 160
-          },
-          "slug": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 180
-          },
-          "template_type": {
-            "type": "string",
-            "enum": [
-              "standard",
-              "tutorial",
-              "listicle",
-              "comparison",
-              "news"
-            ]
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "draft",
-              "active",
-              "archived"
-            ]
-          },
-          "default_excerpt_prompt": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "default_meta": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "type": "string"
-            }
-          },
-          "blocks": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "block_type": {
-                  "type": "string",
-                  "enum": [
-                    "heading",
-                    "paragraph",
-                    "image",
-                    "quote",
-                    "list",
-                    "code",
-                    "faq",
-                    "callout"
-                  ]
-                },
-                "sort_order": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "label": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "maxLength": 160
-                },
-                "default_markdown": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "settings": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "is_required": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "block_type",
-                "sort_order"
-              ]
-            },
-            "minItems": 1
-          }
-        },
-        "required": [
-          "name",
-          "template_type",
-          "status",
-          "blocks"
-        ],
-        "title": "StoreTemplateRequest"
       },
       "SubmitContactMessageRequest": {
         "type": "object",
@@ -11693,280 +10454,6 @@
           "updated_at"
         ],
         "title": "TagResource"
-      },
-      "TemplateBlockResource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "block_key": {
-            "type": "string"
-          },
-          "block_type": {
-            "type": "string"
-          },
-          "sort_order": {
-            "type": "integer"
-          },
-          "label": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "default_markdown": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "settings": {
-            "type": "array",
-            "items": {}
-          },
-          "is_required": {
-            "type": "boolean"
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "updated_at": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "block_key",
-          "block_type",
-          "sort_order",
-          "label",
-          "default_markdown",
-          "settings",
-          "is_required",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "TemplateBlockResource"
-      },
-      "TemplatePreviewResource": {
-        "type": "object",
-        "properties": {
-          "template": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "ulid": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "slug": {
-                "type": "string"
-              },
-              "template_type": {
-                "type": "string"
-              },
-              "description": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "status": {
-                "type": "string"
-              },
-              "default_excerpt_prompt": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "default_meta": {
-                "type": "array",
-                "items": {}
-              },
-              "blocks": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/TemplateBlockResource"
-                }
-              },
-              "created_at": {
-                "type": "string"
-              },
-              "updated_at": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "ulid",
-              "name",
-              "slug",
-              "template_type",
-              "description",
-              "status",
-              "default_excerpt_prompt",
-              "default_meta",
-              "created_at",
-              "updated_at"
-            ]
-          },
-          "preview": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "template",
-          "preview"
-        ],
-        "title": "TemplatePreviewResource"
-      },
-      "TemplateResource": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "ulid": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "template_type": {
-            "type": "string"
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status": {
-            "type": "string"
-          },
-          "default_excerpt_prompt": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "default_meta": {
-            "type": "array",
-            "items": {}
-          },
-          "blocks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TemplateBlockResource"
-            }
-          },
-          "created_at": {
-            "type": "string"
-          },
-          "updated_at": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "ulid",
-          "name",
-          "slug",
-          "template_type",
-          "description",
-          "status",
-          "default_excerpt_prompt",
-          "default_meta",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "TemplateResource"
-      },
-      "TemplateSeedPostPayloadResource": {
-        "type": "object",
-        "properties": {
-          "template": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "ulid": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "slug": {
-                "type": "string"
-              },
-              "template_type": {
-                "type": "string"
-              },
-              "description": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "status": {
-                "type": "string"
-              },
-              "default_excerpt_prompt": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "default_meta": {
-                "type": "array",
-                "items": {}
-              },
-              "blocks": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/TemplateBlockResource"
-                }
-              },
-              "created_at": {
-                "type": "string"
-              },
-              "updated_at": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "ulid",
-              "name",
-              "slug",
-              "template_type",
-              "description",
-              "status",
-              "default_excerpt_prompt",
-              "default_meta",
-              "created_at",
-              "updated_at"
-            ]
-          },
-          "post": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "template",
-          "post"
-        ],
-        "title": "TemplateSeedPostPayloadResource"
       },
       "TransitionContentTopicRequest": {
         "type": "object",
@@ -12234,18 +10721,17 @@
           },
           "key": {
             "type": "string",
+            "enum": [
+              "topic_standard",
+              "blog_standard"
+            ],
             "maxLength": 180
           },
           "type": {
             "type": "string",
             "enum": [
               "topic_discovery",
-              "content_brief",
-              "blog_writer",
-              "editor",
-              "seo_optimizer",
-              "editorial_refiner",
-              "publishing"
+              "blog_writer"
             ]
           },
           "description": {
@@ -12472,111 +10958,12 @@
         ],
         "title": "UpdateContactSubmissionRequest"
       },
-      "UpdateContentBriefRequest": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "maxLength": 255
-          },
-          "slug": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 190
-          },
-          "meta_title": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 255
-          },
-          "meta_description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "primary_keyword": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 255
-          },
-          "search_intent": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 255
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "draft",
-              "rejected",
-              "used"
-            ]
-          },
-          "secondary_keywords": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "maxLength": 255
-            }
-          },
-          "outline": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "headings": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "maxLength": 255
-            }
-          },
-          "faq_suggestions": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "internal_link_suggestions": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "image_suggestions": {
-            "type": "array",
-            "items": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "title": "UpdateContentBriefRequest"
-      },
       "UpdateContentTopicRequest": {
         "type": "object",
         "properties": {
+          "category_id": {
+            "type": "integer"
+          },
           "title": {
             "type": "string",
             "maxLength": 255
@@ -12649,9 +11036,55 @@
               "type": "string",
               "maxLength": 255
             }
+          },
+          "score_breakdown": {
+            "type": "object",
+            "properties": {
+              "trend_score": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 35
+              },
+              "knowledge_base_fit": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 20
+              },
+              "business_value": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 20
+              },
+              "originality_gap": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 15
+              },
+              "execution_confidence": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 10
+              }
+            }
           }
         },
         "required": [
+          "category_id",
           "title",
           "cluster",
           "source"
@@ -13316,20 +11749,33 @@
             ],
             "maxLength": 190
           },
-          "excerpt": {
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "description": {
             "type": [
               "string",
               "null"
             ]
           },
+          "full_article_html": {
+            "type": "string"
+          },
+          "full_article_delta": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
           "category_id": {
             "type": "integer"
-          },
-          "template_id": {
-            "type": [
-              "integer",
-              "null"
-            ]
           },
           "featured_media_id": {
             "type": [
@@ -13362,37 +11808,6 @@
             ],
             "format": "date-time"
           },
-          "scheduled_for": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "content_version": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 1
-          },
-          "reading_time_minutes": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 0
-          },
-          "word_count": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "minimum": 0
-          },
-          "is_featured": {
-            "type": "boolean"
-          },
           "meta": {
             "type": [
               "array",
@@ -13411,57 +11826,30 @@
               "type": "integer"
             }
           },
-          "blocks": {
-            "type": "array",
+          "faq": {
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "object",
               "properties": {
-                "block_type": {
-                  "type": "string",
-                  "enum": [
-                    "heading",
-                    "paragraph",
-                    "image",
-                    "quote",
-                    "list",
-                    "code",
-                    "faq",
-                    "callout"
-                  ]
+                "question": {
+                  "type": "string"
                 },
-                "sort_order": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "content": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "minItems": 1
-                },
-                "source_template_block_id": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ]
+                "answer": {
+                  "type": "string"
                 }
-              },
-              "required": [
-                "block_type",
-                "sort_order",
-                "content"
-              ]
-            },
-            "minItems": 1
+              }
+            }
           }
         },
         "required": [
           "title",
+          "full_article_html",
           "category_id",
           "status",
-          "visibility",
-          "blocks"
+          "visibility"
         ],
         "title": "UpdatePostRequest"
       },
@@ -13542,6 +11930,96 @@
         },
         "title": "UpdateSeoMetadataRequest"
       },
+      "UpdateSiteSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "footer": {
+            "type": "object",
+            "properties": {
+              "brand_name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 120
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 2000
+              },
+              "social_links": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "url": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 80
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "url"
+                  ]
+                },
+                "minItems": 1
+              },
+              "legal_links": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "slug": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 190
+                    },
+                    "url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ]
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "social_links",
+              "legal_links"
+            ]
+          }
+        },
+        "required": [
+          "footer"
+        ],
+        "title": "UpdateSiteSettingsRequest"
+      },
       "UpdateTagRequest": {
         "type": "object",
         "properties": {
@@ -13570,123 +12048,6 @@
           "name"
         ],
         "title": "UpdateTagRequest"
-      },
-      "UpdateTemplateRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 160
-          },
-          "slug": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "maxLength": 180
-          },
-          "template_type": {
-            "type": "string",
-            "enum": [
-              "standard",
-              "tutorial",
-              "listicle",
-              "comparison",
-              "news"
-            ]
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "draft",
-              "active",
-              "archived"
-            ]
-          },
-          "default_excerpt_prompt": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "default_meta": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "type": "string"
-            }
-          },
-          "blocks": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "block_type": {
-                  "type": "string",
-                  "enum": [
-                    "heading",
-                    "paragraph",
-                    "image",
-                    "quote",
-                    "list",
-                    "code",
-                    "faq",
-                    "callout"
-                  ]
-                },
-                "sort_order": {
-                  "type": "integer",
-                  "minimum": 1
-                },
-                "label": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "maxLength": 160
-                },
-                "default_markdown": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "settings": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "is_required": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "block_type",
-                "sort_order"
-              ]
-            },
-            "minItems": 1
-          }
-        },
-        "required": [
-          "name",
-          "template_type",
-          "status",
-          "blocks"
-        ],
-        "title": "UpdateTemplateRequest"
       },
       "UserResource": {
         "type": "object",

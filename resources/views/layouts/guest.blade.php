@@ -75,7 +75,7 @@
                             Editorial control for a modern publishing desk.
                         </h1>
                         <p class="mt-5 max-w-xl text-lg leading-8 text-[var(--color-muted)]">
-                            Sign in with your admin credentials to manage posts, media, templates, knowledge, and SEO workflows through the Wide Web Blog service API.
+                            Sign in with your admin credentials to manage posts, media, knowledge, prompts, and SEO workflows through the Wide Web Blog service API.
                         </p>
 
                         <div class="mt-10 grid gap-4 sm:grid-cols-2">

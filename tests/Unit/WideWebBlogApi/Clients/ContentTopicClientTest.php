@@ -25,6 +25,7 @@ class ContentTopicClientTest extends TestCase
             $this->assertStringContainsString('/admin/content-topics?', $request->url());
             $this->assertStringContainsString('search=agent', $request->url());
             $this->assertStringContainsString('status=suggested', $request->url());
+            $this->assertStringContainsString('category_id=5', $request->url());
             $this->assertStringContainsString('cluster=ai_tools', $request->url());
             $this->assertStringContainsString('source=ai_suggested', $request->url());
             $this->assertStringContainsString('sort=-priority_score', $request->url());
@@ -39,6 +40,7 @@ class ContentTopicClientTest extends TestCase
         $response = app(ContentTopicClient::class)->index('test-token', 'Bearer', [
             'search' => 'agent',
             'status' => 'suggested',
+            'category_id' => 5,
             'cluster' => 'ai_tools',
             'source' => 'ai_suggested',
             'sort' => '-priority_score',
@@ -52,6 +54,7 @@ class ContentTopicClientTest extends TestCase
         Http::fake(function (Request $request) {
             if ($request->method() === 'PATCH' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/8') {
                 $this->assertSame('Updated Topic', $request['title']);
+                $this->assertSame(5, $request['category_id']);
                 $this->assertSame('ai_tools', $request['cluster']);
                 $this->assertSame('manual', $request['source']);
                 $this->assertSame(['automation', 'workflow'], $request['secondary_keywords']);
@@ -81,11 +84,18 @@ class ContentTopicClientTest extends TestCase
                 ], 200);
             }
 
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/8/generate-draft') {
+                return Http::response([
+                    'data' => ['id' => 55, 'type' => 'blog_writer', 'status' => 'queued'],
+                ], 202);
+            }
+
             return Http::response(['message' => 'Unexpected request.'], 500);
         });
 
         $updated = app(ContentTopicClient::class)->update('test-token', 'Bearer', 8, [
             'title' => 'Updated Topic',
+            'category_id' => 5,
             'cluster' => 'ai_tools',
             'source' => 'manual',
             'secondary_keywords' => ['automation', 'workflow'],
@@ -97,10 +107,12 @@ class ContentTopicClientTest extends TestCase
 
         $rejected = app(ContentTopicClient::class)->reject('test-token', 'Bearer', 8);
         $used = app(ContentTopicClient::class)->markUsed('test-token', 'Bearer', 8);
+        $draft = app(ContentTopicClient::class)->generateDraft('test-token', 'Bearer', 8);
 
         $this->assertSame('Updated Topic', $updated['data']['title']);
         $this->assertSame('approved', $approved['data']['status']);
         $this->assertSame('rejected', $rejected['data']['status']);
         $this->assertSame('used', $used['data']['status']);
+        $this->assertSame(55, $draft['data']['id']);
     }
 }

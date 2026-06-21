@@ -1,15 +1,23 @@
 <div class="space-y-6">
+    @php
+        $statusOptions = ['draft', 'published', 'unpublished', 'archived'];
+
+        if ($status === 'scheduled') {
+            $statusOptions[] = 'scheduled';
+        }
+    @endphp
+
     <x-admin.page-header
-        :title="$aiReviewMode ? 'Review AI Draft' : ($editingPostId ? 'Edit Post' : 'Create Post')"
+        :title="$aiReviewMode ? 'Review Draft' : ($editingPostId ? 'Edit Post' : 'Create Post')"
         :description="$aiReviewMode
-            ? 'Review AI-generated content, inspect source provenance and suggestions, then publish manually when the draft is ready.'
-            : 'Build structured editorial content in the main canvas while keeping status, taxonomy, media, and publishing metadata visible in the side panel.'"
+            ? 'Review the generated article, refine the copy, confirm metadata, and publish manually when it is ready.'
+            : 'Create and edit posts as complete articles. The backend now treats the article body as the source of truth.'"
     >
         <x-ui.button as="a" :href="$aiReviewMode ? route('draft-review.index') : route('posts.index')" variant="secondary">
             {{ $aiReviewMode ? 'Back to Draft Review' : 'Back to Posts' }}
         </x-ui.button>
-        <x-ui.button type="button" class="whitespace-nowrap" wire:click="save" wire:loading.attr="disabled" wire:target="save">
-            <span wire:loading.remove wire:target="save">{{ $aiReviewMode ? 'Save Review Changes' : ($editingPostId ? 'Save Post' : 'Create Post') }}</span>
+        <x-ui.button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+            <span wire:loading.remove wire:target="save">{{ $editingPostId ? 'Save Post' : 'Create Post' }}</span>
             <span wire:loading wire:target="save">Saving…</span>
         </x-ui.button>
     </x-admin.page-header>
@@ -27,48 +35,26 @@
     @endif
 
     @if ($aiReviewMode && $isAiGenerated)
-        <div class="rounded-[var(--radius-card)] border border-[color-mix(in_srgb,var(--color-warning)_20%,white)] bg-[color-mix(in_srgb,var(--color-warning)_10%,white)] px-5 py-4 text-sm text-[var(--color-warning-strong)]">
-            AI-generated drafts never bypass manual review. Validate the content, SEO, taxonomy, and suggested assets before publishing.
-        </div>
+        <x-admin.callout title="Manual Review Required" tone="warning">
+            Draft generation is automated, but publishing is still manual. Review the article body, FAQ, taxonomy, featured media, and SEO metadata before publishing.
+        </x-admin.callout>
     @endif
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_22rem]">
         <div class="space-y-6">
-            @if ($aiReviewMode && $isAiGenerated && $aiSuggestionSections !== [])
-                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
-                    <div class="space-y-1">
-                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">AI Suggestions</h2>
-                        <p class="text-sm text-[var(--color-muted)]">These suggestions come from the Service-side draft generation workflow and remain advisory until a human editor accepts them.</p>
-                    </div>
-
-                    <div class="grid gap-4 lg:grid-cols-2">
-                        @foreach ($aiSuggestionSections as $section)
-                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $section['title'] }}</p>
-                                <ul class="mt-3 space-y-2 text-sm text-[var(--color-ink)]">
-                                    @foreach ($section['items'] as $item)
-                                        <li>{{ $item }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endforeach
-                    </div>
-                </section>
-            @endif
-
-            <section id="editor-core-content" class="scroll-mt-24 space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
-                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Core Content</h2>
-                    <p class="text-sm text-[var(--color-muted)]">The editor is structured rather than drag-heavy. Save explicitly now; the layout is ready for future autosave work.</p>
+                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Article</h2>
+                    <p class="text-sm text-[var(--color-muted)]">Keep the editorial flow article-first. The backend stores the full article body instead of ordered content blocks.</p>
                 </div>
 
                 <x-ui.field label="Title" for="post-title" :error="$errors->first('title')" required>
-                    <x-ui.input id="post-title" wire:model.blur="title" placeholder="Post title" :invalid="$errors->has('title')" />
+                    <x-ui.input id="post-title" wire:model.blur="title" :invalid="$errors->has('title')" placeholder="Article title" />
                 </x-ui.field>
 
                 <div class="grid gap-5 lg:grid-cols-2">
-                    <x-ui.field label="Slug" for="post-slug" :error="$errors->first('slug')" hint="Leave blank to let the service generate the slug.">
-                        <x-ui.input id="post-slug" wire:model.blur="slug" placeholder="post-slug" :invalid="$errors->has('slug')" />
+                    <x-ui.field label="Slug" for="post-slug" :error="$errors->first('slug')" hint="Leave blank to let the backend generate the slug.">
+                        <x-ui.input id="post-slug" wire:model.blur="slug" :invalid="$errors->has('slug')" placeholder="article-slug" />
                     </x-ui.field>
 
                     <x-ui.field label="Category" for="post-category" :error="$errors->first('categoryId')" required>
@@ -81,176 +67,89 @@
                     </x-ui.field>
                 </div>
 
-                <x-ui.field label="Excerpt" for="post-excerpt" :error="$errors->first('excerpt')" hint="Keep this concise. It supports list views and later SEO snippets.">
-                    <x-ui.textarea id="post-excerpt" wire:model.blur="excerpt" rows="4" placeholder="Short editorial summary" :invalid="$errors->has('excerpt')" />
+                <x-ui.field label="Short Description" for="post-short-description" :error="$errors->first('shortDescription')" hint="Used for concise editorial summaries and list views.">
+                    <x-ui.textarea id="post-short-description" wire:model.blur="shortDescription" rows="3" :invalid="$errors->has('shortDescription')" placeholder="Short summary of the article" />
                 </x-ui.field>
+
+                <x-ui.field label="Description" for="post-description" :error="$errors->first('description')" hint="Use this for a longer editorial description or production notes that still belong to the post payload.">
+                    <x-ui.textarea id="post-description" wire:model.blur="description" rows="4" :invalid="$errors->has('description')" placeholder="Longer description" />
+                </x-ui.field>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm font-medium text-[var(--color-ink)]" for="post-article-editor">Article Body</label>
+                        <p class="mt-1 text-sm text-[var(--color-muted)]">Quill drives the canonical article editing surface. Inline images are inserted from the media library or uploaded through the backend media API so the editor can preserve `data-media-id` for post-media syncing.</p>
+                    </div>
+
+                    <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-white">
+                        <div
+                            id="post-article-editor"
+                            wire:ignore
+                            data-quill-editor
+                            data-quill-html-field="#post-full-article-html"
+                            data-quill-delta-field="#post-full-article-delta"
+                            data-quill-initial-html-source="#post-article-editor-initial-html"
+                            data-quill-media-library-source="#post-inline-media-options"
+                            data-quill-upload-url="{{ route('posts.inline-media.store') }}"
+                            class="min-h-[28rem]"
+                        ></div>
+                    </div>
+
+                    <script id="post-article-editor-initial-html" type="application/json">@json($articleEditorInitialHtml)</script>
+                    <script id="post-inline-media-options" type="application/json">@json($mediaOptions)</script>
+
+                    <textarea id="post-full-article-html" wire:model="fullArticleHtml" class="hidden"></textarea>
+                    <textarea id="post-full-article-delta" wire:model="fullArticleDelta" class="hidden"></textarea>
+
+                    @error('fullArticleHtml')
+                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
+                    @enderror
+                    @error('fullArticleDelta')
+                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
+                    @enderror
+                </div>
             </section>
 
-            <section id="editor-blocks" class="scroll-mt-24 space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+                <div class="flex items-start justify-between gap-4">
                     <div class="space-y-1">
-                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Content Blocks</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Keep long posts compact by expanding only the blocks you are actively editing. Non-empty lines still save as ordered content items.</p>
+                        <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">FAQ</h2>
+                        <p class="text-sm text-[var(--color-muted)]">Keep FAQs structured in question and answer pairs. Empty rows are ignored on save.</p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2">
-                        <x-ui.button type="button" size="sm" variant="secondary" class="whitespace-nowrap" wire:click="addBlock">Add Block</x-ui.button>
-                        <x-ui.button type="button" size="sm" variant="secondary" class="whitespace-nowrap" wire:click="expandAllBlocks">Expand All</x-ui.button>
-                        <x-ui.button type="button" size="sm" variant="secondary" class="whitespace-nowrap" wire:click="collapseAllBlocks">Collapse All</x-ui.button>
-                    </div>
+                    <x-ui.button type="button" size="sm" variant="secondary" wire:click="addFaqItem">Add FAQ</x-ui.button>
                 </div>
 
-                @error('blocks')
-                    <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
-                @enderror
-
                 <div class="space-y-4">
-                    @foreach ($blocks as $index => $block)
-                        @php
-                            $isExpanded = (bool) ($expandedBlockLookup[$block['key']] ?? false);
-                        @endphp
-                        <div id="post-block-{{ $block['key'] }}" wire:key="post-block-{{ $block['key'] }}" @class([
-                            'scroll-mt-24 rounded-[var(--radius-button)] border bg-[var(--color-panel-soft)] px-4 py-4 transition-colors sm:px-5',
-                            'border-[color-mix(in_srgb,var(--color-accent)_22%,white)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-accent)_12%,white)]' => $isExpanded,
-                            'border-[var(--color-line)]' => ! $isExpanded,
-                        ])>
-                            <div @class([
-                                'flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between',
-                                'border-b border-[var(--color-line)] pb-4' => $isExpanded,
-                            ])>
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <span class="inline-flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-button)] bg-[var(--color-panel)] px-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                                        {{ $block['sortOrder'] }}
-                                    </span>
-                                        <p class="text-sm font-semibold text-[var(--color-ink)]">Block {{ $block['sortOrder'] }}</p>
-                                        <span class="inline-flex rounded-full bg-[var(--color-panel)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">{{ $blockUi[$index]['label'] }}</span>
-                                        @if ($blockUi[$index]['sourceTemplateBlockId'] !== '')
-                                            <span class="inline-flex rounded-full bg-[color-mix(in_srgb,var(--color-accent)_10%,white)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent-strong)]">Template linked</span>
-                                        @endif
-                                        <span class="inline-flex rounded-full bg-[var(--color-panel)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">
-                                            {{ $blockUi[$index]['contentLineCount'] }} {{ \Illuminate\Support\Str::plural('line', $blockUi[$index]['contentLineCount']) }}
-                                        </span>
-                                    </div>
-
-                                    <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">{{ $blockUi[$index]['preview'] }}</p>
-
-                                    @if ($isExpanded)
-                                        <p class="mt-2 text-xs text-[var(--color-muted)]">Ordered output is preserved directly in the API payload.</p>
-                                    @endif
-                                </div>
-
-                                <div class="flex shrink-0 flex-wrap items-center gap-2">
-                                    <button
-                                        type="button"
-                                        wire:click="moveBlockUp({{ $index }})"
-                                        class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)] disabled:cursor-not-allowed disabled:opacity-40"
-                                        @disabled($index === 0)
-                                        title="Move up"
-                                    >
-                                        ↑
-                                    </button>
-                                    <button
-                                        type="button"
-                                        wire:click="moveBlockDown({{ $index }})"
-                                        class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel-soft)] disabled:cursor-not-allowed disabled:opacity-40"
-                                        @disabled($index === count($blocks) - 1)
-                                        title="Move down"
-                                    >
-                                        ↓
-                                    </button>
-                                    <x-ui.button type="button" size="sm" variant="secondary" class="whitespace-nowrap" wire:click="toggleBlock('{{ $block['key'] }}')">
-                                        {{ $isExpanded ? 'Collapse' : 'Edit' }}
-                                    </x-ui.button>
-                                    <x-ui.button type="button" size="sm" variant="ghost" class="whitespace-nowrap text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="removeBlock({{ $index }})">
-                                        Remove
-                                    </x-ui.button>
-                                </div>
+                    @foreach ($faq as $index => $item)
+                        <div wire:key="faq-item-{{ $index }}" class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <p class="text-sm font-semibold text-[var(--color-ink)]">FAQ {{ $index + 1 }}</p>
+                                <button type="button" wire:click="removeFaqItem({{ $index }})" class="text-sm text-[var(--color-danger-strong)]">Remove</button>
                             </div>
 
-                            @if ($isExpanded)
-                            <div class="mt-4 grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]">
-                                <div class="space-y-5">
-                                    <x-ui.field label="Block Type" for="post-block-type-{{ $index }}" :error="$errors->first('blocks.'.$index.'.blockType')" required>
-                                        <x-ui.select id="post-block-type-{{ $index }}" wire:model.live="blocks.{{ $index }}.blockType" :invalid="$errors->has('blocks.'.$index.'.blockType')">
-                                            @foreach ($blockTypes as $blockType)
-                                                <option value="{{ $blockType }}">{{ str($blockType)->headline() }}</option>
-                                            @endforeach
-                                        </x-ui.select>
-                                    </x-ui.field>
+                            <div class="mt-4 space-y-4">
+                                <x-ui.field label="Question" for="faq-question-{{ $index }}" :error="$errors->first('faq.'.$index.'.question')">
+                                    <x-ui.input id="faq-question-{{ $index }}" wire:model.blur="faq.{{ $index }}.question" :invalid="$errors->has('faq.'.$index.'.question')" />
+                                </x-ui.field>
 
-                                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
-                                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">How this block saves</p>
-                                        <p class="mt-2 text-sm leading-6 text-[var(--color-muted)]">{{ $blockUi[$index]['contentHint'] }}</p>
-                                    </div>
-
-                                    @if ($blockUi[$index]['sourceTemplateBlockId'] !== '')
-                                        <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-accent)_18%,white)] bg-[color-mix(in_srgb,var(--color-accent)_8%,white)] px-4 py-4">
-                                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-accent-strong)]">Template Linkage</p>
-                                            <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">Template block #{{ $blockUi[$index]['sourceTemplateBlockId'] }}</p>
-                                            <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $blockUi[$index]['sourceTemplateHint'] }}</p>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <div class="space-y-3">
-                                    @if ($blockUi[$index]['showsToolbar'])
-                                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-3">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <span class="mr-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Markdown tools</span>
-                                                @foreach ($blockUi[$index]['toolbar'] as $tool)
-                                                    <button
-                                                        type="button"
-                                                        wire:click="insertBlockSnippet({{ $index }}, '{{ $tool['action'] }}')"
-                                                        class="inline-flex min-h-8 items-center justify-center rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-2.5 text-xs font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]"
-                                                    >
-                                                        {{ $tool['label'] }}
-                                                    </button>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    <x-ui.field
-                                        :label="$blockUi[$index]['contentLabel']"
-                                        for="post-block-content-{{ $index }}"
-                                        :error="$errors->first('blocks.'.$index.'.contentText')"
-                                        hint="The editor keeps this contract-aligned: non-empty lines save as ordered content items."
-                                        required
-                                    >
-                                        <x-ui.textarea
-                                            id="post-block-content-{{ $index }}"
-                                            rows="8"
-                                            wire:model.blur="blocks.{{ $index }}.contentText"
-                                            :placeholder="$blockUi[$index]['placeholder']"
-                                            :invalid="$errors->has('blocks.'.$index.'.contentText')"
-                                        />
-                                    </x-ui.field>
-                                </div>
+                                <x-ui.field label="Answer" for="faq-answer-{{ $index }}" :error="$errors->first('faq.'.$index.'.answer')">
+                                    <x-ui.textarea id="faq-answer-{{ $index }}" wire:model.blur="faq.{{ $index }}.answer" rows="4" :invalid="$errors->has('faq.'.$index.'.answer')" />
+                                </x-ui.field>
                             </div>
-                            @endif
                         </div>
                     @endforeach
                 </div>
             </section>
 
-            <section id="editor-seo" class="scroll-mt-24 space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div class="space-y-1">
-                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO & Metadata</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Keep search basics visible and tuck the heavy diagnostics behind expandable sections.</p>
-                    </div>
-
-                    @if ($editingPostId)
-                        <x-ui.button type="button" size="sm" class="whitespace-nowrap" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
-                            <span wire:loading.remove wire:target="saveSeo">Update SEO</span>
-                            <span wire:loading wire:target="saveSeo">Saving…</span>
-                        </x-ui.button>
-                    @endif
+            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+                <div class="space-y-1">
+                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">SEO Metadata</h2>
+                    <p class="text-sm text-[var(--color-muted)]">Review and save SEO metadata separately so contract-driven validation stays clear.</p>
                 </div>
 
                 @if ($seoLoadError)
-                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
+                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_22%,white)] bg-[color-mix(in_srgb,var(--color-warning)_8%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
                         {{ $seoLoadError }}
                     </div>
                 @endif
@@ -261,836 +160,266 @@
                     </div>
                 @endif
 
-                @if ($editingPostId)
-                    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-2">
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO Score</p>
-                            <div class="mt-3 flex items-center gap-3">
-                                <x-admin.seo-score-badge :score="$seoScoreValue" />
-                                @if ($seoScoreGrade)
-                                    <span class="text-sm font-medium text-[var(--color-muted)]">{{ $seoScoreGrade }}</span>
-                                @endif
-                            </div>
-
-                            @if ($seoScoreLoadError)
-                                <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoScoreLoadError }}</p>
-                            @elseif ($seoRecommendations !== [])
-                                <p class="mt-3 text-sm text-[var(--color-muted)]">{{ $seoRecommendations[0] }}</p>
-                            @else
-                                <p class="mt-3 text-sm text-[var(--color-muted)]">No score recommendations were returned for this post.</p>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-
-                <div class="grid gap-3 lg:grid-cols-2">
-                    <div class="space-y-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Slug Preview</p>
-                            <p class="mt-2 text-sm text-[var(--color-ink)]">/{{ $slug !== '' ? $slug : 'generated-on-save' }}</p>
-                        </div>
-
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Canonical URL</p>
-                            <p class="mt-2 break-all text-sm text-[var(--color-ink)]">{{ $canonicalUrl !== '' ? $canonicalUrl : 'Save the post first, then set a canonical URL if needed.' }}</p>
-                        </div>
-                    </div>
-
-                    <div class="grid gap-3 sm:grid-cols-3">
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Content Version</p>
-                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $contentVersion ?? 'TBC' }}</p>
-                        </div>
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Reading Time</p>
-                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $readingTimeMinutes !== null ? $readingTimeMinutes.' min' : 'TBC' }}</p>
-                        </div>
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Word Count</p>
-                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $wordCount !== null ? number_format($wordCount) : 'TBC' }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                @if ($editingPostId)
-                    <div class="grid gap-5 lg:grid-cols-2">
-                        <x-ui.field label="Meta Title" for="post-meta-title" :error="$errors->first('metaTitle')" hint="Keep it concise and specific to the post.">
-                            <x-ui.input id="post-meta-title" wire:model.blur="metaTitle" placeholder="SEO title" :invalid="$errors->has('metaTitle')" />
-                        </x-ui.field>
-
-                        <x-ui.field label="Focus Keyword" for="post-focus-keyword" :error="$errors->first('focusKeyword')" hint="Editorial guidance only; this stays per entity.">
-                            <x-ui.input id="post-focus-keyword" wire:model.blur="focusKeyword" placeholder="primary topic phrase" :invalid="$errors->has('focusKeyword')" />
-                        </x-ui.field>
-                    </div>
-
-                    <x-ui.field label="Meta Description" for="post-meta-description" :error="$errors->first('metaDescription')" hint="Aim for a compact search snippet.">
-                        <x-ui.textarea id="post-meta-description" rows="4" wire:model.blur="metaDescription" placeholder="Search description" :invalid="$errors->has('metaDescription')" />
+                <div class="grid gap-5 lg:grid-cols-2">
+                    <x-ui.field label="Meta Title" for="seo-meta-title" :error="$errors->first('metaTitle')">
+                        <x-ui.input id="seo-meta-title" wire:model.blur="metaTitle" :invalid="$errors->has('metaTitle')" />
                     </x-ui.field>
 
-                    <x-ui.field label="Canonical URL" for="post-canonical-url" :error="$errors->first('canonicalUrl')" hint="Use a full absolute URL when canonicalization is needed.">
-                        <x-ui.input id="post-canonical-url" wire:model.blur="canonicalUrl" placeholder="https://example.com/posts/post-slug" :invalid="$errors->has('canonicalUrl')" />
+                    <x-ui.field label="Focus Keyword" for="seo-focus-keyword" :error="$errors->first('focusKeyword')">
+                        <x-ui.input id="seo-focus-keyword" wire:model.blur="focusKeyword" :invalid="$errors->has('focusKeyword')" />
+                    </x-ui.field>
+                </div>
+
+                <x-ui.field label="Meta Description" for="seo-meta-description" :error="$errors->first('metaDescription')">
+                    <x-ui.textarea id="seo-meta-description" wire:model.blur="metaDescription" rows="3" :invalid="$errors->has('metaDescription')" />
+                </x-ui.field>
+
+                <div class="grid gap-5 lg:grid-cols-2">
+                    <x-ui.field label="Canonical URL" for="seo-canonical-url" :error="$errors->first('canonicalUrl')">
+                        <x-ui.input id="seo-canonical-url" wire:model.blur="canonicalUrl" :invalid="$errors->has('canonicalUrl')" placeholder="https://example.com/article" />
                     </x-ui.field>
 
-                    <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
-                        <button type="button" class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left" wire:click="toggleSeoAdvanced">
-                            <span>
-                                <span class="block text-sm font-semibold text-[var(--color-ink)]">Advanced SEO Settings</span>
-                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Robots directives and OpenGraph overrides stay available without dominating the default editing flow.</span>
-                            </span>
-                            <span class="text-sm font-medium text-[var(--color-accent)]">{{ $seoAdvancedExpanded ? 'Hide' : 'Show' }}</span>
-                        </button>
-
-                        @if ($seoAdvancedExpanded)
-                            <div class="space-y-5 border-t border-[var(--color-line)] px-4 py-4">
-                                <div class="grid gap-3 lg:grid-cols-2">
-                                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
-                                        <label class="flex items-start gap-3">
-                                            <input wire:model.live="robotsIndex" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                                            <span>
-                                                <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow indexing</span>
-                                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Turn this off only when the post should not appear in search indexes.</span>
-                                            </span>
-                                        </label>
-                                    </div>
-
-                                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
-                                        <label class="flex items-start gap-3">
-                                            <input wire:model.live="robotsFollow" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                                            <span>
-                                                <span class="block text-sm font-semibold text-[var(--color-ink)]">Allow link following</span>
-                                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Keep this on unless the service should mark outbound link crawling as disallowed.</span>
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="grid gap-5 lg:grid-cols-2">
-                                    <x-ui.field label="OpenGraph Title" for="post-og-title" :error="$errors->first('ogTitle')" hint="Optional override for social share cards.">
-                                        <x-ui.input id="post-og-title" wire:model.blur="ogTitle" placeholder="Social share title" :invalid="$errors->has('ogTitle')" />
-                                    </x-ui.field>
-
-                                    <x-ui.field label="OpenGraph Image" for="post-og-image" :error="$errors->first('ogImageMediaId')" hint="Choose a media asset to use for social previews.">
-                                        <x-ui.select id="post-og-image" wire:model.live="ogImageMediaId" :invalid="$errors->has('ogImageMediaId')">
-                                            <option value="">No OpenGraph image override</option>
-                                            @foreach ($mediaOptions as $asset)
-                                                <option value="{{ $asset['id'] }}">{{ $asset['name'] }}</option>
-                                            @endforeach
-                                        </x-ui.select>
-                                    </x-ui.field>
-                                </div>
-
-                                <x-ui.field label="OpenGraph Description" for="post-og-description" :error="$errors->first('ogDescription')" hint="Optional override for social share descriptions.">
-                                    <x-ui.textarea id="post-og-description" rows="4" wire:model.blur="ogDescription" placeholder="Social share description" :invalid="$errors->has('ogDescription')" />
-                                </x-ui.field>
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
-                        <button type="button" class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left" wire:click="toggleSeoDiagnostics">
-                            <span>
-                                <span class="block text-sm font-semibold text-[var(--color-ink)]">SEO Diagnostics</span>
-                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Schema output and score breakdown are still available when you need to inspect them closely.</span>
-                            </span>
-                            <span class="text-sm font-medium text-[var(--color-accent)]">{{ $seoDiagnosticsExpanded ? 'Hide' : 'Show' }}</span>
-                        </button>
-
-                        @if ($seoDiagnosticsExpanded)
-                            <div class="space-y-4 border-t border-[var(--color-line)] px-4 py-4">
-                                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Schema Output</p>
-                                    @if ($seoSchemaLoadError)
-                                        <p class="mt-3 text-sm text-[var(--color-danger-strong)]">{{ $seoSchemaLoadError }}</p>
-                                    @elseif ($seoSchemaSummary['graph_count'] > 0 || $seoSchemaSummary['context'])
-                                        <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">{{ $seoSchemaSummary['graph_count'] }} graph {{ str('item')->plural($seoSchemaSummary['graph_count']) }}</p>
-                                        <p class="mt-2 text-sm text-[var(--color-muted)]">
-                                            {{ $seoSchemaSummary['graph_types'] !== [] ? implode(', ', $seoSchemaSummary['graph_types']) : 'Schema types are present but could not be summarized.' }}
-                                        </p>
-                                    @else
-                                        <p class="mt-3 text-sm text-[var(--color-muted)]">No generated schema payload is currently available.</p>
-                                    @endif
-                                </div>
-
-                                @if ($seoScoreSubscores !== [])
-                                    <div class="grid gap-3 sm:grid-cols-2">
-                                        @foreach ($seoScoreSubscores as $subscore)
-                                            <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3">
-                                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">{{ $subscore['label'] }}</p>
-                                                <p class="mt-2 text-sm font-semibold text-[var(--color-ink)]">
-                                                    {{ $subscore['score'] ?? 'TBC' }}
-                                                    @if ($subscore['max_score'] !== null)
-                                                        <span class="font-medium text-[var(--color-muted)]">/ {{ $subscore['max_score'] }}</span>
-                                                    @endif
-                                                </p>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @endif
-
-                                @if ($seoSchemaJson !== '')
-                                    <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)]">
-                                        <div class="border-b border-[var(--color-line)] px-4 py-3">
-                                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Generated JSON-LD</p>
-                                        </div>
-                                        <pre class="max-h-[18rem] overflow-auto px-4 py-4 text-xs leading-6 text-[var(--color-ink)]">{{ $seoSchemaJson }}</pre>
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
-                    </div>
-                @else
-                    <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line-strong)] bg-[var(--color-panel-soft)] px-4 py-4">
-                        <p class="text-sm font-semibold text-[var(--color-ink)]">SEO editing starts after the post exists.</p>
-                        <p class="mt-1 text-sm text-[var(--color-muted)]">Create the post first, then return here to manage per-entity metadata through the SEO service endpoints.</p>
-                    </div>
-                @endif
-
-                <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
-                    <button type="button" class="flex w-full items-center justify-between gap-3 px-4 py-3 text-left" wire:click="toggleMetaJson">
-                        <span>
-                            <span class="block text-sm font-semibold text-[var(--color-ink)]">Meta JSON</span>
-                            <span class="mt-1 block text-sm text-[var(--color-muted)]">Keep AI provenance and extra payload metadata available without leaving the editor permanently expanded.</span>
-                        </span>
-                        <span class="text-sm font-medium text-[var(--color-accent)]">{{ $metaJsonExpanded ? 'Hide' : 'Show' }}</span>
-                    </button>
-
-                    @if ($metaJsonExpanded)
-                        <div class="border-t border-[var(--color-line)] px-4 py-4">
-                            <x-ui.field label="Meta JSON" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional JSON object or array stored in the post meta payload. AI provenance and suggestion data are preserved here.">
-                                <x-ui.textarea id="post-meta-json" rows="5" wire:model.blur="metaJson" placeholder='{"campaign":"summer","notes":["editorial-note"]}' :invalid="$errors->has('metaJson')" />
-                            </x-ui.field>
-                        </div>
-                    @endif
-                </div>
-            </section>
-        </div>
-
-        <aside class="space-y-6 xl:sticky xl:top-6 xl:self-start">
-            <section class="space-y-4 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                <div class="space-y-1">
-                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Editor Actions</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Keep primary save controls and quick jumps visible while working through long drafts.</p>
+                    <x-ui.field label="Open Graph Image" for="seo-og-image" :error="$errors->first('ogImageMediaId')">
+                        <x-ui.select id="seo-og-image" wire:model.live="ogImageMediaId" :invalid="$errors->has('ogImageMediaId')">
+                            <option value="">No image selected</option>
+                            @foreach ($mediaOptions as $asset)
+                                <option value="{{ $asset['id'] }}">{{ $asset['name'] }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </x-ui.field>
                 </div>
 
-                <div class="grid gap-2">
-                    <x-ui.button type="button" class="justify-center whitespace-nowrap" wire:click="save" wire:loading.attr="disabled" wire:target="save">
-                        <span wire:loading.remove wire:target="save">{{ $aiReviewMode ? 'Save Review Changes' : ($editingPostId ? 'Save Post' : 'Create Post') }}</span>
-                        <span wire:loading wire:target="save">Saving…</span>
-                    </x-ui.button>
+                <div class="grid gap-5 lg:grid-cols-2">
+                    <x-ui.field label="Open Graph Title" for="seo-og-title" :error="$errors->first('ogTitle')">
+                        <x-ui.input id="seo-og-title" wire:model.blur="ogTitle" :invalid="$errors->has('ogTitle')" />
+                    </x-ui.field>
 
-                    @if ($editingPostId)
-                        <x-ui.button type="button" variant="secondary" class="justify-center whitespace-nowrap" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">
-                            <span wire:loading.remove wire:target="saveSeo">Update SEO</span>
-                            <span wire:loading wire:target="saveSeo">Saving…</span>
-                        </x-ui.button>
-                    @endif
+                    <x-ui.field label="Open Graph Description" for="seo-og-description" :error="$errors->first('ogDescription')">
+                        <x-ui.textarea id="seo-og-description" wire:model.blur="ogDescription" rows="3" :invalid="$errors->has('ogDescription')" />
+                    </x-ui.field>
                 </div>
 
-                <div class="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
-                    <a href="#editor-core-content" class="inline-flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]">
-                        <span>Core Content</span>
-                        <span class="text-[var(--color-muted)]">Jump</span>
-                    </a>
-                    <a href="#editor-blocks" class="inline-flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]">
-                        <span>Blocks</span>
-                        <span class="text-[var(--color-muted)]">Jump</span>
-                    </a>
-                    <a href="#editor-seo" class="inline-flex items-center justify-between rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-panel)]">
-                        <span>SEO</span>
-                        <span class="text-[var(--color-muted)]">Jump</span>
-                    </a>
-                </div>
-            </section>
-
-            <section class="space-y-4 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                <div class="space-y-1">
-                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Post Outline</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Jump directly to a block and expand it from the navigator.</p>
-                </div>
-
-                <div class="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
-                    @foreach ($blocks as $index => $block)
-                        @php
-                            $isExpanded = (bool) ($expandedBlockLookup[$block['key']] ?? false);
-                        @endphp
-                        <a
-                            href="#post-block-{{ $block['key'] }}"
-                            wire:click="expandBlock('{{ $block['key'] }}')"
-                            @class([
-                                'block rounded-[var(--radius-button)] border px-3 py-3 text-left transition-colors',
-                                'border-[color-mix(in_srgb,var(--color-accent)_24%,white)] bg-[color-mix(in_srgb,var(--color-accent)_8%,white)]' => $isExpanded,
-                                'border-[var(--color-line)] bg-[var(--color-panel-soft)] hover:bg-[var(--color-panel)]' => ! $isExpanded,
-                            ])
-                        >
-                            <span class="block text-sm font-semibold text-[var(--color-ink)]">Block {{ $block['sortOrder'] }} · {{ $blockUi[$index]['label'] }}</span>
-                            <span class="mt-1 block text-sm text-[var(--color-muted)]">{{ $blockUi[$index]['preview'] }}</span>
-                        </a>
-                    @endforeach
-                </div>
-            </section>
-
-            @if ($aiReviewMode && $isAiGenerated)
-                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                    <div class="space-y-1">
-                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">AI Draft Context</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Use the source links and job provenance to verify how this draft entered the editorial workflow.</p>
-                    </div>
-
-                    <div class="space-y-4 text-sm text-[var(--color-muted)]">
-                        <div class="flex items-center justify-between gap-3">
-                            <span>Generated By</span>
-                            <span class="text-right text-[var(--color-ink)]">{{ $generatedBy ?: 'Unknown agent' }}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-3">
-                            <span>Source Brief</span>
-                            @if ($sourceContentBriefLink)
-                                <a href="{{ $sourceContentBriefLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
-                                    Brief #{{ $sourceContentBriefId }}
-                                </a>
-                            @else
-                                <span class="text-right">Not linked</span>
-                            @endif
-                        </div>
-                        <div class="flex items-center justify-between gap-3">
-                            <span>Source Topic</span>
-                            @if ($sourceContentTopicLink)
-                                <a href="{{ $sourceContentTopicLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
-                                    Topic #{{ $sourceContentTopicId }}
-                                </a>
-                            @else
-                                <span class="text-right">Not linked</span>
-                            @endif
-                        </div>
-                        <div class="flex items-center justify-between gap-3">
-                            <span>AI Job</span>
-                            @if ($generatedByAiJobLink)
-                                <a href="{{ $generatedByAiJobLink }}" class="text-right text-[var(--color-ink)] transition-colors hover:text-[var(--color-accent-strong)]">
-                                    Job #{{ $generatedByAiJobId }}
-                                </a>
-                            @else
-                                <span class="text-right">Not linked</span>
-                            @endif
-                        </div>
-                    </div>
-                </section>
-            @endif
-
-            @if ($aiReviewMode)
-                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                    <div class="space-y-1">
-                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">AI Review Actions</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Queue review-only jobs for metadata or title/excerpt suggestions. Results are tracked in AI jobs and never auto-applied or published from this screen.</p>
-                    </div>
-
-                    <div class="grid gap-3">
-                        <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openReviewActionDialog('suggest_metadata')">
-                            Suggest Metadata
-                        </x-ui.button>
-                        <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openReviewActionDialog('refine_title_excerpt')">
-                            Refine Title & Excerpt
-                        </x-ui.button>
-                    </div>
-                </section>
-
-                <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                    <div class="space-y-1">
-                        <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Draft Rewrite</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Queue a review-only AI rewrite job against the current draft. This never publishes the post automatically.</p>
-                    </div>
-
-                    @if ($canQueueRewrite)
-                        <div class="space-y-4">
-                            <div class="grid gap-3">
-                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('full_draft')">
-                                    Rewrite Full Draft
-                                </x-ui.button>
-                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('section')" :disabled="! $hasRewriteableBlocks">
-                                    Regenerate Section
-                                </x-ui.button>
-                                <x-ui.button type="button" variant="secondary" class="justify-start" wire:click="openRewriteDialog('paragraph')" :disabled="$rewriteParagraphBlocks === []">
-                                    Regenerate Paragraph
-                                </x-ui.button>
-                            </div>
-
-                            @if (! $hasRewriteableBlocks)
-                                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_20%,white)] bg-[color-mix(in_srgb,var(--color-warning)_10%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
-                                    Targeted regeneration needs persisted post block IDs. Save the draft first if new blocks were added locally and have not been reloaded from the service yet.
-                                </div>
-                            @endif
-                        </div>
-                    @else
-                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <p class="text-sm font-semibold text-[var(--color-ink)]">Rewrite is unavailable for this post.</p>
-                            <p class="mt-1 text-sm text-[var(--color-muted)]">The current service rule only allows rewrite jobs for AI-generated draft posts that still retain source brief or topic provenance.</p>
-                        </div>
-                    @endif
-                </section>
-            @endif
-
-            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
-                <div class="space-y-1">
-                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Status</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Publishing state stays visible while editing.</p>
-                </div>
-
-                <x-ui.field label="Status" for="post-status" :error="$errors->first('status')" required>
-                    <x-ui.select id="post-status" wire:model.live="status" :invalid="$errors->has('status')">
-                        @foreach ($postStatuses as $postStatus)
-                            <option value="{{ $postStatus }}">{{ str($postStatus)->headline() }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </x-ui.field>
-
-                <x-ui.field label="Visibility" for="post-visibility" :error="$errors->first('visibility')" required>
-                    <x-ui.select id="post-visibility" wire:model.live="visibility" :invalid="$errors->has('visibility')">
-                        @foreach ($postVisibilities as $postVisibility)
-                            <option value="{{ $postVisibility }}">{{ str($postVisibility)->headline() }}</option>
-                        @endforeach
-                    </x-ui.select>
-                </x-ui.field>
-
-                <x-ui.field label="Scheduled Publish" for="post-scheduled-for" :error="$errors->first('scheduledFor')" hint="Required when the status is scheduled.">
-                    <x-ui.input id="post-scheduled-for" type="datetime-local" wire:model.blur="scheduledFor" :invalid="$errors->has('scheduledFor')" />
-                </x-ui.field>
-
-                @if ($publishedAt)
-                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Published At</p>
-                        <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $publishedAt }}</p>
-                    </div>
-                @endif
-
-                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                    <label class="flex items-start gap-3">
-                        <input wire:model.live="isFeatured" type="checkbox" class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                        <span>
-                            <span class="block text-sm font-semibold text-[var(--color-ink)]">Featured post</span>
-                            <span class="mt-1 block text-sm text-[var(--color-muted)]">Use this when the post should receive elevated editorial emphasis.</span>
-                        </span>
+                <div class="flex flex-wrap items-center gap-6">
+                    <label class="inline-flex items-center gap-3 text-sm text-[var(--color-ink)]">
+                        <input type="checkbox" wire:model.live="robotsIndex" class="h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" />
+                        Index this article
+                    </label>
+                    <label class="inline-flex items-center gap-3 text-sm text-[var(--color-ink)]">
+                        <input type="checkbox" wire:model.live="robotsFollow" class="h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" />
+                        Follow links
                     </label>
                 </div>
 
                 @if ($editingPostId)
-                    <div class="space-y-3 border-t border-[var(--color-line)] pt-5">
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">State Actions</p>
-                        <div class="flex flex-wrap gap-2">
-                            @if ($status !== 'published' && $status !== 'archived')
-                                <x-ui.button type="button" size="sm" variant="secondary" wire:click="openActionDialog('publish')">Publish</x-ui.button>
-                            @endif
+                    <div class="flex items-center gap-3">
+                        <x-ui.button type="button" wire:click="saveSeo" wire:loading.attr="disabled" wire:target="saveSeo">Save SEO Metadata</x-ui.button>
+                    </div>
+                @else
+                    <x-admin.callout title="Save The Post First">
+                        SEO metadata is saved against the persisted post record, so create the post before saving SEO fields.
+                    </x-admin.callout>
+                @endif
+            </section>
 
-                            @if (in_array($status, ['draft', 'unpublished', 'scheduled'], true))
-                                <x-ui.button type="button" size="sm" variant="secondary" wire:click="openActionDialog('schedule')">Schedule</x-ui.button>
-                            @endif
+            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+                <div class="space-y-1">
+                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Provenance</h2>
+                    <p class="text-sm text-[var(--color-muted)]">Useful backend-origin details for editorial review.</p>
+                </div>
 
-                            @if (in_array($status, ['published', 'scheduled'], true))
-                                <x-ui.button type="button" size="sm" variant="secondary" wire:click="openActionDialog('unpublish')">Unpublish</x-ui.button>
-                            @endif
+                <div class="space-y-3 text-sm text-[var(--color-muted)]">
+                    <div class="flex items-center justify-between gap-3">
+                        <span>AI Generated</span>
+                        <x-ui.badge :tone="$isAiGenerated ? 'warning' : 'muted'">{{ $isAiGenerated ? 'Yes' : 'No' }}</x-ui.badge>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <span>Source Topic</span>
+                        <span>{{ $sourceContentTopicId ?: 'None' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <span>AI Job</span>
+                        <span>{{ $generatedByAiJobId ?: 'None' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <span>Generated By</span>
+                        <span>{{ $generatedBy ?: 'Unknown' }}</span>
+                    </div>
+                </div>
 
-                            <x-ui.button type="button" size="sm" variant="ghost" class="text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="openActionDialog('delete')">Delete</x-ui.button>
+                <x-ui.field label="Meta Payload" for="post-meta-json" :error="$errors->first('metaJson')" hint="Optional raw JSON carried through to the backend. Leave blank unless you need to preserve service metadata.">
+                    <x-ui.textarea id="post-meta-json" wire:model.blur="metaJson" rows="10" class="font-mono text-xs leading-6" :invalid="$errors->has('metaJson')" placeholder='{"source":"service"}' />
+                </x-ui.field>
+            </section>
+
+            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-6 shadow-[var(--shadow-card)]">
+                <div class="space-y-1">
+                    <h2 class="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">SEO Diagnostics</h2>
+                    <p class="text-sm text-[var(--color-muted)]">Read-only insights from the service-side SEO endpoints.</p>
+                </div>
+
+                @if ($seoScoreLoadError)
+                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_22%,white)] bg-[color-mix(in_srgb,var(--color-warning)_8%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
+                        {{ $seoScoreLoadError }}
+                    </div>
+                @endif
+
+                <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">SEO Score</p>
+                        <p class="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">{{ $seoScoreValue ?? 'N/A' }}</p>
+                        <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $seoScoreGrade ?: 'Not graded yet' }}</p>
+                    </div>
+
+                    @foreach ($seoSubscores as $subscore)
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-3">
+                            <p class="text-sm font-medium text-[var(--color-ink)]">{{ $subscore['label'] }}</p>
+                            <p class="mt-1 text-sm text-[var(--color-muted)]">
+                                {{ $subscore['score'] ?? 'N/A' }}@if($subscore['max_score']) / {{ $subscore['max_score'] }} @endif
+                                @if ($subscore['suggestion_count'] !== null)
+                                    · {{ $subscore['suggestion_count'] }} suggestions
+                                @endif
+                            </p>
                         </div>
+                    @endforeach
+                </div>
+
+                @if ($seoRecommendations !== [])
+                    <div class="space-y-2">
+                        <p class="text-sm font-medium text-[var(--color-ink)]">Recommendations</p>
+                        <ul class="space-y-2 text-sm text-[var(--color-muted)]">
+                            @foreach ($seoRecommendations as $recommendation)
+                                <li>{{ $recommendation }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if ($seoSchemaLoadError)
+                    <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_22%,white)] bg-[color-mix(in_srgb,var(--color-warning)_8%,white)] px-4 py-3 text-sm text-[var(--color-warning-strong)]">
+                        {{ $seoSchemaLoadError }}
+                    </div>
+                @endif
+
+                <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4 text-sm text-[var(--color-muted)]">
+                    <p><span class="font-medium text-[var(--color-ink)]">Schema Context:</span> {{ $schemaSummary['context'] ?? 'Unavailable' }}</p>
+                    <p class="mt-1"><span class="font-medium text-[var(--color-ink)]">Graph Items:</span> {{ $schemaSummary['graph_count'] ?? 0 }}</p>
+                    <p class="mt-1"><span class="font-medium text-[var(--color-ink)]">Graph Types:</span> {{ $schemaSummary['graph_types'] !== [] ? implode(', ', $schemaSummary['graph_types']) : 'None' }}</p>
+                </div>
+
+                @if ($prettySchema !== '')
+                    <pre class="max-h-72 overflow-auto rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-4 text-xs leading-6 text-[var(--color-muted)]">{{ $prettySchema }}</pre>
+                @endif
+            </section>
+        </div>
+
+        <aside class="space-y-6">
+            <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
+                <div class="space-y-1">
+                    <h2 class="text-base font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Publishing</h2>
+                    <p class="text-sm text-[var(--color-muted)]">Manual publish remains the only publishing path.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <x-ui.field label="Status" for="post-status" :error="$errors->first('status')">
+                        <x-ui.select id="post-status" wire:model.live="status" :invalid="$errors->has('status')">
+                            @foreach ($statusOptions as $option)
+                                <option value="{{ $option }}">
+                                    {{ $option === 'scheduled' ? 'Legacy Scheduled' : str($option)->headline() }}
+                                </option>
+                            @endforeach
+                        </x-ui.select>
+                    </x-ui.field>
+
+                    <x-ui.field label="Visibility" for="post-visibility" :error="$errors->first('visibility')">
+                        <x-ui.select id="post-visibility" wire:model.live="visibility" :invalid="$errors->has('visibility')">
+                            @foreach (['public', 'private', 'internal'] as $option)
+                                <option value="{{ $option }}">{{ str($option)->headline() }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </x-ui.field>
+
+                    <x-ui.field label="Published At" for="post-published-at" :error="$errors->first('publishedAt')" hint="Optional timestamp stored in the post payload.">
+                        <x-ui.input id="post-published-at" type="datetime-local" wire:model.blur="publishedAt" :invalid="$errors->has('publishedAt')" />
+                    </x-ui.field>
+                </div>
+
+                @if ($editingPostId)
+                    <div class="flex flex-wrap gap-2">
+                        <x-ui.button type="button" size="sm" wire:click="openActionDialog('publish')">Publish</x-ui.button>
+                        <x-ui.button type="button" size="sm" variant="secondary" wire:click="openActionDialog('unpublish')">Unpublish</x-ui.button>
+                        <x-ui.button type="button" size="sm" variant="destructive" wire:click="openActionDialog('delete')">Delete</x-ui.button>
                     </div>
                 @endif
             </section>
 
             <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                 <div class="space-y-1">
-                    <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Taxonomy & Media</h2>
-                    <p class="text-sm text-[var(--color-muted)]">Keep related entities close to the editor, but secondary to the main writing flow.</p>
+                    <h2 class="text-base font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Media And Taxonomy</h2>
+                    <p class="text-sm text-[var(--color-muted)]">Keep featured media and article labeling lightweight.</p>
                 </div>
 
-                <x-ui.field label="Template" for="post-template" :error="$errors->first('templateId')">
-                    <x-ui.select id="post-template" wire:model.live="templateId" :invalid="$errors->has('templateId')">
-                        <option value="">No template</option>
-                        @foreach ($templateOptions as $template)
-                            <option value="{{ $template['id'] }}">{{ $template['name'] }}</option>
+                <x-ui.field label="Featured Media" for="post-featured-media" :error="$errors->first('featuredMediaId')">
+                    <x-ui.select id="post-featured-media" wire:model.live="featuredMediaId" :invalid="$errors->has('featuredMediaId')">
+                        <option value="">No media selected</option>
+                        @foreach ($mediaOptions as $asset)
+                            <option value="{{ $asset['id'] }}">{{ $asset['name'] }}</option>
                         @endforeach
                     </x-ui.select>
                 </x-ui.field>
 
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <p class="text-sm font-semibold text-[var(--color-ink)]">Featured Media</p>
-                            <p class="mt-1 text-sm text-[var(--color-muted)]">Select an asset visually instead of using a raw ID list.</p>
-                        </div>
-
-                        <x-ui.button type="button" variant="secondary" size="sm" wire:click="openMediaPicker">
-                            {{ $selectedFeaturedMedia ? 'Change' : 'Choose' }}
-                        </x-ui.button>
+                @if ($selectedFeaturedMedia)
+                    <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-3">
+                        <img src="{{ $selectedFeaturedMedia['url'] }}" alt="" class="h-36 w-full rounded-[var(--radius-button)] object-cover" />
+                        <p class="mt-3 text-sm font-medium text-[var(--color-ink)]">{{ $selectedFeaturedMedia['name'] }}</p>
+                        @if ($selectedFeaturedMedia['alt_text'])
+                            <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $selectedFeaturedMedia['alt_text'] }}</p>
+                        @endif
                     </div>
-
-                    @if ($selectedFeaturedMedia)
-                        <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]">
-                            <div class="aspect-[16/9] bg-[var(--color-panel)]">
-                                @if ($selectedFeaturedMedia['url'])
-                                    <img
-                                        src="{{ $selectedFeaturedMedia['url'] }}"
-                                        alt="{{ $selectedFeaturedMedia['alt_text'] ?: $selectedFeaturedMedia['name'] }}"
-                                        class="h-full w-full object-cover"
-                                    >
-                                @else
-                                    <div class="flex h-full items-center justify-center text-sm text-[var(--color-muted)]">No preview available</div>
-                                @endif
-                            </div>
-                            <div class="flex items-start justify-between gap-3 px-4 py-3">
-                                <div class="min-w-0">
-                                    <p class="truncate text-sm font-semibold text-[var(--color-ink)]">{{ $selectedFeaturedMedia['name'] }}</p>
-                                    <p class="mt-1 text-xs text-[var(--color-muted)]">
-                                        {{ $selectedFeaturedMedia['alt_text'] !== '' ? $selectedFeaturedMedia['alt_text'] : 'No alt text yet' }}
-                                    </p>
-                                </div>
-
-                                <x-ui.button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    class="shrink-0 text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]"
-                                    wire:click="clearFeaturedMedia"
-                                >
-                                    Remove
-                                </x-ui.button>
-                            </div>
-                        </div>
-                    @else
-                        <button
-                            type="button"
-                            wire:click="openMediaPicker"
-                            class="flex w-full items-center justify-between gap-4 rounded-[var(--radius-button)] border border-dashed border-[var(--color-line-strong)] bg-[var(--color-panel-soft)] px-4 py-4 text-left transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-panel)]"
-                        >
-                            <span>
-                                <span class="block text-sm font-semibold text-[var(--color-ink)]">No featured media selected</span>
-                                <span class="mt-1 block text-sm text-[var(--color-muted)]">Open the media picker to choose a thumbnail or hero image.</span>
-                            </span>
-                            <span class="text-sm font-medium text-[var(--color-accent)]">Browse</span>
-                        </button>
-                    @endif
-
-                    @error('featuredMediaId')
-                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
-                    @enderror
-                </div>
+                @endif
 
                 <div class="space-y-3">
-                    <p class="text-sm font-semibold text-[var(--color-ink)]">Tags</p>
-                    <div class="space-y-2 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                        @forelse ($tagOptions as $tag)
-                            <label class="flex items-center gap-3 text-sm text-[var(--color-ink)]">
-                                <input type="checkbox" value="{{ $tag['id'] }}" wire:model.live="tagIds" class="h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                                <span>{{ $tag['name'] }}</span>
+                    <p class="text-sm font-medium text-[var(--color-ink)]">Tags</p>
+                    <div class="grid gap-2">
+                        @foreach ($tagOptions as $tag)
+                            <label wire:key="tag-option-{{ $tag['id'] }}" class="inline-flex items-center gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm text-[var(--color-ink)]">
+                                <input type="checkbox" value="{{ $tag['id'] }}" wire:model.live="tagIds" class="h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" />
+                                {{ $tag['name'] }}
                             </label>
-                        @empty
-                            <p class="text-sm text-[var(--color-muted)]">No tags available yet.</p>
-                        @endforelse
+                        @endforeach
                     </div>
-                    @error('tagIds')
-                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
-                    @enderror
-                    @error('tagIds.*')
-                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
-                    @enderror
                 </div>
             </section>
-
         </aside>
     </div>
-
-    <x-ui.dialog
-        :open="$mediaPickerOpen"
-        title="Select featured media"
-        description="Choose from the loaded media library assets and apply the selection directly to this post."
-        maxWidth="lg"
-    >
-        <div class="space-y-5">
-            <x-ui.field label="Search media" for="post-media-search">
-                <x-ui.input
-                    id="post-media-search"
-                    wire:model.live.debounce.250ms="mediaSearch"
-                    placeholder="Search by filename or alt text"
-                />
-            </x-ui.field>
-
-            @if ($visibleMediaOptions !== [])
-                <div class="grid max-h-[26rem] gap-4 overflow-y-auto pr-1 sm:grid-cols-2">
-                    @foreach ($visibleMediaOptions as $asset)
-                        <button
-                            type="button"
-                            wire:key="featured-media-option-{{ $asset['id'] }}"
-                            wire:click="selectFeaturedMedia({{ $asset['id'] }})"
-                            class="@class([
-                                'overflow-hidden rounded-[var(--radius-button)] border bg-[var(--color-panel-soft)] text-left transition-all hover:-translate-y-0.5 hover:border-[var(--color-accent)] hover:bg-[var(--color-panel)]',
-                                'border-[var(--color-accent)] ring-1 ring-[color-mix(in_srgb,var(--color-accent)_22%,white)]' => (string) $featuredMediaId === (string) $asset['id'],
-                                'border-[var(--color-line)]' => (string) $featuredMediaId !== (string) $asset['id'],
-                            ])"
-                        >
-                            <div class="aspect-[16/10] bg-[var(--color-panel)]">
-                                @if ($asset['url'])
-                                    <img
-                                        src="{{ $asset['url'] }}"
-                                        alt="{{ $asset['alt_text'] ?: $asset['name'] }}"
-                                        class="h-full w-full object-cover"
-                                    >
-                                @else
-                                    <div class="flex h-full items-center justify-center text-sm text-[var(--color-muted)]">No preview</div>
-                                @endif
-                            </div>
-
-                            <div class="space-y-2 px-4 py-3">
-                                <div class="flex items-start justify-between gap-3">
-                                    <p class="min-w-0 truncate text-sm font-semibold text-[var(--color-ink)]">{{ $asset['name'] }}</p>
-                                    @if ((string) $featuredMediaId === (string) $asset['id'])
-                                        <span class="inline-flex shrink-0 rounded-[var(--radius-button)] bg-[color-mix(in_srgb,var(--color-accent)_12%,white)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent-strong)]">Selected</span>
-                                    @endif
-                                </div>
-
-                                <p class="text-sm text-[var(--color-muted)]">
-                                    {{ $asset['alt_text'] !== '' ? $asset['alt_text'] : 'No alt text yet' }}
-                                </p>
-                            </div>
-                        </button>
-                    @endforeach
-                </div>
-            @else
-                <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-5 py-10 text-center">
-                    <p class="text-sm font-semibold text-[var(--color-ink)]">No media matches this search.</p>
-                    <p class="mt-2 text-sm text-[var(--color-muted)]">Try a different filename or alt-text term.</p>
-                </div>
-            @endif
-        </div>
-
-        <x-slot:actions>
-            @if ($selectedFeaturedMedia)
-                <x-ui.button type="button" variant="ghost" class="mr-auto text-[var(--color-danger-strong)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] hover:text-[var(--color-danger-strong)]" wire:click="clearFeaturedMedia">
-                    Remove selection
-                </x-ui.button>
-            @endif
-            <x-ui.button type="button" variant="secondary" wire:click="closeMediaPicker">Close</x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
 
     <x-admin.confirm-dialog
         :open="$actionDialogOpen"
         :title="$actionConfig['title']"
         :description="$actionConfig['description']"
-        :destructive="$actionConfig['tone'] === 'destructive'"
-        maxWidth="lg"
+        :destructive="$actionConfig['destructive']"
     >
-        <div class="space-y-5">
+        <div class="space-y-4">
             @if ($actionError)
                 <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
                     {{ $actionError }}
                 </div>
             @endif
 
-            <p class="text-sm leading-6 text-[var(--color-muted)]">
-                @if ($actionMode === 'publish')
-                    {{ $actionConfig['body'] }} <span class="font-semibold text-[var(--color-ink)]">{{ $actionPostTitle }}</span> now?
-                @elseif ($actionMode === 'schedule')
-                    {{ $actionConfig['body'] }} a publish time for <span class="font-semibold text-[var(--color-ink)]">{{ $actionPostTitle }}</span>.
-                @elseif ($actionMode === 'unpublish')
-                    {{ $actionConfig['body'] }} <span class="font-semibold text-[var(--color-ink)]">{{ $actionPostTitle }}</span> out of the live state?
-                @else
-                    {{ $actionConfig['body'] }} <span class="font-semibold text-[var(--color-ink)]">{{ $actionPostTitle }}</span>? This is a destructive action and should be confirmed carefully.
-                @endif
+            <p class="text-sm text-[var(--color-muted)]">
+                {{ $actionMode === 'delete' ? 'This cannot be undone.' : 'The current reviewed article will be updated in the backend.' }}
             </p>
-
-            @if ($actionMode === 'schedule')
-                <x-ui.field label="Publish At" for="editor-post-scheduled-for" :error="$errors->first('scheduledFor')" required>
-                    <x-ui.input
-                        id="editor-post-scheduled-for"
-                        type="datetime-local"
-                        wire:model.defer="scheduledFor"
-                        :invalid="$errors->has('scheduledFor')"
-                    />
-                </x-ui.field>
-            @endif
         </div>
 
         <x-slot:cancel>
-            <x-ui.button type="button" variant="secondary" wire:click="closeActionDialog">Cancel</x-ui.button>
+            <x-ui.button type="button" variant="secondary" wire:click="closeActionDialog" wire:loading.attr="disabled" wire:target="closeActionDialog,executeAction">
+                Cancel
+            </x-ui.button>
         </x-slot:cancel>
 
         <x-slot:confirm>
-            <x-ui.button
-                type="button"
-                :variant="$actionConfig['tone'] === 'destructive' ? 'destructive' : 'primary'"
-                wire:click="executeAction"
-                wire:loading.attr="disabled"
-                wire:target="executeAction"
-            >
-                <span wire:loading.remove wire:target="executeAction">{{ $actionConfig['confirm'] }}</span>
-                <span wire:loading wire:target="executeAction">Saving…</span>
+            <x-ui.button :variant="$actionConfig['destructive'] ? 'destructive' : 'primary'" type="button" wire:click="executeAction" wire:loading.attr="disabled" wire:target="executeAction">
+                {{ $actionConfig['confirm'] }}
             </x-ui.button>
         </x-slot:confirm>
     </x-admin.confirm-dialog>
-
-    <x-ui.dialog
-        :open="$reviewActionDialogOpen"
-        :title="$reviewActionHeading"
-        :description="$reviewActionDescription"
-        maxWidth="lg"
-    >
-        <div class="space-y-5">
-            @if ($reviewActionError)
-                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
-                    {{ $reviewActionError }}
-                </div>
-            @endif
-
-            <x-ui.field label="Instructions" for="review-action-instructions" :error="$errors->first('reviewActionInstructions')" hint="Optional editor guidance for this review-only AI workflow.">
-                <x-ui.textarea
-                    id="review-action-instructions"
-                    rows="5"
-                    wire:model.blur="reviewActionInstructions"
-                    placeholder="Emphasize search clarity and keep the recommendations aligned with the current draft."
-                    :invalid="$errors->has('reviewActionInstructions')"
-                />
-            </x-ui.field>
-
-            <x-ui.field label="Prompt Template Key" for="review-action-prompt-template-key" :error="$errors->first('reviewActionPromptTemplateKey')" hint="Optional override when the default service prompt template should be replaced.">
-                <x-ui.input
-                    id="review-action-prompt-template-key"
-                    wire:model.blur="reviewActionPromptTemplateKey"
-                    placeholder="post_metadata_review_default"
-                    :invalid="$errors->has('reviewActionPromptTemplateKey')"
-                />
-            </x-ui.field>
-        </div>
-
-        <x-slot:actions>
-            <x-ui.button type="button" variant="secondary" wire:click="closeReviewActionDialog">Cancel</x-ui.button>
-            <x-ui.button
-                type="button"
-                wire:click="queueReviewAction"
-                wire:loading.attr="disabled"
-                wire:target="queueReviewAction"
-            >
-                <span wire:loading.remove wire:target="queueReviewAction">{{ $reviewActionButtonLabel }}</span>
-                <span wire:loading wire:target="queueReviewAction">Queueing…</span>
-            </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
-
-    <x-ui.dialog
-        :open="$rewriteDialogOpen"
-        title="Queue draft rewrite"
-        description="Choose whether to rewrite the full draft or regenerate a targeted section or paragraph. The service will queue an AI job and update draft content only when that job runs."
-        maxWidth="lg"
-    >
-        <div class="space-y-5">
-            @if ($rewriteError)
-                <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-danger)_24%,white)] bg-[color-mix(in_srgb,var(--color-danger)_10%,white)] px-4 py-3 text-sm text-[var(--color-danger-strong)]">
-                    {{ $rewriteError }}
-                </div>
-            @endif
-
-            <div class="space-y-3">
-                <p class="text-sm font-semibold text-[var(--color-ink)]">Rewrite scope</p>
-
-                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                    <input wire:model.live="rewriteScope" type="radio" value="full_draft" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]">
-                    <span>
-                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Full Draft</span>
-                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Queue a full review rewrite for the entire draft.</span>
-                    </span>
-                </label>
-
-                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                    <input wire:model.live="rewriteScope" type="radio" value="section" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" @disabled(! $hasRewriteableBlocks)>
-                    <span>
-                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Section</span>
-                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Select a contiguous run of persisted blocks to regenerate together.</span>
-                    </span>
-                </label>
-
-                <label class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                    <input wire:model.live="rewriteScope" type="radio" value="paragraph" class="mt-1 h-4 w-4 border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]" @disabled($rewriteParagraphBlocks === [])>
-                    <span>
-                        <span class="block text-sm font-semibold text-[var(--color-ink)]">Paragraph</span>
-                        <span class="mt-1 block text-sm text-[var(--color-muted)]">Select exactly one persisted paragraph block to regenerate.</span>
-                    </span>
-                </label>
-
-                @error('rewriteScope')
-                    <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
-                @enderror
-            </div>
-
-            @if (in_array($rewriteScope, ['section', 'paragraph'], true))
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between gap-3">
-                        <p class="text-sm font-semibold text-[var(--color-ink)]">Target blocks</p>
-                        <p class="text-xs uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                            {{ $rewriteScope === 'paragraph' ? 'Pick one paragraph block' : 'Pick contiguous blocks' }}
-                        </p>
-                    </div>
-
-                    @php
-                        $targetOptions = $rewriteScope === 'paragraph' ? $rewriteParagraphBlocks : $rewriteableBlocks;
-                    @endphp
-
-                    @if ($targetOptions !== [])
-                        <div class="max-h-[18rem] space-y-3 overflow-y-auto pr-1">
-                            @foreach ($targetOptions as $block)
-                                <label wire:key="rewrite-block-{{ $block['id'] }}" class="flex gap-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                                    <input
-                                        type="checkbox"
-                                        value="{{ $block['id'] }}"
-                                        wire:model.live="rewriteTargetBlockIds"
-                                        class="mt-1 h-4 w-4 rounded border-[var(--color-line-strong)] text-[var(--color-accent)] focus:ring-[var(--color-ring)]"
-                                    >
-                                    <span class="min-w-0">
-                                        <span class="block text-sm font-semibold text-[var(--color-ink)]">{{ $block['label'] }} <span class="text-[var(--color-muted)]">#{{ $block['id'] }}</span></span>
-                                        <span class="mt-1 block text-sm text-[var(--color-muted)]">{{ $block['preview'] }}</span>
-                                    </span>
-                                </label>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="rounded-[var(--radius-button)] border border-dashed border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
-                            <p class="text-sm text-[var(--color-muted)]">No persisted blocks are available for this rewrite scope yet.</p>
-                        </div>
-                    @endif
-
-                    @error('rewriteTargetBlockIds')
-                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
-                    @enderror
-                    @error('rewriteTargetBlockIds.*')
-                        <p class="text-sm text-[var(--color-danger-strong)]">{{ $message }}</p>
-                    @enderror
-                </div>
-            @endif
-
-            <x-ui.field label="Instructions" for="rewrite-instructions" :error="$errors->first('rewriteInstructions')" hint="Optional editor guidance for the rewrite job.">
-                <x-ui.textarea
-                    id="rewrite-instructions"
-                    rows="5"
-                    wire:model.blur="rewriteInstructions"
-                    placeholder="Tighten the intro and make the guidance more actionable."
-                    :invalid="$errors->has('rewriteInstructions')"
-                />
-            </x-ui.field>
-
-            <x-ui.field label="Prompt Template Key" for="rewrite-prompt-template-key" :error="$errors->first('rewritePromptTemplateKey')" hint="Optional override when the default draft-rewrite prompt should be replaced.">
-                <x-ui.input
-                    id="rewrite-prompt-template-key"
-                    wire:model.blur="rewritePromptTemplateKey"
-                    placeholder="post_rewrite_default"
-                    :invalid="$errors->has('rewritePromptTemplateKey')"
-                />
-            </x-ui.field>
-        </div>
-
-        <x-slot:actions>
-            <x-ui.button type="button" variant="secondary" wire:click="closeRewriteDialog">Cancel</x-ui.button>
-            <x-ui.button
-                type="button"
-                wire:click="queueRewrite"
-                wire:loading.attr="disabled"
-                wire:target="queueRewrite"
-            >
-                <span wire:loading.remove wire:target="queueRewrite">Queue Rewrite Job</span>
-                <span wire:loading wire:target="queueRewrite">Queueing…</span>
-            </x-ui.button>
-        </x-slot:actions>
-    </x-ui.dialog>
 </div>

@@ -18,7 +18,6 @@ class Index extends Component
 {
     private const POST_STATUSES = [
         'draft',
-        'scheduled',
         'published',
         'unpublished',
         'archived',
@@ -60,8 +59,6 @@ class Index extends Component
 
     public string $actionPostTitle = '';
 
-    public string $scheduleFor = '';
-
     public ?string $pageError = null;
 
     public ?string $actionError = null;
@@ -81,12 +78,6 @@ class Index extends Component
 
     public function updated(string $property): void
     {
-        if ($property === 'scheduleFor' && $this->actionMode === 'schedule') {
-            $this->validateOnly('scheduleFor', $this->scheduleRules());
-
-            return;
-        }
-
         if (in_array($property, ['search', 'statusFilter', 'visibilityFilter', 'featuredFilter'], true)) {
             $this->refreshPosts();
         }
@@ -110,7 +101,7 @@ class Index extends Component
 
     public function openActionDialog(string $mode, int $postId): void
     {
-        if (! in_array($mode, ['publish', 'schedule', 'unpublish', 'delete'], true)) {
+        if (! in_array($mode, ['publish', 'unpublish', 'delete'], true)) {
             return;
         }
 
@@ -126,9 +117,6 @@ class Index extends Component
         $this->actionPostId = $postId;
         $this->actionPostTitle = (string) ($post['title'] ?? 'this post');
         $this->actionError = null;
-        $this->scheduleFor = $mode === 'schedule'
-            ? $this->defaultScheduleInput($post['scheduled_for_raw'] ?? null)
-            : '';
     }
 
     public function closeActionDialog(): void
@@ -138,7 +126,6 @@ class Index extends Component
         $this->actionMode = 'publish';
         $this->actionPostId = null;
         $this->actionPostTitle = '';
-        $this->scheduleFor = '';
         $this->actionError = null;
     }
 
@@ -150,14 +137,9 @@ class Index extends Component
 
         $this->actionError = null;
 
-        if ($this->actionMode === 'schedule') {
-            $this->validate($this->scheduleRules());
-        }
-
         try {
             $message = match ($this->actionMode) {
                 'publish' => $this->publishPost($posts, $session),
-                'schedule' => $this->schedulePost($posts, $session),
                 'unpublish' => $this->unpublishPost($posts, $session),
                 'delete' => $this->deletePost($posts, $session),
                 default => null,
@@ -266,7 +248,7 @@ class Index extends Component
             'id' => Arr::get($post, 'id'),
             'title' => Arr::get($post, 'title', 'Untitled post'),
             'slug' => Arr::get($post, 'slug', ''),
-            'excerpt' => Arr::get($post, 'excerpt'),
+            'excerpt' => Arr::get($post, 'short_description', Arr::get($post, 'description')),
             'status' => $status,
             'visibility' => (string) Arr::get($post, 'visibility', 'public'),
             'category_name' => Arr::get($post, 'category.name'),
@@ -289,10 +271,8 @@ class Index extends Component
             'reading_time_minutes' => Arr::get($post, 'reading_time_minutes'),
             'word_count' => Arr::get($post, 'word_count'),
             'can_publish' => ! in_array($status, ['published', 'archived'], true),
-            'can_schedule' => in_array($status, ['draft', 'unpublished', 'scheduled'], true),
             'can_unpublish' => in_array($status, ['published', 'scheduled'], true),
             'is_ai_generated' => (bool) Arr::get($post, 'is_ai_generated', false),
-            'source_content_brief_id' => Arr::get($post, 'source_content_brief_id'),
             'source_content_topic_id' => Arr::get($post, 'source_content_topic_id'),
             'generated_by_ai_job_id' => Arr::get($post, 'generated_by_ai_job_id'),
             'generated_by' => Arr::get($post, 'generated_by'),
@@ -304,7 +284,6 @@ class Index extends Component
         if ($this->aiReviewMode) {
             $drafts = collect($this->posts);
 
-            $withSourceBrief = $drafts->filter(fn (array $post): bool => filled($post['source_content_brief_id'] ?? null))->count();
             $withSourceTopic = $drafts->filter(fn (array $post): bool => filled($post['source_content_topic_id'] ?? null))->count();
             $withAiJob = $drafts->filter(fn (array $post): bool => filled($post['generated_by_ai_job_id'] ?? null))->count();
 
@@ -316,41 +295,26 @@ class Index extends Component
                     'tone' => 'info',
                 ],
                 [
-                    'label' => 'Linked To Briefs',
-                    'value' => $withSourceBrief,
-                    'suffix' => str('draft')->plural($withSourceBrief),
+                    'label' => 'Linked To Topics',
+                    'value' => $withSourceTopic,
+                    'suffix' => str('draft')->plural($withSourceTopic),
                     'tone' => 'success',
                 ],
                 [
                     'label' => 'Linked To Jobs',
                     'value' => $withAiJob,
                     'suffix' => str('draft')->plural($withAiJob),
-                    'tone' => $withSourceTopic > 0 ? 'warning' : 'info',
+                    'tone' => $withAiJob > 0 ? 'warning' : 'info',
                 ],
             ];
         }
-
-        $now = now();
-        $nextWeek = $now->copy()->addDays(7);
 
         $publishedCount = collect($this->posts)
             ->where('status', 'published')
             ->count();
 
-        $scheduledNextWeekCount = collect($this->posts)
-            ->filter(function (array $post) use ($now, $nextWeek): bool {
-                if (($post['status'] ?? null) !== 'scheduled' || ! is_string($post['scheduled_for_raw'] ?? null)) {
-                    return false;
-                }
-
-                try {
-                    $scheduledAt = Carbon::parse($post['scheduled_for_raw']);
-                } catch (\Throwable) {
-                    return false;
-                }
-
-                return $scheduledAt->betweenIncluded($now, $nextWeek);
-            })
+        $draftCount = collect($this->posts)
+            ->where('status', 'draft')
             ->count();
 
         $featuredCount = collect($this->posts)
@@ -365,9 +329,9 @@ class Index extends Component
                 'tone' => 'success',
             ],
             [
-                'label' => 'Scheduled Next 7 Days',
-                'value' => $scheduledNextWeekCount,
-                'suffix' => str('post')->plural($scheduledNextWeekCount),
+                'label' => 'Draft Posts',
+                'value' => $draftCount,
+                'suffix' => str('post')->plural($draftCount),
                 'tone' => 'info',
             ],
             [
@@ -381,25 +345,7 @@ class Index extends Component
 
     protected function normalizeApiErrors(array $errors): array
     {
-        $mapped = [];
-
-        foreach ($errors as $field => $messages) {
-            $property = match ($field) {
-                'scheduled_for' => 'scheduleFor',
-                default => $field,
-            };
-
-            $mapped[$property] = $messages;
-        }
-
-        return $mapped;
-    }
-
-    protected function scheduleRules(): array
-    {
-        return [
-            'scheduleFor' => ['required', 'date', 'after:now'],
-        ];
+        return $errors;
     }
 
     protected function publishPost(PostClient $posts, AdminSessionManager $session): string
@@ -407,15 +353,6 @@ class Index extends Component
         $posts->publish($this->token($session), $session->tokenType(), $this->actionPostId ?? 0);
 
         return 'Post published.';
-    }
-
-    protected function schedulePost(PostClient $posts, AdminSessionManager $session): string
-    {
-        $posts->schedule($this->token($session), $session->tokenType(), $this->actionPostId ?? 0, [
-            'scheduled_for' => Carbon::parse($this->scheduleFor)->toISOString(),
-        ]);
-
-        return 'Post scheduled.';
     }
 
     protected function unpublishPost(PostClient $posts, AdminSessionManager $session): string
@@ -430,19 +367,6 @@ class Index extends Component
         $posts->delete($this->token($session), $session->tokenType(), $this->actionPostId ?? 0);
 
         return 'Post deleted.';
-    }
-
-    protected function defaultScheduleInput(mixed $value): string
-    {
-        if (! is_string($value) || $value === '') {
-            return now()->addDay()->startOfHour()->format('Y-m-d\TH:i');
-        }
-
-        try {
-            return Carbon::parse($value)->format('Y-m-d\TH:i');
-        } catch (\Throwable) {
-            return now()->addDay()->startOfHour()->format('Y-m-d\TH:i');
-        }
     }
 
     protected function formatTimestamp(mixed $value): ?string

@@ -29,7 +29,6 @@ class AdminNavigation
                     $this->item('Categories', 'categories.index', 'Table-first category structure and taxonomy operations.', false, 'categories'),
                     $this->item('Tags', 'tags.index', 'Tag taxonomy and editorial labeling.', false, 'tags'),
                     $this->item('Media Library', 'media.index', 'Uploaded assets, metadata, and usage review.', false, 'media'),
-                    $this->item('Templates', 'templates.index', 'Structured template definitions and previews.', false, 'templates'),
                     $this->item('Knowledge Base', 'knowledge-base.index', 'Editorial knowledge entries and linked context.', false, 'knowledge'),
                 ],
             ],
@@ -45,10 +44,9 @@ class AdminNavigation
             [
                 'title' => 'AI Content',
                 'items' => [
-                    $this->item('Topic Queue', 'topic-queue.index', 'Review suggested topics, approve editorial directions, and manage topic status.', false, 'queue'),
-                    $this->item('Content Briefs', 'content-briefs.index', 'Review, edit, approve, and promote generated briefs toward draft creation.', false, 'document'),
-                    $this->item('Draft Review', 'draft-review.index', 'Review AI-generated draft posts, validate source context, and manually publish when ready.', false, 'posts'),
-                    $this->item('Prompt Templates', 'ai-prompts.index', 'Manage AI prompt templates, version history, and active generation prompts.', false, 'document'),
+                    $this->item('Topic Queue', 'topic-queue.index', 'Monitor topic scores and automation thresholds before draft generation takes over.', false, 'queue'),
+                    $this->item('Draft Review', 'draft-review.index', 'Review AI-generated draft posts, validate source context, and publish manually when ready.', false, 'posts'),
+                    $this->item('Standard Prompts', 'ai-prompts.index', 'Manage the two versioned standard prompts that drive topic and blog generation.', false, 'document'),
                     $this->item('AI Jobs', 'ai-jobs.index', 'Monitor AI workflow execution, failures, and retryable jobs.', false, 'spark'),
                 ],
             ],

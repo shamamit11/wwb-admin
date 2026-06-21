@@ -7,7 +7,7 @@
     </x-admin.page-header>
 
     <x-admin.callout tone="warning">
-        The only writable service-backed settings flow currently available here is the dedicated Site Settings footer editor. Tabs below remain summary-only until broader settings endpoints exist.
+        The only writable service-backed settings flow currently available here is the dedicated Site Settings footer editor. Prompt instructions now live in Standard Prompts, not site settings.
     </x-admin.callout>
 
     <x-ui.tabs>
@@ -142,14 +142,14 @@
 
                 <x-ui.empty-state
                     title="AI settings are not service-backed yet"
-                    message="Do not imply provider selection, prompt policies, model tuning, or budget controls until the backend contract explicitly supports them."
+                    message="Do not imply provider selection, model tuning, budget controls, or hidden prompt configuration until the backend contract explicitly supports them."
                 >
                     <x-ui.button variant="outline" disabled>Await Service Contract</x-ui.button>
                 </x-ui.empty-state>
             </section>
 
             <x-admin.callout title="Current State" tone="warning">
-                AI jobs and advanced AI settings remain roadmap items. Sensitive provider secrets should not appear in this admin until a dedicated secure flow exists.
+                AI jobs and advanced AI settings remain roadmap items. Standard prompt content is managed in the dedicated prompt screens, and sensitive provider secrets should not appear here.
             </x-admin.callout>
         </div>
     @else
