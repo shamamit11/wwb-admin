@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\ContentBriefs;
 
+use App\Livewire\Admin\ContentBriefs\Index;
 use App\Livewire\Admin\ContentBriefs\Show;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -21,12 +22,18 @@ class ContentBriefScreensTest extends TestCase
 
     public function test_content_briefs_index_renders_service_backed_briefs(): void
     {
+        $pageOneBriefs = collect(range(1, 10))
+            ->map(fn (int $id): array => $this->briefResource([
+                'id' => $id,
+                'title' => "Brief {$id}",
+                'status' => $id <= 5 ? 'draft' : 'approved',
+            ]))
+            ->all();
+
         Http::fake([
             $this->apiBaseUrl.'/admin/content-briefs*' => Http::response([
-                'data' => [
-                    $this->briefResource(['id' => 14, 'title' => 'Agent Brief', 'status' => 'draft']),
-                    $this->briefResource(['id' => 15, 'title' => 'SEO Brief', 'status' => 'approved']),
-                ],
+                'data' => $pageOneBriefs,
+                'meta' => $this->paginationMeta(total: 15, page: 1, lastPage: 2, from: 1, to: 10),
             ], 200),
         ]);
 
@@ -36,10 +43,83 @@ class ContentBriefScreensTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Content Briefs')
-            ->assertSee('Agent Brief')
-            ->assertSee('SEO Brief')
+            ->assertSee('Brief 1')
+            ->assertSee('Brief 10')
+            ->assertDontSee('Brief 11')
             ->assertSee('Draft Briefs')
-            ->assertSee('Approved Briefs');
+            ->assertSee('Approved Briefs')
+            ->assertSee('Showing 1-10 of 15 briefs')
+            ->assertSee('Page 1 of 2');
+    }
+
+    public function test_content_briefs_index_uses_service_pagination_for_navigation_and_filter_reset(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake(function (Request $request) {
+            if ($request->method() !== 'GET' || ! str_starts_with($request->url(), $this->apiBaseUrl.'/admin/content-briefs')) {
+                return Http::response(['message' => 'Unexpected request.'], 500);
+            }
+
+            parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
+
+            $this->assertSame('10', (string) ($query['per_page'] ?? null));
+
+            if (($query['search'] ?? null) === 'seo') {
+                $this->assertSame('1', (string) ($query['page'] ?? null));
+
+                return Http::response([
+                    'data' => [
+                        $this->briefResource([
+                            'id' => 31,
+                            'title' => 'SEO Refresh Brief',
+                            'status' => 'approved',
+                        ]),
+                    ],
+                    'meta' => $this->paginationMeta(total: 1, page: 1, lastPage: 1, from: 1, to: 1),
+                ], 200);
+            }
+
+            if (($query['page'] ?? '1') === '2') {
+                return Http::response([
+                    'data' => [
+                        $this->briefResource([
+                            'id' => 22,
+                            'title' => 'Second Page Brief',
+                            'status' => 'used',
+                        ]),
+                    ],
+                    'meta' => $this->paginationMeta(total: 11, page: 2, lastPage: 2, from: 11, to: 11),
+                ], 200);
+            }
+
+            $this->assertSame('1', (string) ($query['page'] ?? null));
+
+            return Http::response([
+                'data' => [
+                    $this->briefResource([
+                        'id' => 12,
+                        'title' => 'First Page Brief',
+                        'status' => 'draft',
+                    ]),
+                ],
+                'meta' => $this->paginationMeta(total: 11, page: 1, lastPage: 2, from: 1, to: 10),
+            ], 200);
+        });
+
+        Livewire::withQueryParams(['page' => 2])
+            ->test(Index::class)
+            ->assertSet('page', 2)
+            ->assertSee('Second Page Brief')
+            ->assertDontSee('First Page Brief')
+            ->call('previousPage')
+            ->assertSet('page', 1)
+            ->assertSee('First Page Brief')
+            ->assertDontSee('Second Page Brief')
+            ->set('search', 'seo')
+            ->assertSet('page', 1)
+            ->assertSee('SEO Refresh Brief')
+            ->assertDontSee('First Page Brief');
     }
 
     public function test_content_brief_review_screen_can_save_approve_and_generate_draft(): void
@@ -166,5 +246,17 @@ class ContentBriefScreensTest extends TestCase
             'created_at' => now()->subDay()->toISOString(),
             'updated_at' => now()->toISOString(),
         ], $overrides);
+    }
+
+    protected function paginationMeta(int $total, int $page, int $lastPage, int $from, int $to, int $perPage = 10): array
+    {
+        return [
+            'current_page' => $page,
+            'last_page' => $lastPage,
+            'per_page' => $perPage,
+            'total' => $total,
+            'from' => $from,
+            'to' => $to,
+        ];
     }
 }

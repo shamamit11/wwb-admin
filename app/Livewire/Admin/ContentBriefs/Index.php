@@ -40,6 +40,10 @@ class Index extends Component
 
     public array $briefs = [];
 
+    public array $paginationMeta = [];
+
+    public array $statusCounts = [];
+
     public ?string $pageError = null;
 
     public function mount(AdminSessionManager $session, ContentBriefClient $briefs): mixed
@@ -70,6 +74,7 @@ class Index extends Component
     {
         if ($this->page > 1) {
             $this->page--;
+            $this->refreshBriefs();
         }
     }
 
@@ -77,13 +82,14 @@ class Index extends Component
     {
         if ($this->page < $this->lastPage()) {
             $this->page++;
+            $this->refreshBriefs();
         }
     }
 
     public function render()
     {
         return view('livewire.admin.content-briefs.index', [
-            'briefs' => $this->paginatedBriefs(),
+            'briefs' => $this->briefs,
             'statusOptions' => self::BRIEF_STATUSES,
             'pagination' => $this->paginationSummary(),
             'stats' => $this->stats(),
@@ -104,7 +110,9 @@ class Index extends Component
                 ->values()
                 ->all();
 
-            $this->page = min(max($this->page, 1), $this->lastPage());
+            $this->paginationMeta = $this->extractPaginationMeta($response);
+            $this->statusCounts = $this->extractStatusCounts($response);
+            $this->page = min(max($this->currentPage(), 1), $this->lastPage());
 
             return null;
         } catch (WideWebBlogApiAuthenticationException) {
@@ -113,6 +121,8 @@ class Index extends Component
             return $this->forbidden($session);
         } catch (WideWebBlogApiException $exception) {
             $this->briefs = [];
+            $this->paginationMeta = [];
+            $this->statusCounts = [];
             $this->pageError = $exception->getMessage() ?: 'Content briefs could not be loaded from the service API.';
 
             return null;
@@ -131,6 +141,8 @@ class Index extends Component
             'status' => $this->statusFilter !== 'all' ? $this->statusFilter : null,
             'content_topic_id' => filled($this->topicFilter) ? (int) $this->topicFilter : null,
             'sort' => $this->sort,
+            'page' => $this->page,
+            'per_page' => self::PER_PAGE,
         ];
     }
 
@@ -157,33 +169,37 @@ class Index extends Component
         ];
     }
 
-    protected function paginatedBriefs(): array
-    {
-        return collect($this->briefs)
-            ->forPage($this->page, self::PER_PAGE)
-            ->values()
-            ->all();
-    }
-
     protected function paginationSummary(): array
     {
-        $total = count($this->briefs);
-        $first = $total === 0 ? 0 : (($this->page - 1) * self::PER_PAGE) + 1;
-        $last = min($this->page * self::PER_PAGE, $total);
+        $total = (int) ($this->paginationMeta['total'] ?? count($this->briefs));
+        $page = $this->currentPage();
+        $first = (int) ($this->paginationMeta['first_item'] ?? ($total === 0 ? 0 : (($page - 1) * self::PER_PAGE) + 1));
+        $last = (int) ($this->paginationMeta['last_item'] ?? ($total === 0 ? 0 : min($page * self::PER_PAGE, $total)));
+        $lastPage = $this->lastPage();
 
         return [
-            'page' => $this->page,
-            'last_page' => $this->lastPage(),
+            'page' => $page,
+            'last_page' => $lastPage,
+            'per_page' => (int) ($this->paginationMeta['per_page'] ?? self::PER_PAGE),
             'total' => $total,
             'first_item' => $first,
             'last_item' => $last,
-            'has_pages' => $total > self::PER_PAGE,
+            'has_pages' => $lastPage > 1,
         ];
     }
 
     protected function lastPage(): int
     {
+        if (isset($this->paginationMeta['last_page'])) {
+            return max(1, (int) $this->paginationMeta['last_page']);
+        }
+
         return max(1, (int) ceil(max(count($this->briefs), 1) / self::PER_PAGE));
+    }
+
+    protected function currentPage(): int
+    {
+        return max(1, (int) ($this->paginationMeta['page'] ?? $this->page));
     }
 
     protected function stats(): array
@@ -191,17 +207,73 @@ class Index extends Component
         return [
             [
                 'label' => 'Draft Briefs',
-                'value' => collect($this->briefs)->where('status', 'draft')->count(),
+                'value' => $this->countForStatus('draft'),
             ],
             [
                 'label' => 'Approved Briefs',
-                'value' => collect($this->briefs)->where('status', 'approved')->count(),
+                'value' => $this->countForStatus('approved'),
             ],
             [
                 'label' => 'Used Briefs',
-                'value' => collect($this->briefs)->where('status', 'used')->count(),
+                'value' => $this->countForStatus('used'),
             ],
         ];
+    }
+
+    protected function extractPaginationMeta(array $response): array
+    {
+        $meta = Arr::get($response, 'meta', []);
+
+        if (! is_array($meta)) {
+            return [];
+        }
+
+        $page = Arr::get($meta, 'current_page', Arr::get($meta, 'page', $this->page));
+        $perPage = Arr::get($meta, 'per_page', self::PER_PAGE);
+        $total = Arr::get($meta, 'total', count($this->briefs));
+        $lastPage = Arr::get($meta, 'last_page');
+
+        if ($lastPage === null) {
+            $lastPage = max(1, (int) ceil(max((int) $total, 1) / max((int) $perPage, 1)));
+        }
+
+        return [
+            'page' => max(1, (int) $page),
+            'per_page' => max(1, (int) $perPage),
+            'total' => max(0, (int) $total),
+            'last_page' => max(1, (int) $lastPage),
+            'first_item' => Arr::get($meta, 'from'),
+            'last_item' => Arr::get($meta, 'to'),
+        ];
+    }
+
+    protected function extractStatusCounts(array $response): array
+    {
+        $candidates = [
+            Arr::get($response, 'meta.status_counts'),
+            Arr::get($response, 'meta.counts.statuses'),
+            Arr::get($response, 'meta.stats'),
+            Arr::get($response, 'stats'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_array($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return [];
+    }
+
+    protected function countForStatus(string $status): int
+    {
+        $value = Arr::get($this->statusCounts, $status);
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return collect($this->briefs)->where('status', $status)->count();
     }
 
     protected function formatTimestamp(mixed $value): ?string

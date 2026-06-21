@@ -21,6 +21,7 @@
             <label class="block">
                 <span class="sr-only">Search briefs</span>
                 <x-ui.input
+                    class="w-full"
                     type="search"
                     wire:model.live.debounce.300ms="search"
                     placeholder="Search briefs by title or keyword"
@@ -39,8 +40,8 @@
                     </x-ui.select>
                 </div>
 
-                <div class="w-[11rem] shrink-0">
-                    <x-ui.input wire:model.live.debounce.300ms="topicFilter" placeholder="Filter by topic ID" />
+                <div class="w-[9rem] shrink-0">
+                    <x-ui.input wire:model.live.debounce.300ms="topicFilter" inputmode="numeric" placeholder="Topic ID" />
                 </div>
             </div>
         </x-slot:filters>
@@ -51,44 +52,54 @@
     <x-ui.table caption="Content briefs" density="compact">
         <x-ui.table-head>
             <tr>
-                <x-ui.table-heading width="workflow-primary" sortable sort-key="title" :sort-state="$sort">TITLE</x-ui.table-heading>
-                <x-ui.table-heading>TOPIC</x-ui.table-heading>
-                <x-ui.table-heading>PRIMARY KEYWORD</x-ui.table-heading>
-                <x-ui.table-heading>SEARCH INTENT</x-ui.table-heading>
-                <x-ui.table-heading>STATUS</x-ui.table-heading>
-                <x-ui.table-heading sortable sort-key="created_at" :sort-state="$sort">CREATED</x-ui.table-heading>
-                <x-ui.table-heading sortable sort-key="approved_at" :sort-state="$sort">APPROVED</x-ui.table-heading>
-                <x-ui.table-heading align="right">ACTIONS</x-ui.table-heading>
+                <x-ui.table-heading width="content-primary" sortable sort-key="title" :sort-state="$sort">BRIEF</x-ui.table-heading>
+                <x-ui.table-heading class="w-[16%]">PRIMARY KEYWORD</x-ui.table-heading>
+                <x-ui.table-heading class="w-[10%]">INTENT</x-ui.table-heading>
+                <x-ui.table-heading class="w-[10%]">STATUS</x-ui.table-heading>
+                <x-ui.table-heading class="w-[12%]" sortable sort-key="created_at" :sort-state="$sort">CREATED</x-ui.table-heading>
+                <x-ui.table-heading class="w-[12%]" sortable sort-key="approved_at" :sort-state="$sort">APPROVED</x-ui.table-heading>
+                <x-ui.table-heading class="w-[1%] whitespace-nowrap" align="right">ACTIONS</x-ui.table-heading>
             </tr>
         </x-ui.table-head>
 
         <x-ui.table-body>
             @forelse ($briefs as $brief)
                 <x-ui.table-row interactive wire:key="brief-{{ $brief['id'] }}">
-                    <x-ui.table-cell width="workflow-primary">
-                        <div class="min-w-0">
-                            <p class="truncate font-semibold text-[var(--color-ink)]">{{ $brief['title'] }}</p>
-                            <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $brief['slug'] ?: 'Slug pending' }}</p>
-                        </div>
-                    </x-ui.table-cell>
-                    <x-ui.table-cell subdued>
-                        @if ($brief['topic']['id'])
-                            <div class="space-y-1">
-                                <p>{{ $brief['topic']['title'] ?: 'Topic #'.$brief['topic']['id'] }}</p>
+                    <x-ui.table-cell width="content-primary">
+                        <div class="min-w-0 space-y-2">
+                            <div class="min-w-0">
+                                <p class="truncate font-semibold text-[var(--color-ink)]" title="{{ $brief['title'] }}">{{ $brief['title'] }}</p>
+                                <p class="mt-1 truncate text-xs text-[var(--color-muted)]" title="{{ $brief['slug'] ?: 'Slug pending' }}">{{ $brief['slug'] ?: 'Slug pending' }}</p>
+                            </div>
+
+                            <div class="min-w-0 rounded-[var(--radius-button)] bg-[var(--color-panel-soft)] px-3 py-2 text-sm text-[var(--color-muted)]">
+                                <p class="truncate" title="{{ $brief['topic']['title'] ?: ($brief['topic']['id'] ? 'Topic #'.$brief['topic']['id'] : 'Unknown') }}">
+                                    <span class="font-medium text-[var(--color-ink)]">Topic:</span>
+                                    {{ $brief['topic']['title'] ?: ($brief['topic']['id'] ? 'Topic #'.$brief['topic']['id'] : 'Unknown') }}
+                                </p>
+
                                 @if ($brief['topic']['cluster'])
-                                    <p class="text-xs text-[var(--color-muted)]">{{ str($brief['topic']['cluster'])->headline() }}</p>
+                                    <p class="mt-1 truncate text-xs uppercase tracking-[0.14em] text-[var(--color-muted)]">
+                                        {{ str($brief['topic']['cluster'])->headline() }}
+                                    </p>
                                 @endif
                             </div>
-                        @else
-                            Unknown
-                        @endif
+                        </div>
                     </x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $brief['primary_keyword'] ?: 'TBC' }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $brief['search_intent'] ?: 'TBC' }}</x-ui.table-cell>
-                    <x-ui.table-cell><x-admin.status-badge :status="$brief['status']" /></x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $brief['created_at'] ?: 'Unknown' }}</x-ui.table-cell>
-                    <x-ui.table-cell subdued>{{ $brief['approved_at'] ?: 'Not approved' }}</x-ui.table-cell>
-                    <x-ui.table-cell align="right">
+                    <x-ui.table-cell subdued class="align-top">
+                        <p class="truncate text-sm font-medium text-[var(--color-ink)]" title="{{ $brief['primary_keyword'] ?: 'Not set' }}">
+                            {{ $brief['primary_keyword'] ?: 'Not set' }}
+                        </p>
+                    </x-ui.table-cell>
+                    <x-ui.table-cell subdued class="align-top">
+                        <span class="inline-flex rounded-full bg-[var(--color-panel-soft)] px-2.5 py-1 text-xs font-medium capitalize text-[var(--color-muted)]">
+                            {{ $brief['search_intent'] ?: 'Not set' }}
+                        </span>
+                    </x-ui.table-cell>
+                    <x-ui.table-cell class="align-top"><x-admin.status-badge :status="$brief['status']" /></x-ui.table-cell>
+                    <x-ui.table-cell subdued class="align-top whitespace-nowrap">{{ $brief['created_at'] ?: 'Unknown' }}</x-ui.table-cell>
+                    <x-ui.table-cell subdued class="align-top whitespace-nowrap">{{ $brief['approved_at'] ?: 'Not approved' }}</x-ui.table-cell>
+                    <x-ui.table-cell align="right" class="align-top whitespace-nowrap">
                         <x-admin.row-actions>
                             <x-admin.row-action as="a" :href="route('content-briefs.show', ['contentBrief' => $brief['id']])">Review</x-admin.row-action>
                         </x-admin.row-actions>
@@ -96,7 +107,7 @@
                 </x-ui.table-row>
             @empty
                 <x-ui.table-empty
-                    colspan="8"
+                    colspan="7"
                     title="No content briefs match the current view"
                     message="Adjust the filters or generate briefs from approved topics to build the editorial review queue."
                 />
