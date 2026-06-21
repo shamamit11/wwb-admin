@@ -21,6 +21,27 @@
     @else
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.9fr)]">
             <div class="space-y-6">
+                <div class="rounded-[var(--radius-card)] border border-[color-mix(in_srgb,var(--color-warning)_18%,white)] bg-[color-mix(in_srgb,var(--color-warning)_8%,white)] p-5 shadow-[var(--shadow-card)]">
+                    <div class="flex flex-wrap items-center gap-3">
+                        @foreach ($workflowItems as $item)
+                            <div class="flex items-center gap-3">
+                                <div @class([
+                                    'rounded-[var(--radius-button)] border px-4 py-3 text-sm font-medium',
+                                    'border-[color-mix(in_srgb,var(--color-accent)_24%,white)] bg-[color-mix(in_srgb,var(--color-accent)_8%,white)] text-[var(--color-ink)]' => $item['state'] === 'current',
+                                    'border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)]' => $item['state'] === 'pending',
+                                    'border-[color-mix(in_srgb,var(--color-success)_24%,white)] bg-[color-mix(in_srgb,var(--color-success)_8%,white)] text-[var(--color-ink)]' => $item['state'] === 'completed',
+                                ])>
+                                    {{ $item['label'] }}
+                                </div>
+
+                                @if (! $loop->last)
+                                    <span class="text-sm font-medium text-[var(--color-muted)]">→</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
                 <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
                     <div class="flex items-start justify-between gap-4">
                         <div>
@@ -96,17 +117,33 @@
                                 </x-ui.field>
                             </div>
 
-                            <x-ui.field label="System Prompt" for="initial-system-prompt" :error="$errors->first('initialSystemPrompt')" required>
-                                <x-ui.textarea id="initial-system-prompt" rows="10" wire:model.blur="initialSystemPrompt" :invalid="$errors->has('initialSystemPrompt')" />
-                            </x-ui.field>
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-4">
+                                <div class="mb-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">Prompt Content</p>
+                                    <p class="mt-2 text-sm text-[var(--color-muted)]">Write the prompt instructions that future AI generations should follow. These fields behave more like technical prompt editors than standard copy fields.</p>
+                                </div>
 
-                            <x-ui.field label="User Prompt" for="initial-user-prompt" :error="$errors->first('initialUserPrompt')" required>
-                                <x-ui.textarea id="initial-user-prompt" rows="10" wire:model.blur="initialUserPrompt" :invalid="$errors->has('initialUserPrompt')" />
-                            </x-ui.field>
+                                <div class="space-y-5">
+                                    <x-ui.field label="System Prompt" for="initial-system-prompt" :error="$errors->first('initialSystemPrompt')" hint="High-level rules, role framing, and non-negotiable instructions." required>
+                                        <x-ui.textarea id="initial-system-prompt" rows="12" wire:model.blur="initialSystemPrompt" class="font-mono leading-6" :invalid="$errors->has('initialSystemPrompt')" />
+                                    </x-ui.field>
 
-                            <x-ui.field label="Output Schema JSON" for="initial-output-schema" :error="$errors->first('initialOutputSchemaJson')" hint="Optional JSON array payload passed to the service.">
-                                <x-ui.textarea id="initial-output-schema" rows="8" wire:model.blur="initialOutputSchemaJson" placeholder='["title","sections","faq"]' :invalid="$errors->has('initialOutputSchemaJson')" />
-                            </x-ui.field>
+                                    <x-ui.field label="User Prompt" for="initial-user-prompt" :error="$errors->first('initialUserPrompt')" hint="The request template and dynamic operator-facing prompt structure." required>
+                                        <x-ui.textarea id="initial-user-prompt" rows="12" wire:model.blur="initialUserPrompt" class="font-mono leading-6" :invalid="$errors->has('initialUserPrompt')" />
+                                    </x-ui.field>
+                                </div>
+                            </div>
+
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-4">
+                                <div class="mb-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">Output Contract</p>
+                                    <p class="mt-2 text-sm text-[var(--color-muted)]">Optional JSON array contract describing the expected structured output for future runs.</p>
+                                </div>
+
+                                <x-ui.field label="Output Schema JSON" for="initial-output-schema" :error="$errors->first('initialOutputSchemaJson')" hint="Optional JSON array payload passed to the service.">
+                                    <x-ui.textarea id="initial-output-schema" rows="10" wire:model.blur="initialOutputSchemaJson" class="font-mono leading-6" placeholder='["title","sections","faq"]' :invalid="$errors->has('initialOutputSchemaJson')" />
+                                </x-ui.field>
+                            </div>
                         </div>
                     @endif
 
@@ -120,6 +157,7 @@
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Create New Version</p>
                             <h2 class="mt-2 text-xl font-semibold tracking-[-0.03em] text-[var(--color-ink)]">Future Generation Prompt Update</h2>
+                            <p class="mt-2 text-sm text-[var(--color-muted)]">New versions affect future AI generations only. Existing jobs and completed outputs remain unchanged.</p>
                         </div>
 
                         @if ($versionError)
@@ -128,32 +166,53 @@
                             </div>
                         @endif
 
-                        <div class="mt-5 grid gap-5 md:grid-cols-2">
-                            <x-ui.field label="Version Status" for="version-status" :error="$errors->first('versionStatus')">
-                                <x-ui.select id="version-status" wire:model.live="versionStatus">
-                                    @foreach ($statusOptions as $statusOption)
-                                        <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
-                                    @endforeach
-                                </x-ui.select>
-                            </x-ui.field>
+                        <div class="mt-5 space-y-5">
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-4">
+                                <div class="mb-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">Version Settings</p>
+                                </div>
 
-                            <x-ui.field label="Variables" for="version-variables" :error="$errors->first('versionVariablesText')" hint="One variable per line.">
-                                <x-ui.textarea id="version-variables" rows="4" wire:model.blur="versionVariablesText" :invalid="$errors->has('versionVariablesText')" />
-                            </x-ui.field>
-                        </div>
+                                <div class="grid gap-5 md:grid-cols-2">
+                                    <x-ui.field label="Version Status" for="version-status" :error="$errors->first('versionStatus')">
+                                        <x-ui.select id="version-status" wire:model.live="versionStatus">
+                                            @foreach ($statusOptions as $statusOption)
+                                                <option value="{{ $statusOption }}">{{ str($statusOption)->headline() }}</option>
+                                            @endforeach
+                                        </x-ui.select>
+                                    </x-ui.field>
 
-                        <div class="mt-5 grid gap-5">
-                            <x-ui.field label="System Prompt" for="version-system-prompt" :error="$errors->first('versionSystemPrompt')" required>
-                                <x-ui.textarea id="version-system-prompt" rows="10" wire:model.blur="versionSystemPrompt" :invalid="$errors->has('versionSystemPrompt')" />
-                            </x-ui.field>
+                                    <x-ui.field label="Variables" for="version-variables" :error="$errors->first('versionVariablesText')" hint="One variable per line.">
+                                        <x-ui.textarea id="version-variables" rows="5" wire:model.blur="versionVariablesText" class="font-mono leading-6" :invalid="$errors->has('versionVariablesText')" />
+                                    </x-ui.field>
+                                </div>
+                            </div>
 
-                            <x-ui.field label="User Prompt" for="version-user-prompt" :error="$errors->first('versionUserPrompt')" required>
-                                <x-ui.textarea id="version-user-prompt" rows="10" wire:model.blur="versionUserPrompt" :invalid="$errors->has('versionUserPrompt')" />
-                            </x-ui.field>
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-4">
+                                <div class="mb-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">Prompt Content</p>
+                                    <p class="mt-2 text-sm text-[var(--color-muted)]">These fields define the next draft prompt version for future AI generations.</p>
+                                </div>
 
-                            <x-ui.field label="Output Schema JSON" for="version-output-schema" :error="$errors->first('versionOutputSchemaJson')" hint="Optional JSON array payload passed to the service.">
-                                <x-ui.textarea id="version-output-schema" rows="8" wire:model.blur="versionOutputSchemaJson" placeholder='["title","sections","faq"]' :invalid="$errors->has('versionOutputSchemaJson')" />
-                            </x-ui.field>
+                                <div class="space-y-5">
+                                    <x-ui.field label="System Prompt" for="version-system-prompt" :error="$errors->first('versionSystemPrompt')" hint="High-level rules, model behavior, and editorial constraints." required>
+                                        <x-ui.textarea id="version-system-prompt" rows="12" wire:model.blur="versionSystemPrompt" class="font-mono leading-6" :invalid="$errors->has('versionSystemPrompt')" />
+                                    </x-ui.field>
+
+                                    <x-ui.field label="User Prompt" for="version-user-prompt" :error="$errors->first('versionUserPrompt')" hint="The operator-facing prompt pattern and dynamic generation request." required>
+                                        <x-ui.textarea id="version-user-prompt" rows="12" wire:model.blur="versionUserPrompt" class="font-mono leading-6" :invalid="$errors->has('versionUserPrompt')" />
+                                    </x-ui.field>
+                                </div>
+                            </div>
+
+                            <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-4">
+                                <div class="mb-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">Output Contract</p>
+                                </div>
+
+                                <x-ui.field label="Output Schema JSON" for="version-output-schema" :error="$errors->first('versionOutputSchemaJson')" hint="Optional JSON array payload passed to the service.">
+                                    <x-ui.textarea id="version-output-schema" rows="10" wire:model.blur="versionOutputSchemaJson" class="font-mono leading-6" placeholder='["title","sections","faq"]' :invalid="$errors->has('versionOutputSchemaJson')" />
+                                </x-ui.field>
+                            </div>
                         </div>
 
                         <div class="mt-6 flex flex-wrap items-center gap-3">
@@ -189,6 +248,13 @@
                                 <span>{{ $prompt['updated_at'] ?? 'Unknown' }}</span>
                             </div>
                         </div>
+
+                        <div class="mt-5 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Version Workflow</p>
+                            <p class="mt-2 text-sm text-[var(--color-ink)]">
+                                {{ $activeVersion ? 'Metadata saved · Active version: v'.$activeVersion['version'].' · New changes create future versions only' : 'Metadata saved · No active version yet · New changes create future versions only' }}
+                            </p>
+                        </div>
                     </div>
 
                     @if ($actionError)
@@ -208,15 +274,35 @@
                                 <x-admin.status-badge :status="$activeVersion['status']" />
                             </div>
 
-                            <div class="mt-5 space-y-5 text-sm">
-                                <div>
-                                    <p class="font-semibold text-[var(--color-ink)]">System Prompt</p>
-                                    <pre class="mt-2 overflow-x-auto rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-3 text-xs text-[var(--color-muted)]">{{ $activeVersion['system_prompt'] }}</pre>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-[var(--color-ink)]">User Prompt</p>
-                                    <pre class="mt-2 overflow-x-auto rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-3 text-xs text-[var(--color-muted)]">{{ $activeVersion['user_prompt'] }}</pre>
-                                </div>
+                            <div class="mt-5 space-y-4 text-sm">
+                                @foreach ($activeVersionCards as $card)
+                                    <div
+                                        x-data="{ open: false, copied: false, copy() { navigator.clipboard.writeText(@js($card['copy'])); this.copied = true; setTimeout(() => this.copied = false, 1600); } }"
+                                        class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)]"
+                                    >
+                                        <div class="flex flex-wrap items-start justify-between gap-3 px-4 py-4">
+                                            <div class="min-w-0">
+                                                <p class="text-sm font-semibold text-[var(--color-ink)]">{{ $card['title'] }}</p>
+                                                <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $card['hint'] }}</p>
+                                                <p class="mt-3 rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-3 font-mono text-xs leading-6 text-[var(--color-muted)]">{{ $card['preview'] }}</p>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                <x-ui.button type="button" size="sm" variant="secondary" x-on:click="open = ! open">
+                                                    <span x-text="open ? 'Collapse' : 'Expand'"></span>
+                                                </x-ui.button>
+                                                <x-ui.button type="button" size="sm" variant="secondary" x-on:click="copy()">
+                                                    <span x-show="! copied">Copy</span>
+                                                    <span x-cloak x-show="copied">Copied</span>
+                                                </x-ui.button>
+                                            </div>
+                                        </div>
+
+                                        <div x-cloak x-show="open" class="border-t border-[var(--color-line)] px-4 py-4">
+                                            <pre class="max-h-[20rem] overflow-auto rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] p-4 font-mono text-xs leading-6 text-[var(--color-muted)]">{{ $card['content'] }}</pre>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
@@ -224,7 +310,7 @@
                     <div class="rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
                         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">Version History</p>
                         <div class="mt-5 space-y-4">
-                            @forelse ($versions as $version)
+                            @forelse ($versionHistoryCards as $version)
                                 <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-4">
                                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
@@ -235,23 +321,34 @@
                                                 @endif
                                             </div>
                                             <p class="mt-1 text-sm text-[var(--color-muted)]">Created {{ $version['created_at'] ?? 'Unknown' }}</p>
-                                            @if ($version['variables_text'] !== '')
-                                                <p class="mt-2 text-sm text-[var(--color-muted)]">Variables: {{ str($version['variables_text'])->replace("\n", ', ') }}</p>
-                                            @endif
+                                            <p class="mt-2 text-sm text-[var(--color-muted)]">Variables: {{ $version['variables_summary'] }}</p>
                                         </div>
 
                                         <div class="flex items-center gap-2">
                                             <x-admin.status-badge :status="$version['status']" />
-                                            @if (($prompt['active_version_id'] ?? null) !== $version['id'])
+                                            @if ($version['can_activate'])
                                                 <x-ui.button type="button" variant="secondary" wire:click="activateVersion({{ $version['id'] }})">Activate</x-ui.button>
                                             @endif
                                         </div>
                                     </div>
 
-                                    <div class="mt-4 grid gap-4">
-                                        <div>
-                                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Output Schema</p>
-                                            <pre class="mt-2 overflow-x-auto rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)] p-3 text-xs text-[var(--color-muted)]">{{ $version['output_schema_json'] }}</pre>
+                                    <div
+                                        x-data="{ open: false }"
+                                        class="mt-4 overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel)]"
+                                    >
+                                        <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Output Schema</p>
+                                                <p class="mt-1 text-sm text-[var(--color-ink)]">{{ $version['schema_summary'] }}</p>
+                                            </div>
+
+                                            <x-ui.button type="button" size="sm" variant="secondary" x-on:click="open = ! open">
+                                                <span x-text="open ? 'Collapse' : 'View JSON'"></span>
+                                            </x-ui.button>
+                                        </div>
+
+                                        <div x-cloak x-show="open" class="border-t border-[var(--color-line)] px-4 py-4">
+                                            <pre class="max-h-[14rem] overflow-auto rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] p-3 font-mono text-xs leading-6 text-[var(--color-muted)]">{{ $version['schema_json'] }}</pre>
                                         </div>
                                     </div>
                                 </div>

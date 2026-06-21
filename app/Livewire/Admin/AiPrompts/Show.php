@@ -10,6 +10,7 @@ use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiValidationException;
 use App\Support\Auth\AdminSessionManager;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -261,6 +262,9 @@ class Show extends Component
             'statusOptions' => self::PROMPT_STATUSES,
             'activeVersion' => $this->prompt['active_version'] ?? null,
             'versions' => $this->prompt['versions'] ?? [],
+            'workflowItems' => $this->workflowItems(),
+            'activeVersionCards' => $this->activeVersionCards(),
+            'versionHistoryCards' => $this->versionHistoryCards(),
         ])->layout('layouts.admin', [
             'title' => $this->creating ? 'Create Prompt Template' : 'Prompt Template Detail',
         ]);
@@ -352,6 +356,116 @@ class Show extends Component
             'created_at' => $this->formatTimestamp(Arr::get($version, 'created_at')),
             'updated_at' => $this->formatTimestamp(Arr::get($version, 'updated_at')),
         ];
+    }
+
+    protected function workflowItems(): array
+    {
+        if ($this->creating) {
+            return [
+                ['label' => 'Metadata', 'state' => 'current'],
+                ['label' => 'Version v1 Draft', 'state' => 'pending'],
+                ['label' => 'Review', 'state' => 'pending'],
+                ['label' => 'Activate', 'state' => 'pending'],
+            ];
+        }
+
+        $activeVersion = $this->prompt['active_version'] ?? null;
+
+        return [
+            ['label' => 'Template '.Str::headline((string) ($this->status ?: 'draft')), 'state' => 'completed'],
+            ['label' => $activeVersion ? 'Version v'.$activeVersion['version'].' '.Str::headline((string) $activeVersion['status']) : 'No Active Version', 'state' => $activeVersion ? 'current' : 'pending'],
+            ['label' => 'New Changes Create Future Versions', 'state' => 'pending'],
+        ];
+    }
+
+    protected function activeVersionCards(): array
+    {
+        $activeVersion = $this->prompt['active_version'] ?? null;
+
+        if (! is_array($activeVersion)) {
+            return [];
+        }
+
+        return [
+            $this->promptBlockCard('active-system-prompt', 'System Prompt', $activeVersion['system_prompt'] ?? '', 'Primary instruction set for future generations.'),
+            $this->promptBlockCard('active-user-prompt', 'User Prompt', $activeVersion['user_prompt'] ?? '', 'Operator-facing generation template content.'),
+            $this->jsonBlockCard('active-output-schema', 'Output Schema JSON', $activeVersion['output_schema_json'] ?? '[]', $activeVersion['output_schema'] ?? []),
+        ];
+    }
+
+    protected function versionHistoryCards(): array
+    {
+        return collect($this->prompt['versions'] ?? [])
+            ->map(function (array $version): array {
+                return [
+                    'id' => $version['id'],
+                    'version' => $version['version'],
+                    'status' => $version['status'],
+                    'created_at' => $version['created_at'] ?? 'Unknown',
+                    'is_active' => ($this->prompt['active_version_id'] ?? null) === $version['id'],
+                    'variables_summary' => $this->variablesSummary($version['variables'] ?? []),
+                    'schema_summary' => $this->schemaSummary($version['output_schema'] ?? null),
+                    'schema_json' => $version['output_schema_json'] ?? '[]',
+                    'can_activate' => ($this->prompt['active_version_id'] ?? null) !== $version['id'],
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    protected function promptBlockCard(string $id, string $title, string $content, string $hint): array
+    {
+        return [
+            'id' => $id,
+            'title' => $title,
+            'hint' => $hint,
+            'preview' => $this->promptPreview($content),
+            'content' => $content !== '' ? $content : 'No prompt content available.',
+            'copy' => $content,
+        ];
+    }
+
+    protected function jsonBlockCard(string $id, string $title, string $json, mixed $payload): array
+    {
+        return [
+            'id' => $id,
+            'title' => $title,
+            'hint' => 'Structured output contract for future AI generations.',
+            'preview' => $this->schemaSummary($payload),
+            'content' => $json,
+            'copy' => $json,
+        ];
+    }
+
+    protected function promptPreview(string $content): string
+    {
+        $normalized = preg_replace('/\s+/u', ' ', trim($content)) ?? trim($content);
+
+        return $normalized !== '' ? Str::limit($normalized, 180) : 'No prompt content available.';
+    }
+
+    protected function variablesSummary(array $variables): string
+    {
+        if ($variables === []) {
+            return 'No variables';
+        }
+
+        return collect($variables)
+            ->filter(fn (mixed $variable): bool => is_string($variable) && trim($variable) !== '')
+            ->take(4)
+            ->implode(', ');
+    }
+
+    protected function schemaSummary(mixed $payload): string
+    {
+        if (! is_array($payload) || $payload === []) {
+            return 'No output schema defined.';
+        }
+
+        return collect($payload)
+            ->take(5)
+            ->map(fn (mixed $item): string => is_scalar($item) ? (string) $item : (json_encode($item, JSON_UNESCAPED_SLASHES) ?: 'item'))
+            ->implode(' · ');
     }
 
     protected function storePayload(array $validated): array

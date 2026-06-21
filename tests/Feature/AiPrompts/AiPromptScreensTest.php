@@ -227,6 +227,29 @@ class AiPromptScreensTest extends TestCase
             ->assertSee('Version History');
     }
 
+    public function test_ai_prompt_detail_screen_renders_workflow_and_collapsible_prompt_sections(): void
+    {
+        Http::fake([
+            $this->apiBaseUrl.'/admin/ai-prompts/9' => Http::response([
+                'data' => $this->promptResource(),
+            ], 200),
+        ]);
+
+        $response = $this->withSession($this->authenticatedSession())
+            ->get(route('ai-prompts.show', ['aiPrompt' => 9]));
+
+        $response
+            ->assertOk()
+            ->assertSee('Template Details')
+            ->assertSee('Future Generation Prompt Update')
+            ->assertSee('Version Workflow')
+            ->assertSee('Active Version')
+            ->assertSee('Expand')
+            ->assertSee('Copy')
+            ->assertSee('View JSON')
+            ->assertSee('Version History');
+    }
+
     protected function authenticatedSession(): array
     {
         return [
