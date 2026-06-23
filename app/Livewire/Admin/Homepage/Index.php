@@ -44,66 +44,6 @@ class Index extends Component
         return $this->loadHomepage($homepage, $session);
     }
 
-    public function rules(): array
-    {
-        return [
-            'hero.eyebrow' => ['nullable', 'string', 'max:120'],
-            'hero.title' => ['nullable', 'string', 'max:255'],
-            'hero.description' => ['nullable', 'string', 'max:2000'],
-            'hero.primary_cta_label' => ['nullable', 'string', 'max:120'],
-            'hero.primary_cta_url' => ['nullable', 'string', 'max:500'],
-            'hero.secondary_cta_label' => ['nullable', 'string', 'max:120'],
-            'hero.secondary_cta_url' => ['nullable', 'string', 'max:500'],
-            'hero.media_url' => ['nullable', 'string', 'max:500'],
-            'hero.media_alt' => ['nullable', 'string', 'max:255'],
-
-            'featured_editorial.title' => ['nullable', 'string', 'max:255'],
-            'featured_editorial.description' => ['nullable', 'string', 'max:2000'],
-            'featured_editorial.limit' => ['required', 'integer', 'min:1', 'max:24'],
-
-            'guide_section.title' => ['nullable', 'string', 'max:255'],
-            'guide_section.description' => ['nullable', 'string', 'max:2000'],
-            'guide_section.limit' => ['required', 'integer', 'min:1', 'max:24'],
-
-            'topic_section.title' => ['nullable', 'string', 'max:255'],
-            'topic_section.description' => ['nullable', 'string', 'max:2000'],
-
-            'promo_section.enabled' => ['required', 'boolean'],
-            'promo_section.eyebrow' => ['nullable', 'string', 'max:120'],
-            'promo_section.title' => ['nullable', 'string', 'max:255'],
-            'promo_section.description' => ['nullable', 'string', 'max:2000'],
-            'promo_section.bullet_points' => ['required', 'array', 'min:1'],
-            'promo_section.bullet_points.*' => ['required', 'string', 'max:255'],
-            'promo_section.primary_cta_label' => ['nullable', 'string', 'max:120'],
-            'promo_section.primary_cta_url' => ['nullable', 'string', 'max:500'],
-            'promo_section.stats' => ['required', 'array', 'min:1'],
-            'promo_section.stats.*.label' => ['required', 'string', 'max:120'],
-            'promo_section.stats.*.value' => ['required', 'string', 'max:120'],
-
-            'newsletter_section.enabled' => ['required', 'boolean'],
-            'newsletter_section.title' => ['nullable', 'string', 'max:255'],
-            'newsletter_section.description' => ['nullable', 'string', 'max:2000'],
-
-            'seo.meta_title' => ['nullable', 'string', 'max:255'],
-            'seo.meta_description' => ['nullable', 'string', 'max:320'],
-        ];
-    }
-
-    public function updated(string $property): void
-    {
-        if (
-            str_starts_with($property, 'hero.')
-            || str_starts_with($property, 'featured_editorial.')
-            || str_starts_with($property, 'guide_section.')
-            || str_starts_with($property, 'topic_section.')
-            || str_starts_with($property, 'promo_section.')
-            || str_starts_with($property, 'newsletter_section.')
-            || str_starts_with($property, 'seo.')
-        ) {
-            $this->validateOnly($property);
-        }
-    }
-
     public function addListItem(string $section, string $field): void
     {
         if (! $this->allowsListField($section, $field)) {
@@ -193,12 +133,11 @@ class Index extends Component
     public function save(HomepageClient $homepage, AdminSessionManager $session): mixed
     {
         $this->sanitizeSectionState();
-
-        $validated = $this->validate();
         $this->formError = null;
+        $this->resetValidation();
 
         try {
-            $response = $homepage->update($this->token($session), $session->tokenType(), $this->payload($validated));
+            $response = $homepage->update($this->token($session), $session->tokenType(), $this->payload());
             $this->fillFromResource(Arr::get($response, 'data', []));
             session()->flash('status', 'Homepage updated.');
 
@@ -392,43 +331,43 @@ class Index extends Component
         $this->promo_section['stats'] = $this->sanitizeStats(Arr::get($this->promo_section, 'stats', []));
     }
 
-    protected function payload(array $validated): array
+    protected function payload(): array
     {
-        $hero = $this->nullableStrings($validated['hero']);
+        $hero = $this->nullableStrings($this->hero);
         $hero['media_url'] = $this->normalizeAbsoluteHttpUrl($hero['media_url'] ?? null);
 
         return [
             'hero' => $hero,
             'featured_editorial' => [
-                'title' => $this->nullableString(Arr::get($validated, 'featured_editorial.title')),
-                'description' => $this->nullableString(Arr::get($validated, 'featured_editorial.description')),
-                'limit' => (int) Arr::get($validated, 'featured_editorial.limit', 3),
+                'title' => $this->nullableString(Arr::get($this->featured_editorial, 'title')),
+                'description' => $this->nullableString(Arr::get($this->featured_editorial, 'description')),
+                'limit' => (int) Arr::get($this->featured_editorial, 'limit', 3),
             ],
             'guide_section' => [
-                'title' => $this->nullableString(Arr::get($validated, 'guide_section.title')),
-                'description' => $this->nullableString(Arr::get($validated, 'guide_section.description')),
-                'limit' => (int) Arr::get($validated, 'guide_section.limit', 4),
+                'title' => $this->nullableString(Arr::get($this->guide_section, 'title')),
+                'description' => $this->nullableString(Arr::get($this->guide_section, 'description')),
+                'limit' => (int) Arr::get($this->guide_section, 'limit', 4),
             ],
             'topic_section' => [
-                'title' => $this->nullableString(Arr::get($validated, 'topic_section.title')),
-                'description' => $this->nullableString(Arr::get($validated, 'topic_section.description')),
+                'title' => $this->nullableString(Arr::get($this->topic_section, 'title')),
+                'description' => $this->nullableString(Arr::get($this->topic_section, 'description')),
             ],
             'promo_section' => [
-                'enabled' => (bool) Arr::get($validated, 'promo_section.enabled', false),
-                'eyebrow' => $this->nullableString(Arr::get($validated, 'promo_section.eyebrow')),
-                'title' => $this->nullableString(Arr::get($validated, 'promo_section.title')),
-                'description' => $this->nullableString(Arr::get($validated, 'promo_section.description')),
-                'bullet_points' => Arr::get($validated, 'promo_section.bullet_points', []),
-                'primary_cta_label' => $this->nullableString(Arr::get($validated, 'promo_section.primary_cta_label')),
-                'primary_cta_url' => $this->nullableString(Arr::get($validated, 'promo_section.primary_cta_url')),
-                'stats' => Arr::get($validated, 'promo_section.stats', []),
+                'enabled' => (bool) Arr::get($this->promo_section, 'enabled', false),
+                'eyebrow' => $this->nullableString(Arr::get($this->promo_section, 'eyebrow')),
+                'title' => $this->nullableString(Arr::get($this->promo_section, 'title')),
+                'description' => $this->nullableString(Arr::get($this->promo_section, 'description')),
+                'bullet_points' => Arr::get($this->promo_section, 'bullet_points', []),
+                'primary_cta_label' => $this->nullableString(Arr::get($this->promo_section, 'primary_cta_label')),
+                'primary_cta_url' => $this->nullableString(Arr::get($this->promo_section, 'primary_cta_url')),
+                'stats' => Arr::get($this->promo_section, 'stats', []),
             ],
             'newsletter_section' => [
-                'enabled' => (bool) Arr::get($validated, 'newsletter_section.enabled', false),
-                'title' => $this->nullableString(Arr::get($validated, 'newsletter_section.title')),
-                'description' => $this->nullableString(Arr::get($validated, 'newsletter_section.description')),
+                'enabled' => (bool) Arr::get($this->newsletter_section, 'enabled', false),
+                'title' => $this->nullableString(Arr::get($this->newsletter_section, 'title')),
+                'description' => $this->nullableString(Arr::get($this->newsletter_section, 'description')),
             ],
-            'seo' => $this->nullableStrings($validated['seo']),
+            'seo' => $this->nullableStrings($this->seo),
         ];
     }
 
