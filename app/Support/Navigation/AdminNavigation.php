@@ -30,6 +30,7 @@ class AdminNavigation
                     $this->item('Tags', 'tags.index', 'Tag taxonomy and editorial labeling.', false, 'tags'),
                     $this->item('Media Library', 'media.index', 'Uploaded assets, metadata, and usage review.', false, 'media'),
                     $this->item('Knowledge Base', 'knowledge-base.index', 'Editorial knowledge entries and linked context.', false, 'knowledge'),
+                    $this->item('News', 'news.index', 'Review discovered articles, scores, extraction output, and routing results.', false, 'queue'),
                 ],
             ],
             [
