@@ -13,6 +13,10 @@ use Livewire\Component;
 
 class Show extends Component
 {
+    private const REVIEW_THRESHOLD = 70.0;
+
+    private const AUTO_DRAFT_THRESHOLD = 85.0;
+
     public int $topicId;
 
     public array $topicRecord = [];
@@ -33,7 +37,7 @@ class Show extends Component
     public function render()
     {
         return view('livewire.admin.topic-queue.show', [
-            'automationTone' => ($this->topicRecord['priority_score'] ?? 0) >= 90 ? 'success' : (($this->topicRecord['priority_score'] ?? null) === null ? 'muted' : 'warning'),
+            'automationTone' => $this->automationTone($this->topicRecord['priority_score'] ?? null),
         ])->layout('layouts.admin', [
             'title' => 'Topic Details',
         ]);
@@ -124,9 +128,7 @@ class Show extends Component
             'used_at' => $this->formatTimestamp(Arr::get($topic, 'used_at')),
             'created_at' => $this->formatTimestamp(Arr::get($topic, 'created_at')),
             'updated_at' => $this->formatTimestamp(Arr::get($topic, 'updated_at')),
-            'automation_state' => $score === null
-                ? 'Score pending'
-                : ($score >= 90 ? 'The backend should auto-queue draft generation using this topic’s saved category.' : 'The backend should auto-delete this topic below the 90 threshold.'),
+            'automation_state' => $this->automationState($score),
         ];
     }
 
@@ -164,5 +166,39 @@ class Show extends Component
         session()->flash('auth.error', 'You no longer have access to the admin.');
 
         return $this->redirectRoute('auth.forbidden', navigate: true);
+    }
+
+    protected function automationTone(?float $score): string
+    {
+        if ($score === null) {
+            return 'muted';
+        }
+
+        if ($score >= self::AUTO_DRAFT_THRESHOLD) {
+            return 'success';
+        }
+
+        if ($score >= self::REVIEW_THRESHOLD) {
+            return 'warning';
+        }
+
+        return 'muted';
+    }
+
+    protected function automationState(?float $score): string
+    {
+        if ($score === null) {
+            return 'Score pending';
+        }
+
+        if ($score >= self::AUTO_DRAFT_THRESHOLD) {
+            return 'The backend should auto-queue draft generation using this topic’s saved category.';
+        }
+
+        if ($score >= self::REVIEW_THRESHOLD) {
+            return 'The backend should keep this topic in Topic Queue for editorial review.';
+        }
+
+        return 'The backend should auto-delete this topic below the 70 threshold.';
     }
 }

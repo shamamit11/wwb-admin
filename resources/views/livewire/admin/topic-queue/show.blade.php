@@ -121,14 +121,24 @@
                 <section class="space-y-5 rounded-[var(--radius-card)] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 shadow-[var(--shadow-card)]">
                     <div class="space-y-1">
                         <h2 class="text-base font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Automation State</h2>
-                        <p class="text-sm text-[var(--color-muted)]">Manual approval and brief gating are no longer the intended admin workflow. Draft generation now defaults to this topic’s saved category.</p>
+                        <p class="text-sm text-[var(--color-muted)]">Draft generation now defaults to this topic’s saved category when the backend score reaches the auto-draft band.</p>
                     </div>
 
                     <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Priority Score</p>
                         <div class="mt-3 flex items-center gap-3">
                             <p class="text-3xl font-semibold tracking-[-0.04em] text-[var(--color-ink)]">{{ $topicRecord['priority_score_label'] }}</p>
-                            <x-ui.badge :tone="$automationTone">{{ ($topicRecord['priority_score'] ?? 0) >= 90 ? '90+ threshold met' : 'Below 90' }}</x-ui.badge>
+                            <x-ui.badge :tone="$automationTone">
+                                @if (($topicRecord['priority_score'] ?? null) === null)
+                                    Score pending
+                                @elseif (($topicRecord['priority_score'] ?? 0) >= 85)
+                                    85+ auto-draft
+                                @elseif (($topicRecord['priority_score'] ?? 0) >= 70)
+                                    70-84.99 review
+                                @else
+                                    Below 70 prune
+                                @endif
+                            </x-ui.badge>
                         </div>
                         <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">{{ $topicRecord['automation_state'] }}</p>
                     </div>

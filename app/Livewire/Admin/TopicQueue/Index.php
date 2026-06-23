@@ -18,6 +18,10 @@ use Livewire\Component;
 
 class Index extends Component
 {
+    private const REVIEW_THRESHOLD = 70.0;
+
+    private const AUTO_DRAFT_THRESHOLD = 85.0;
+
     private const TOPIC_STATUSES = ['suggested', 'approved', 'rejected', 'used'];
 
     private const TOPIC_CLUSTERS = ['ai_tools', 'ai_for_blogging', 'seo', 'content_marketing', 'productivity_automation', 'developer_ai'];
@@ -304,10 +308,8 @@ class Index extends Component
             'status' => (string) Arr::get($topic, 'status', 'suggested'),
             'created_at' => $this->formatTimestamp(Arr::get($topic, 'created_at')),
             'updated_at' => $this->formatTimestamp(Arr::get($topic, 'updated_at')),
-            'automation_state' => $score === null
-                ? 'Score pending'
-                : ($score >= 90 ? 'Auto-queues draft generation' : 'Auto-pruned below 90'),
-            'automation_tone' => $score === null ? 'muted' : ($score >= 90 ? 'success' : 'warning'),
+            'automation_state' => $this->automationState($score),
+            'automation_tone' => $this->automationTone($score),
         ];
     }
 
@@ -341,13 +343,13 @@ class Index extends Component
     {
         return [
             [
-                'label' => 'Topics At 90+',
-                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) >= 90)->count(),
+                'label' => 'Auto-Draft 85+',
+                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) >= self::AUTO_DRAFT_THRESHOLD)->count(),
                 'tone' => 'success',
             ],
             [
-                'label' => 'Below 90',
-                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) < 90)->count(),
+                'label' => 'Review 70-84.99',
+                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? -1) >= self::REVIEW_THRESHOLD && ($topic['priority_score'] ?? 0) < self::AUTO_DRAFT_THRESHOLD)->count(),
                 'tone' => 'warning',
             ],
             [
@@ -395,6 +397,40 @@ class Index extends Component
             ->all();
 
         return $parts === [] ? null : implode(' · ', $parts);
+    }
+
+    protected function automationState(?float $score): string
+    {
+        if ($score === null) {
+            return 'Score pending';
+        }
+
+        if ($score >= self::AUTO_DRAFT_THRESHOLD) {
+            return 'Auto-queues draft generation';
+        }
+
+        if ($score >= self::REVIEW_THRESHOLD) {
+            return 'Editorial review band';
+        }
+
+        return 'Auto-pruned below 70';
+    }
+
+    protected function automationTone(?float $score): string
+    {
+        if ($score === null) {
+            return 'muted';
+        }
+
+        if ($score >= self::AUTO_DRAFT_THRESHOLD) {
+            return 'success';
+        }
+
+        if ($score >= self::REVIEW_THRESHOLD) {
+            return 'warning';
+        }
+
+        return 'muted';
     }
 
     protected function defaultDiscoveryCategoryId(): string

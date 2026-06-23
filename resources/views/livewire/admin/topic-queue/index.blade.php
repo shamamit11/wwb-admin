@@ -31,7 +31,7 @@
     </div>
 
     <x-admin.callout title="Automation Model">
-        Topics scoring below <span class="font-medium text-[var(--color-ink)]">90</span> are auto-deleted by backend automation. Topics scoring <span class="font-medium text-[var(--color-ink)]">90 or above</span> auto-queue blog draft generation. Editors review the generated draft, not an intermediate brief.
+        Topics scoring below <span class="font-medium text-[var(--color-ink)]">70</span> are auto-deleted by backend automation. Topics scoring from <span class="font-medium text-[var(--color-ink)]">70 to 84.99</span> stay in Topic Queue for editorial review. Topics scoring <span class="font-medium text-[var(--color-ink)]">85 or above</span> auto-queue blog draft generation.
     </x-admin.callout>
 
     <x-admin.filter-bar>
@@ -111,7 +111,7 @@
                     <x-ui.table-cell subdued>{{ $topic['primary_keyword'] ?: 'Not set' }}</x-ui.table-cell>
                     <x-ui.table-cell>
                         <div class="space-y-1">
-                            <x-ui.badge :tone="$topic['priority_score'] !== null && $topic['priority_score'] >= 90 ? 'success' : 'warning'">
+                            <x-ui.badge :tone="$topic['automation_tone']">
                                 {{ $topic['priority_score_label'] }}
                             </x-ui.badge>
                             @if ($topic['score_breakdown_summary'])

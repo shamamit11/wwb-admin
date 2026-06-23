@@ -13,6 +13,10 @@ use Livewire\Component;
 
 class Index extends Component
 {
+    private const REVIEW_THRESHOLD = 70.0;
+
+    private const AUTO_DRAFT_THRESHOLD = 85.0;
+
     public array $draftPosts = [];
 
     public array $publishedPosts = [];
@@ -75,21 +79,24 @@ class Index extends Component
                 'status' => (string) Arr::get($topic, 'status', 'suggested'),
             ]);
 
-            $highScoreTopics = $topicCollection->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) >= 90)->count();
-            $lowScoreTopics = $topicCollection->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) < 90)->count();
+            $highScoreTopics = $topicCollection->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) >= self::AUTO_DRAFT_THRESHOLD)->count();
+            $reviewBandTopics = $topicCollection->filter(fn (array $topic): bool => ($topic['priority_score'] ?? -1) >= self::REVIEW_THRESHOLD && ($topic['priority_score'] ?? 0) < self::AUTO_DRAFT_THRESHOLD)->count();
+            $lowScoreTopics = $topicCollection->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) < self::REVIEW_THRESHOLD)->count();
 
             $this->overviewCards = [
                 $this->makeCard('Drafts Pending Review', count($this->draftPosts), route('draft-review.index'), 'Generated drafts that still need manual editorial review.', 'warning'),
-                $this->makeCard('Topics At 90+', $highScoreTopics, route('topic-queue.index'), 'Topics that should auto-queue blog draft generation.', 'success'),
-                $this->makeCard('Topics Below 90', $lowScoreTopics, route('topic-queue.index'), 'Topics that the backend automation is expected to prune.', 'muted'),
+                $this->makeCard('Topics At 85+', $highScoreTopics, route('topic-queue.index'), 'Topics that should auto-queue blog draft generation.', 'success'),
+                $this->makeCard('Topics In Review Band', $reviewBandTopics, route('topic-queue.index'), 'Topics that should stay in Topic Queue for editorial review.', 'warning'),
+                $this->makeCard('Topics Below 70', $lowScoreTopics, route('topic-queue.index'), 'Topics that the backend automation is expected to prune.', 'muted'),
                 $this->makeCard('Published Posts', count($this->publishedPosts), route('posts.index', ['status' => 'published']), 'Articles already live on the site.', 'default'),
                 $this->makeCard('Failed AI Jobs', count($failedJobs), route('ai-jobs.index', ['status' => 'failed']), 'Failures that still need investigation or retry.', count($failedJobs) > 0 ? 'danger' : 'muted'),
             ];
 
             $this->pipelineSteps = [
                 $this->makePipelineStep('Topic Discovery', count($allTopics), 'Scored', route('topic-queue.index'), 'Categories and knowledge base feed topic generation.', 'default'),
-                $this->makePipelineStep('Score Threshold', $highScoreTopics, '90+ passes', route('topic-queue.index'), 'High-score topics move straight into blog draft generation.', 'success'),
-                $this->makePipelineStep('Auto Prune', $lowScoreTopics, '< 90 removed', route('topic-queue.index'), 'Low-score topics are deleted by backend automation.', 'muted'),
+                $this->makePipelineStep('Auto-Draft Band', $highScoreTopics, '85+ passes', route('topic-queue.index'), 'High-score topics move straight into blog draft generation.', 'success'),
+                $this->makePipelineStep('Editorial Review Band', $reviewBandTopics, '70-84.99', route('topic-queue.index'), 'Mid-score topics remain available for editorial review.', 'warning'),
+                $this->makePipelineStep('Auto Prune', $lowScoreTopics, '< 70 removed', route('topic-queue.index'), 'Low-score topics are deleted by backend automation.', 'muted'),
                 $this->makePipelineStep('Draft Review', count($this->draftPosts), 'Manual', route('draft-review.index'), 'Editors review and revise generated article drafts.', 'warning'),
                 $this->makePipelineStep('Publish', count($this->publishedPosts), 'Manual', route('posts.index', ['status' => 'published']), 'Only reviewed posts are published.', 'success'),
             ];
