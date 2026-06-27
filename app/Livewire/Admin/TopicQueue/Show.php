@@ -6,9 +6,11 @@ use App\Services\WideWebBlogApi\Clients\ContentTopicClient;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiAuthenticationException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiAuthorizationException;
 use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiException;
+use App\Services\WideWebBlogApi\Exceptions\WideWebBlogApiValidationException;
 use App\Support\Auth\AdminSessionManager;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class Show extends Component
@@ -27,6 +29,12 @@ class Show extends Component
 
     public bool $notFound = false;
 
+    public bool $actionDialogOpen = false;
+
+    public string $actionMode = 'reject';
+
+    public string $actionNotes = '';
+
     public function mount(ContentTopicClient $topics, AdminSessionManager $session, int $topic): mixed
     {
         $this->topicId = $topic;
@@ -38,6 +46,8 @@ class Show extends Component
     {
         return view('livewire.admin.topic-queue.show', [
             'automationTone' => $this->automationTone($this->topicRecord['priority_score'] ?? null),
+            'actionState' => $this->actionState(),
+            'actionConfig' => $this->actionConfig(),
         ])->layout('layouts.admin', [
             'title' => 'Topic Details',
         ]);
@@ -45,28 +55,149 @@ class Show extends Component
 
     public function generateDraft(ContentTopicClient $topics, AdminSessionManager $session): mixed
     {
+        if (! $this->canQueueDraft()) {
+            return null;
+        }
+
         $this->actionError = null;
 
         try {
-            $response = $topics->generateDraft($this->token($session), $session->tokenType(), $this->topicId);
-            $jobId = Arr::get($response, 'data.id');
+            $topics->generateDraft($this->token($session), $session->tokenType(), $this->topicId);
+            session()->flash('status', 'Draft generation queued for this topic.');
 
-            session()->flash('status', 'Draft generation queued for this topic category.');
-
-            if (is_int($jobId) || ctype_digit((string) $jobId)) {
-                return $this->redirectRoute('ai-jobs.show', ['aiJob' => (int) $jobId], navigate: true);
-            }
+            return $this->loadTopic($topics, $session);
+        } catch (WideWebBlogApiAuthenticationException) {
+            return $this->expireSession($session);
+        } catch (WideWebBlogApiAuthorizationException) {
+            return $this->forbidden($session);
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->actionError = $exception->getMessage() ?: 'Draft generation could not be queued for this topic.';
 
             return null;
+        } catch (WideWebBlogApiException $exception) {
+            return $this->handleActionException($exception, $topics, $session, 'Draft generation could not be queued for this topic.');
+        }
+    }
+
+    public function approveTopic(ContentTopicClient $topics, AdminSessionManager $session): mixed
+    {
+        if (! $this->canApprove()) {
+            return null;
+        }
+
+        return $this->runTopicAction($topics, $session, 'approve', 'Topic approved.');
+    }
+
+    public function openActionDialog(string $mode): void
+    {
+        if (! in_array($mode, ['reject', 'mark-used'], true)) {
+            return;
+        }
+
+        if ($mode === 'reject' && ! $this->canReject()) {
+            return;
+        }
+
+        if ($mode === 'mark-used' && ! $this->canMarkUsed()) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->actionDialogOpen = true;
+        $this->actionMode = $mode;
+        $this->actionNotes = '';
+        $this->actionError = null;
+    }
+
+    public function closeActionDialog(): void
+    {
+        $this->resetValidation();
+        $this->actionDialogOpen = false;
+        $this->actionMode = 'reject';
+        $this->actionNotes = '';
+        $this->actionError = null;
+    }
+
+    public function executeAction(ContentTopicClient $topics, AdminSessionManager $session): mixed
+    {
+        if ($this->actionMode === 'reject' && ! $this->canReject()) {
+            return null;
+        }
+
+        if ($this->actionMode === 'mark-used' && ! $this->canMarkUsed()) {
+            return null;
+        }
+
+        return $this->runTopicAction(
+            $topics,
+            $session,
+            $this->actionMode,
+            $this->actionMode === 'mark-used' ? 'Topic marked as used.' : 'Topic rejected.',
+            $this->actionPayload(),
+        );
+    }
+
+    protected function runTopicAction(
+        ContentTopicClient $topics,
+        AdminSessionManager $session,
+        string $action,
+        string $successMessage,
+        array $payload = [],
+    ): mixed {
+        $this->actionError = null;
+
+        try {
+            match ($action) {
+                'approve' => $topics->approve($this->token($session), $session->tokenType(), $this->topicId, $payload),
+                'reject' => $topics->reject($this->token($session), $session->tokenType(), $this->topicId, $payload),
+                'mark-used' => $topics->markUsed($this->token($session), $session->tokenType(), $this->topicId, $payload),
+                default => null,
+            };
+
+            session()->flash('status', $successMessage);
+            $this->closeActionDialog();
+
+            return $this->loadTopic($topics, $session);
+        } catch (WideWebBlogApiValidationException $exception) {
+            $this->actionError = $exception->getMessage() ?: 'The topic action could not be completed.';
+
+            throw ValidationException::withMessages($this->normalizeActionApiErrors($exception->errors()));
         } catch (WideWebBlogApiAuthenticationException) {
             return $this->expireSession($session);
         } catch (WideWebBlogApiAuthorizationException) {
             return $this->forbidden($session);
         } catch (WideWebBlogApiException $exception) {
-            $this->actionError = $exception->getMessage() ?: 'Draft generation could not be started for this topic.';
+            return $this->handleActionException($exception, $topics, $session, 'The topic action could not be completed.');
+        }
+    }
+
+    protected function handleActionException(
+        WideWebBlogApiException $exception,
+        ContentTopicClient $topics,
+        AdminSessionManager $session,
+        string $fallbackMessage,
+    ): mixed {
+        if ($exception->status() === 404) {
+            $this->topicRecord = [];
+            $this->notFound = true;
+            $this->pageError = 'This topic could not be found in the service API.';
+            $this->actionDialogOpen = false;
 
             return null;
         }
+
+        if ($exception->status() === 409) {
+            $message = $exception->getMessage() ?: 'This editorial action is no longer valid for the current topic state.';
+
+            $this->loadTopic($topics, $session);
+            $this->actionError = $message;
+
+            return null;
+        }
+
+        $this->actionError = $exception->getMessage() ?: $fallbackMessage;
+
+        return null;
     }
 
     protected function loadTopic(ContentTopicClient $topics, AdminSessionManager $session): mixed
@@ -121,15 +252,92 @@ class Show extends Component
             'difficulty_note' => (string) Arr::get($topic, 'difficulty_note', ''),
             'source' => (string) Arr::get($topic, 'source', 'manual'),
             'status' => (string) Arr::get($topic, 'status', 'suggested'),
+            'editorial_recommendation' => (string) Arr::get($topic, 'editorial_recommendation', 'unscored'),
             'notes' => (string) Arr::get($topic, 'notes', ''),
             'can_generate_draft' => (bool) Arr::get($topic, 'can_generate_draft', false),
+            'has_draft_generation_job' => (bool) Arr::get($topic, 'has_draft_generation_job', false),
             'approved_at' => $this->formatTimestamp(Arr::get($topic, 'approved_at')),
             'rejected_at' => $this->formatTimestamp(Arr::get($topic, 'rejected_at')),
             'used_at' => $this->formatTimestamp(Arr::get($topic, 'used_at')),
             'created_at' => $this->formatTimestamp(Arr::get($topic, 'created_at')),
             'updated_at' => $this->formatTimestamp(Arr::get($topic, 'updated_at')),
+            'is_duplicate' => (bool) Arr::get($topic, 'is_duplicate', false),
+            'duplicate_matches' => Arr::get($topic, 'duplicate_matches', []),
             'automation_state' => $this->automationState($score),
         ];
+    }
+
+    protected function actionPayload(): array
+    {
+        return $this->actionNotes !== '' ? ['notes' => $this->actionNotes] : [];
+    }
+
+    protected function normalizeActionApiErrors(array $errors): array
+    {
+        return collect($errors)
+            ->mapWithKeys(fn (mixed $messages, string $key): array => [
+                match ($key) {
+                    'notes' => 'actionNotes',
+                    default => $key,
+                } => is_array($messages) ? $messages : [$messages],
+            ])
+            ->all();
+    }
+
+    protected function canApprove(): bool
+    {
+        return in_array($this->topicRecord['status'] ?? null, ['suggested', 'rejected'], true);
+    }
+
+    protected function canReject(): bool
+    {
+        return in_array($this->topicRecord['status'] ?? null, ['suggested', 'approved'], true);
+    }
+
+    protected function canMarkUsed(): bool
+    {
+        return ($this->topicRecord['status'] ?? null) === 'approved';
+    }
+
+    protected function canQueueDraft(): bool
+    {
+        return ($this->topicRecord['status'] ?? null) === 'approved'
+            && (bool) ($this->topicRecord['can_generate_draft'] ?? false)
+            && ! (bool) ($this->topicRecord['has_draft_generation_job'] ?? false);
+    }
+
+    protected function actionState(): array
+    {
+        $status = (string) ($this->topicRecord['status'] ?? '');
+        $hasDraftJob = (bool) ($this->topicRecord['has_draft_generation_job'] ?? false);
+        $canGenerateDraft = (bool) ($this->topicRecord['can_generate_draft'] ?? false);
+
+        return [
+            'show_approve' => in_array($status, ['suggested', 'rejected'], true),
+            'show_reject' => in_array($status, ['suggested', 'approved'], true),
+            'show_queue_draft' => $status === 'approved',
+            'queue_draft_disabled' => $status !== 'approved' || ! $canGenerateDraft || $hasDraftJob,
+            'queue_draft_label' => $hasDraftJob ? 'Draft Queued' : 'Queue Draft',
+            'show_mark_used' => $status === 'approved',
+        ];
+    }
+
+    protected function actionConfig(): array
+    {
+        return match ($this->actionMode) {
+            'mark-used' => [
+                'title' => 'Mark Topic Used',
+                'description' => 'Confirm that this approved topic has now been used in the editorial workflow.',
+                'confirm' => 'Mark Used',
+                'destructive' => false,
+            ],
+            default => [
+                'title' => 'Reject Topic',
+                'description' => 'Reject this topic and optionally record editorial notes for the decision.',
+                'confirm' => 'Reject Topic',
+                'destructive' => true,
+            ],
+        };
     }
 
     protected function formatTimestamp(mixed $value): ?string
