@@ -33,10 +33,11 @@ class TopicQueueCategoryWorkflowTest extends TestCase
                 'data' => [
                     $this->topicResource([
                         'id' => 21,
-                        'title' => 'Laravel Queue Timeout Patterns',
+                        'title' => 'Codex vs Claude pricing comparison',
                         'category_id' => 5,
                         'category' => ['id' => 5, 'name' => 'AI Tools', 'slug' => 'ai-tools'],
                         'cluster' => 'ai_tools',
+                        'primary_keyword' => 'codex pricing',
                         'score_breakdown' => ['trend_score' => 31, 'knowledge_base_fit' => 19, 'business_value' => 18],
                     ]),
                 ],
@@ -49,8 +50,10 @@ class TopicQueueCategoryWorkflowTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('All categories')
-            ->assertSee('Laravel Queue Timeout Patterns')
+            ->assertSee('Codex vs Claude pricing comparison')
             ->assertSee('AI Tools')
+            ->assertSee('Commercial Intent')
+            ->assertSee('Tool-Specific')
             ->assertSee('All clusters')
             ->assertSee('Auto-queues draft generation');
     }
@@ -109,7 +112,7 @@ class TopicQueueCategoryWorkflowTest extends TestCase
                 return Http::response([
                     'data' => $this->topicResource([
                         'id' => 8,
-                        'title' => 'AI Agent Monitoring Ideas',
+                        'title' => 'Codex workflow review for editorial teams',
                         'category_id' => 5,
                         'category' => ['id' => 5, 'name' => 'AI Tools', 'slug' => 'ai-tools'],
                         'status' => 'approved',
@@ -131,6 +134,9 @@ class TopicQueueCategoryWorkflowTest extends TestCase
         Livewire::test(Show::class, ['topic' => 8])
             ->assertSee('Queue Draft')
             ->assertSee('AI Tools')
+            ->assertSee('AI Tools Editorial Context')
+            ->assertSee('Sponsor-Friendly Category')
+            ->assertSee('Tool-Specific')
             ->call('generateDraft')
             ->assertSee('Draft Queued');
     }
@@ -144,6 +150,8 @@ class TopicQueueCategoryWorkflowTest extends TestCase
                 return Http::response([
                     'data' => $this->topicResource([
                         'id' => 9,
+                        'title' => 'The future of AI in society',
+                        'primary_keyword' => 'artificial intelligence future',
                         'status' => 'suggested',
                         'can_generate_draft' => false,
                     ]),
@@ -167,6 +175,7 @@ class TopicQueueCategoryWorkflowTest extends TestCase
         Livewire::test(Show::class, ['topic' => 9])
             ->assertSee('Approve Topic')
             ->assertSee('Reject Topic')
+            ->assertSee('Weak Fit')
             ->assertDontSee('Queue Draft')
             ->assertDontSee('Mark Used');
 

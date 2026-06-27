@@ -44,10 +44,19 @@ class Show extends Component
 
     public function render()
     {
+        $isAiToolsTopic = ($this->topicRecord['category_slug'] ?? null) === 'ai-tools';
+
         return view('livewire.admin.topic-queue.show', [
             'automationTone' => $this->automationTone($this->topicRecord['priority_score'] ?? null),
             'actionState' => $this->actionState(),
             'actionConfig' => $this->actionConfig(),
+            'isAiToolsTopic' => $isAiToolsTopic,
+            'aiToolsGuidance' => $this->aiToolsGuidance($isAiToolsTopic),
+            'aiToolsFit' => $this->aiToolsFit(
+                $isAiToolsTopic,
+                (string) ($this->topicRecord['title'] ?? ''),
+                (string) ($this->topicRecord['primary_keyword'] ?? ''),
+            ),
         ])->layout('layouts.admin', [
             'title' => 'Topic Details',
         ]);
@@ -408,5 +417,65 @@ class Show extends Component
         }
 
         return 'The backend should auto-delete this topic below the 70 threshold.';
+    }
+
+    protected function aiToolsGuidance(bool $isAiToolsTopic): array
+    {
+        if (! $isAiToolsTopic) {
+            return [];
+        }
+
+        return [
+            'context' => 'AI Tools topics should stay practical, tool-specific, and commercially relevant without reading like ad copy.',
+            'good_fit' => [
+                'Named tool review',
+                'Tool comparison or alternatives page',
+                'Best tool for a specific use case',
+                'Pricing, trade-off, workflow, or integration coverage',
+            ],
+            'weak_fit' => [
+                'Generic AI future or opinion angles',
+                'Abstract AI theory',
+                'Broad non-tool educational topics',
+            ],
+        ];
+    }
+
+    protected function aiToolsFit(bool $isAiToolsTopic, string $title, string $primaryKeyword): array
+    {
+        if (! $isAiToolsTopic) {
+            return [
+                'label' => null,
+                'tone' => 'muted',
+                'note' => null,
+            ];
+        }
+
+        $text = strtolower(trim($title.' '.$primaryKeyword));
+        $hasCommercialToolCue = preg_match('/\b(review|reviews|compare|comparison|versus|vs|alternative|alternatives|best|pricing|price|cost|feature|features|workflow|integration|tool|tools|software|app|platform)\b/i', $text) === 1;
+        $hasNamedToolCue = preg_match('/\b(claude|codex|gemini|kiro|chatgpt|cursor|copilot|midjourney|perplexity|notebooklm|runway|suno|elevenlabs)\b/i', $text) === 1;
+        $hasBroadAiCue = preg_match('/\b(future|ethics|history|theory|basics|explained|overview|guide to ai|what is ai|artificial intelligence|society|impact|agi)\b/i', $text) === 1;
+
+        if ($hasCommercialToolCue || $hasNamedToolCue) {
+            return [
+                'label' => 'Tool-Specific',
+                'tone' => 'success',
+                'note' => 'Strong category fit for evaluation, selection, or workflow coverage.',
+            ];
+        }
+
+        if ($hasBroadAiCue) {
+            return [
+                'label' => 'Weak Fit',
+                'tone' => 'warning',
+                'note' => 'Broad AI framing; confirm a real tool or buyer-use-case angle before moving forward.',
+            ];
+        }
+
+        return [
+            'label' => 'Needs Tool Angle',
+            'tone' => 'muted',
+            'note' => 'Add a named tool, practical use case, or clearer evaluation angle.',
+        ];
     }
 }

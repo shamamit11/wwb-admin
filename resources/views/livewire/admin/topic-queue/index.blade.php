@@ -2,7 +2,7 @@
     <x-admin.page-header
         eyebrow="AI Content"
         title="Topic Queue"
-        description="Monitor category-owned topics, their scores, and the automation threshold that decides whether the backend prunes a topic or queues draft generation."
+        description="Review category-owned topics, their editorial fit, and the backend automation thresholds that decide whether a topic stays in queue or moves downstream."
     >
         <div class="flex max-w-sm flex-col gap-2 lg:items-end">
             <x-ui.button type="button" wire:click="openDiscoveryDialog" wire:loading.attr="disabled" wire:target="openDiscoveryDialog">
@@ -98,12 +98,29 @@
                     <x-ui.table-cell width="workflow-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $topic['title'] }}</p>
+                            @if ($topic['is_ai_tools'])
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    <x-ui.badge tone="default">AI Tools</x-ui.badge>
+                                    <x-ui.badge tone="muted">Commercial Intent</x-ui.badge>
+                                    @if ($topic['ai_tools_fit_label'])
+                                        <x-ui.badge :tone="$topic['ai_tools_fit_tone']">{{ $topic['ai_tools_fit_label'] }}</x-ui.badge>
+                                    @endif
+                                </div>
+                            @endif
                             <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $topic['slug'] ?: 'Slug pending' }}</p>
+                            @if ($topic['is_ai_tools'] && $topic['ai_tools_fit_note'])
+                                <p class="mt-2 text-xs text-[var(--color-muted)]">{{ $topic['ai_tools_fit_note'] }}</p>
+                            @endif
                         </div>
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>
                         <div class="space-y-1">
-                            <p>{{ $topic['category_name'] }}</p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <p>{{ $topic['category_name'] }}</p>
+                                @if ($topic['is_ai_tools'])
+                                    <x-ui.badge tone="warning">Tool-Focused</x-ui.badge>
+                                @endif
+                            </div>
                             <p class="text-xs text-[var(--color-muted)]">{{ $topic['category_slug'] ?: 'Category slug unavailable' }}</p>
                         </div>
                     </x-ui.table-cell>
