@@ -2,7 +2,7 @@
     <x-admin.page-header
         eyebrow="Topic Details"
         :title="$topicRecord['title'] ?? 'Topic detail'"
-        description="Review the saved category context, score data, and automation state the backend now uses as the source of truth for this topic."
+        description="Review the saved category context, editorial fit, and automation state the backend uses as the source of truth for this topic."
     >
         @if ($actionState['show_approve'])
             <x-ui.button type="button" wire:click="approveTopic" wire:loading.attr="disabled" wire:target="approveTopic">
@@ -54,6 +54,47 @@
     @if ($notFound)
         <x-ui.empty-state title="Topic not found" message="The requested topic is no longer available from the service API." />
     @else
+        @if ($isAiToolsTopic)
+            <x-admin.callout title="AI Tools Editorial Context">
+                <div class="space-y-4">
+                    <div class="flex flex-wrap gap-2">
+                        <x-ui.badge tone="default">AI Tools</x-ui.badge>
+                        <x-ui.badge tone="muted">Commercial Intent</x-ui.badge>
+                        <x-ui.badge tone="warning">Sponsor-Friendly Category</x-ui.badge>
+                        @if ($aiToolsFit['label'])
+                            <x-ui.badge :tone="$aiToolsFit['tone']">{{ $aiToolsFit['label'] }}</x-ui.badge>
+                        @endif
+                    </div>
+
+                    <p class="text-sm leading-6 text-[var(--color-muted)]">{{ $aiToolsGuidance['context'] }}</p>
+
+                    @if ($aiToolsFit['note'])
+                        <p class="text-sm font-medium text-[var(--color-ink)]">{{ $aiToolsFit['note'] }}</p>
+                    @endif
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-[var(--radius-button)] border border-[var(--color-line)] bg-[var(--color-panel-soft)] px-4 py-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Good Fit</p>
+                            <div class="mt-3 space-y-2 text-sm text-[var(--color-ink)]">
+                                @foreach ($aiToolsGuidance['good_fit'] as $item)
+                                    <p>{{ $item }}</p>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="rounded-[var(--radius-button)] border border-[color-mix(in_srgb,var(--color-warning)_20%,white)] bg-[color-mix(in_srgb,var(--color-warning)_6%,white)] px-4 py-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Weak Fit</p>
+                            <div class="mt-3 space-y-2 text-sm text-[var(--color-ink)]">
+                                @foreach ($aiToolsGuidance['weak_fit'] as $item)
+                                    <p>{{ $item }}</p>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </x-admin.callout>
+        @endif
+
         <x-admin.callout title="Discard Not Available">
             Archive or discard is not available on this screen yet because the service does not support a non-destructive discard workflow.
         </x-admin.callout>
@@ -77,7 +118,12 @@
                         </div>
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Category</p>
-                            <p class="mt-2 text-sm text-[var(--color-ink)]">{{ $topicRecord['category_name'] }}</p>
+                            <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-[var(--color-ink)]">
+                                <p>{{ $topicRecord['category_name'] }}</p>
+                                @if ($isAiToolsTopic)
+                                    <x-ui.badge tone="warning">Tool-Focused</x-ui.badge>
+                                @endif
+                            </div>
                             <p class="mt-1 text-xs text-[var(--color-muted)]">{{ $topicRecord['category_slug'] ?: 'Category slug unavailable' }}</p>
                         </div>
                         <div>
@@ -96,6 +142,20 @@
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Editorial Recommendation</p>
                             <p class="mt-2 text-sm text-[var(--color-ink)]">{{ str($topicRecord['editorial_recommendation'] ?: 'unscored')->headline() }}</p>
                         </div>
+                        @if ($isAiToolsTopic)
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">Category Fit</p>
+                                <div class="mt-2 flex flex-wrap items-center gap-2">
+                                    @if ($aiToolsFit['label'])
+                                        <x-ui.badge :tone="$aiToolsFit['tone']">{{ $aiToolsFit['label'] }}</x-ui.badge>
+                                    @endif
+                                    <x-ui.badge tone="muted">Editorially Neutral</x-ui.badge>
+                                </div>
+                                @if ($aiToolsFit['note'])
+                                    <p class="mt-2 text-sm text-[var(--color-muted)]">{{ $aiToolsFit['note'] }}</p>
+                                @endif
+                            </div>
+                        @endif
                     </div>
 
                     <div class="space-y-3">
