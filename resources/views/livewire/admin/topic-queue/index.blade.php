@@ -2,7 +2,7 @@
     <x-admin.page-header
         eyebrow="AI Content"
         title="Topic Queue"
-        description="Monitor category-owned topics, their scores, and the automation threshold that decides whether the backend prunes a topic or queues draft generation."
+        description="Review category-owned topics, their editorial fit, and the backend automation thresholds that decide whether a topic stays in queue or moves downstream."
     >
         <div class="flex max-w-sm flex-col gap-2 lg:items-end">
             <x-ui.button type="button" wire:click="openDiscoveryDialog" wire:loading.attr="disabled" wire:target="openDiscoveryDialog">
@@ -31,7 +31,7 @@
     </div>
 
     <x-admin.callout title="Automation Model">
-        Topics scoring below <span class="font-medium text-[var(--color-ink)]">90</span> are auto-deleted by backend automation. Topics scoring <span class="font-medium text-[var(--color-ink)]">90 or above</span> auto-queue blog draft generation. Editors review the generated draft, not an intermediate brief.
+        Topics scoring below <span class="font-medium text-[var(--color-ink)]">70</span> are auto-deleted by backend automation. Topics scoring from <span class="font-medium text-[var(--color-ink)]">70 to 84.99</span> stay in Topic Queue for editorial review. Topics scoring <span class="font-medium text-[var(--color-ink)]">85 or above</span> auto-queue blog draft generation.
     </x-admin.callout>
 
     <x-admin.filter-bar>
@@ -98,12 +98,29 @@
                     <x-ui.table-cell width="workflow-primary">
                         <div class="min-w-0">
                             <p class="truncate font-semibold text-[var(--color-ink)]">{{ $topic['title'] }}</p>
+                            @if ($topic['is_ai_tools'])
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    <x-ui.badge tone="default">AI Tools</x-ui.badge>
+                                    <x-ui.badge tone="muted">Commercial Intent</x-ui.badge>
+                                    @if ($topic['ai_tools_fit_label'])
+                                        <x-ui.badge :tone="$topic['ai_tools_fit_tone']">{{ $topic['ai_tools_fit_label'] }}</x-ui.badge>
+                                    @endif
+                                </div>
+                            @endif
                             <p class="mt-1 text-sm text-[var(--color-muted)]">{{ $topic['slug'] ?: 'Slug pending' }}</p>
+                            @if ($topic['is_ai_tools'] && $topic['ai_tools_fit_note'])
+                                <p class="mt-2 text-xs text-[var(--color-muted)]">{{ $topic['ai_tools_fit_note'] }}</p>
+                            @endif
                         </div>
                     </x-ui.table-cell>
                     <x-ui.table-cell subdued>
                         <div class="space-y-1">
-                            <p>{{ $topic['category_name'] }}</p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <p>{{ $topic['category_name'] }}</p>
+                                @if ($topic['is_ai_tools'])
+                                    <x-ui.badge tone="warning">Tool-Focused</x-ui.badge>
+                                @endif
+                            </div>
                             <p class="text-xs text-[var(--color-muted)]">{{ $topic['category_slug'] ?: 'Category slug unavailable' }}</p>
                         </div>
                     </x-ui.table-cell>
@@ -111,7 +128,7 @@
                     <x-ui.table-cell subdued>{{ $topic['primary_keyword'] ?: 'Not set' }}</x-ui.table-cell>
                     <x-ui.table-cell>
                         <div class="space-y-1">
-                            <x-ui.badge :tone="$topic['priority_score'] !== null && $topic['priority_score'] >= 90 ? 'success' : 'warning'">
+                            <x-ui.badge :tone="$topic['automation_tone']">
                                 {{ $topic['priority_score_label'] }}
                             </x-ui.badge>
                             @if ($topic['score_breakdown_summary'])

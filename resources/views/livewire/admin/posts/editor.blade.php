@@ -81,10 +81,9 @@
                         <p class="mt-1 text-sm text-[var(--color-muted)]">Quill drives the canonical article editing surface. Inline images are inserted from the media library or uploaded through the backend media API so the editor can preserve `data-media-id` for post-media syncing.</p>
                     </div>
 
-                    <div class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-white">
+                    <div wire:ignore class="overflow-hidden rounded-[var(--radius-button)] border border-[var(--color-line)] bg-white">
                         <div
                             id="post-article-editor"
-                            wire:ignore
                             data-quill-editor
                             data-quill-html-field="#post-full-article-html"
                             data-quill-delta-field="#post-full-article-delta"

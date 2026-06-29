@@ -33,10 +33,11 @@ class TopicQueueCategoryWorkflowTest extends TestCase
                 'data' => [
                     $this->topicResource([
                         'id' => 21,
-                        'title' => 'Laravel Queue Timeout Patterns',
+                        'title' => 'Codex vs Claude pricing comparison',
                         'category_id' => 5,
                         'category' => ['id' => 5, 'name' => 'AI Tools', 'slug' => 'ai-tools'],
                         'cluster' => 'ai_tools',
+                        'primary_keyword' => 'codex pricing',
                         'score_breakdown' => ['trend_score' => 31, 'knowledge_base_fit' => 19, 'business_value' => 18],
                     ]),
                 ],
@@ -49,8 +50,10 @@ class TopicQueueCategoryWorkflowTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('All categories')
-            ->assertSee('Laravel Queue Timeout Patterns')
+            ->assertSee('Codex vs Claude pricing comparison')
             ->assertSee('AI Tools')
+            ->assertSee('Commercial Intent')
+            ->assertSee('Tool-Specific')
             ->assertSee('All clusters')
             ->assertSee('Auto-queues draft generation');
     }
@@ -100,15 +103,21 @@ class TopicQueueCategoryWorkflowTest extends TestCase
     {
         session($this->authenticatedSession());
 
-        Http::fake(function (Request $request) {
+        $showRequestCount = 0;
+
+        Http::fake(function (Request $request) use (&$showRequestCount) {
             if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/8') {
+                $showRequestCount++;
+
                 return Http::response([
                     'data' => $this->topicResource([
                         'id' => 8,
-                        'title' => 'AI Agent Monitoring Ideas',
+                        'title' => 'Codex workflow review for editorial teams',
                         'category_id' => 5,
                         'category' => ['id' => 5, 'name' => 'AI Tools', 'slug' => 'ai-tools'],
+                        'status' => 'approved',
                         'can_generate_draft' => true,
+                        'has_draft_generation_job' => $showRequestCount > 1,
                     ]),
                 ], 200);
             }
@@ -123,10 +132,117 @@ class TopicQueueCategoryWorkflowTest extends TestCase
         });
 
         Livewire::test(Show::class, ['topic' => 8])
-            ->assertSee('Generate Draft')
+            ->assertSee('Queue Draft')
             ->assertSee('AI Tools')
+            ->assertSee('AI Tools Editorial Context')
+            ->assertSee('Sponsor-Friendly Category')
+            ->assertSee('Tool-Specific')
             ->call('generateDraft')
-            ->assertRedirect(route('ai-jobs.show', ['aiJob' => 77]));
+            ->assertSee('Draft Queued');
+    }
+
+    public function test_topic_detail_shows_context_aware_editorial_actions(): void
+    {
+        session($this->authenticatedSession());
+
+        Http::fake(function (Request $request) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/9') {
+                return Http::response([
+                    'data' => $this->topicResource([
+                        'id' => 9,
+                        'title' => 'The future of AI in society',
+                        'primary_keyword' => 'artificial intelligence future',
+                        'status' => 'suggested',
+                        'can_generate_draft' => false,
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/10') {
+                return Http::response([
+                    'data' => $this->topicResource([
+                        'id' => 10,
+                        'status' => 'approved',
+                        'can_generate_draft' => true,
+                        'has_draft_generation_job' => true,
+                    ]),
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Show::class, ['topic' => 9])
+            ->assertSee('Approve Topic')
+            ->assertSee('Reject Topic')
+            ->assertSee('Weak Fit')
+            ->assertDontSee('Queue Draft')
+            ->assertDontSee('Mark Used');
+
+        Livewire::test(Show::class, ['topic' => 10])
+            ->assertDontSee('Approve Topic')
+            ->assertSee('Reject Topic')
+            ->assertSee('Draft Queued')
+            ->assertSee('Mark Used');
+    }
+
+    public function test_topic_detail_handles_validation_and_conflict_errors_for_editorial_actions(): void
+    {
+        session($this->authenticatedSession());
+
+        $topicTenShowCount = 0;
+
+        Http::fake(function (Request $request) use (&$topicTenShowCount) {
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/10') {
+                $topicTenShowCount++;
+
+                return Http::response([
+                    'data' => $this->topicResource([
+                        'id' => 10,
+                        'status' => $topicTenShowCount > 1 ? 'approved' : 'suggested',
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/10/approve') {
+                return Http::response([
+                    'message' => 'This topic is already approved.',
+                    'errors' => ['status' => ['approved'], 'action' => ['approve']],
+                ], 409);
+            }
+
+            if ($request->method() === 'GET' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/11') {
+                return Http::response([
+                    'data' => $this->topicResource([
+                        'id' => 11,
+                        'status' => 'approved',
+                    ]),
+                ], 200);
+            }
+
+            if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/11/reject') {
+                $this->assertSame('Need stronger differentiation.', $request['notes']);
+
+                return Http::response([
+                    'message' => 'Validation failed.',
+                    'errors' => ['notes' => ['Notes may not exceed 10 characters.']],
+                ], 422);
+            }
+
+            return Http::response(['message' => 'Unexpected request.'], 500);
+        });
+
+        Livewire::test(Show::class, ['topic' => 10])
+            ->call('approveTopic')
+            ->assertSet('topicRecord.status', 'approved')
+            ->assertSee('This topic is already approved.');
+
+        Livewire::test(Show::class, ['topic' => 11])
+            ->call('openActionDialog', 'reject')
+            ->set('actionNotes', 'Need stronger differentiation.')
+            ->call('executeAction')
+            ->assertHasErrors(['actionNotes'])
+            ->assertSee('Validation failed.');
     }
 
     protected function authenticatedSession(): array
@@ -176,11 +292,15 @@ class TopicQueueCategoryWorkflowTest extends TestCase
             'difficulty_note' => null,
             'source' => 'ai_suggested',
             'status' => 'suggested',
+            'editorial_recommendation' => 'review',
             'notes' => null,
             'can_generate_draft' => false,
+            'has_draft_generation_job' => false,
             'approved_at' => '',
             'rejected_at' => '',
             'used_at' => '',
+            'is_duplicate' => false,
+            'duplicate_matches' => [],
             'created_at' => now()->subHour()->toISOString(),
             'updated_at' => now()->toISOString(),
         ], $overrides);

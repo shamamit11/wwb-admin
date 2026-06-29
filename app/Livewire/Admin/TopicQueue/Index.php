@@ -18,6 +18,10 @@ use Livewire\Component;
 
 class Index extends Component
 {
+    private const REVIEW_THRESHOLD = 70.0;
+
+    private const AUTO_DRAFT_THRESHOLD = 85.0;
+
     private const TOPIC_STATUSES = ['suggested', 'approved', 'rejected', 'used'];
 
     private const TOPIC_CLUSTERS = ['ai_tools', 'ai_for_blogging', 'seo', 'content_marketing', 'productivity_automation', 'developer_ai'];
@@ -285,12 +289,18 @@ class Index extends Component
         $rawScore = Arr::get($topic, 'priority_score', Arr::get($topic, 'score'));
         $score = is_numeric($rawScore) ? (float) $rawScore : null;
         $scoreBreakdown = $this->normalizeScoreBreakdown(Arr::get($topic, 'score_breakdown'));
+        $categorySlug = (string) Arr::get($topic, 'category.slug', '');
+        $aiToolsFit = $this->aiToolsFit(
+            $categorySlug,
+            (string) Arr::get($topic, 'title', ''),
+            (string) Arr::get($topic, 'primary_keyword', ''),
+        );
 
         return [
             'id' => (int) Arr::get($topic, 'id'),
             'category_id' => Arr::get($topic, 'category_id'),
             'category_name' => (string) Arr::get($topic, 'category.name', 'Unassigned'),
-            'category_slug' => (string) Arr::get($topic, 'category.slug', ''),
+            'category_slug' => $categorySlug,
             'title' => (string) Arr::get($topic, 'title', 'Untitled topic'),
             'slug' => (string) Arr::get($topic, 'slug', ''),
             'cluster' => (string) Arr::get($topic, 'cluster', ''),
@@ -304,10 +314,50 @@ class Index extends Component
             'status' => (string) Arr::get($topic, 'status', 'suggested'),
             'created_at' => $this->formatTimestamp(Arr::get($topic, 'created_at')),
             'updated_at' => $this->formatTimestamp(Arr::get($topic, 'updated_at')),
-            'automation_state' => $score === null
-                ? 'Score pending'
-                : ($score >= 90 ? 'Auto-queues draft generation' : 'Auto-pruned below 90'),
-            'automation_tone' => $score === null ? 'muted' : ($score >= 90 ? 'success' : 'warning'),
+            'automation_state' => $this->automationState($score),
+            'automation_tone' => $this->automationTone($score),
+            'is_ai_tools' => $categorySlug === 'ai-tools',
+            'ai_tools_fit_label' => $aiToolsFit['label'],
+            'ai_tools_fit_tone' => $aiToolsFit['tone'],
+            'ai_tools_fit_note' => $aiToolsFit['note'],
+        ];
+    }
+
+    protected function aiToolsFit(string $categorySlug, string $title, string $primaryKeyword): array
+    {
+        if ($categorySlug !== 'ai-tools') {
+            return [
+                'label' => null,
+                'tone' => 'muted',
+                'note' => null,
+            ];
+        }
+
+        $text = strtolower(trim($title.' '.$primaryKeyword));
+        $hasCommercialToolCue = preg_match('/\b(review|reviews|compare|comparison|versus|vs|alternative|alternatives|best|pricing|price|cost|feature|features|workflow|integration|tool|tools|software|app|platform)\b/i', $text) === 1;
+        $hasNamedToolCue = preg_match('/\b(claude|codex|gemini|kiro|chatgpt|cursor|copilot|midjourney|perplexity|notebooklm|runway|suno|elevenlabs)\b/i', $text) === 1;
+        $hasBroadAiCue = preg_match('/\b(future|ethics|history|theory|basics|explained|overview|guide to ai|what is ai|artificial intelligence|society|impact|agi)\b/i', $text) === 1;
+
+        if ($hasCommercialToolCue || $hasNamedToolCue) {
+            return [
+                'label' => 'Tool-Specific',
+                'tone' => 'success',
+                'note' => 'Strong fit for review, comparison, alternatives, or workflow coverage.',
+            ];
+        }
+
+        if ($hasBroadAiCue) {
+            return [
+                'label' => 'Weak Fit',
+                'tone' => 'warning',
+                'note' => 'Broad AI framing; confirm a real tool or buyer-use-case angle.',
+            ];
+        }
+
+        return [
+            'label' => 'Needs Tool Angle',
+            'tone' => 'muted',
+            'note' => 'Add a named tool, practical use case, or evaluation hook.',
         ];
     }
 
@@ -341,13 +391,13 @@ class Index extends Component
     {
         return [
             [
-                'label' => 'Topics At 90+',
-                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) >= 90)->count(),
+                'label' => 'Auto-Draft 85+',
+                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) >= self::AUTO_DRAFT_THRESHOLD)->count(),
                 'tone' => 'success',
             ],
             [
-                'label' => 'Below 90',
-                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? 0) < 90)->count(),
+                'label' => 'Review 70-84.99',
+                'value' => collect($this->topics)->filter(fn (array $topic): bool => ($topic['priority_score'] ?? -1) >= self::REVIEW_THRESHOLD && ($topic['priority_score'] ?? 0) < self::AUTO_DRAFT_THRESHOLD)->count(),
                 'tone' => 'warning',
             ],
             [
@@ -395,6 +445,40 @@ class Index extends Component
             ->all();
 
         return $parts === [] ? null : implode(' · ', $parts);
+    }
+
+    protected function automationState(?float $score): string
+    {
+        if ($score === null) {
+            return 'Score pending';
+        }
+
+        if ($score >= self::AUTO_DRAFT_THRESHOLD) {
+            return 'Auto-queues draft generation';
+        }
+
+        if ($score >= self::REVIEW_THRESHOLD) {
+            return 'Editorial review band';
+        }
+
+        return 'Auto-pruned below 70';
+    }
+
+    protected function automationTone(?float $score): string
+    {
+        if ($score === null) {
+            return 'muted';
+        }
+
+        if ($score >= self::AUTO_DRAFT_THRESHOLD) {
+            return 'success';
+        }
+
+        if ($score >= self::REVIEW_THRESHOLD) {
+            return 'warning';
+        }
+
+        return 'muted';
     }
 
     protected function defaultDiscoveryCategoryId(): string

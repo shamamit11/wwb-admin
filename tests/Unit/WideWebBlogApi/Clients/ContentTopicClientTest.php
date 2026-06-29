@@ -73,12 +73,16 @@ class ContentTopicClientTest extends TestCase
             }
 
             if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/8/reject') {
+                $this->assertSame('Needs a sharper angle.', $request['notes']);
+
                 return Http::response([
                     'data' => ['id' => 8, 'title' => 'Updated Topic', 'status' => 'rejected'],
                 ], 200);
             }
 
             if ($request->method() === 'POST' && $request->url() === $this->apiBaseUrl.'/admin/content-topics/8/mark-used') {
+                $this->assertSame('Assigned to the editorial calendar.', $request['notes']);
+
                 return Http::response([
                     'data' => ['id' => 8, 'title' => 'Updated Topic', 'status' => 'used'],
                 ], 200);
@@ -105,8 +109,12 @@ class ContentTopicClientTest extends TestCase
             'notes' => 'Looks aligned.',
         ]);
 
-        $rejected = app(ContentTopicClient::class)->reject('test-token', 'Bearer', 8);
-        $used = app(ContentTopicClient::class)->markUsed('test-token', 'Bearer', 8);
+        $rejected = app(ContentTopicClient::class)->reject('test-token', 'Bearer', 8, [
+            'notes' => 'Needs a sharper angle.',
+        ]);
+        $used = app(ContentTopicClient::class)->markUsed('test-token', 'Bearer', 8, [
+            'notes' => 'Assigned to the editorial calendar.',
+        ]);
         $draft = app(ContentTopicClient::class)->generateDraft('test-token', 'Bearer', 8);
 
         $this->assertSame('Updated Topic', $updated['data']['title']);
